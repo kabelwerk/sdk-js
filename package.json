@@ -7,5 +7,14 @@
   "author": "pavelsof",
   "dependencies": {
     "phoenix": "^1.5.9"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  },
+  "jest": {
+    "transform": {}
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
   }
 }

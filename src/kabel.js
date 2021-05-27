@@ -1,4 +1,4 @@
-import { Socket } from 'phoenix';
+import phoenix from 'phoenix';
 
 import { initDispatcher } from './dispatcher.js';
 import { initInbox } from './inbox.js';
@@ -11,7 +11,7 @@ import { initRoom } from './room.js';
 // Helper for the initKabel factory below.
 //
 const initSocket = function(url, token, dispatcher) {
-    let socket = new Socket(url, {params: { token }});
+    let socket = new phoenix.Socket(url, {params: { token }});
 
     socket.onOpen(function() {
         logger.info("Websocket connected.");
