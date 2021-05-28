@@ -1,4 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
+import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
 
 
 // Init a room object.
@@ -19,12 +20,30 @@ const initRoom = function(socket, roomId) {
     channel.join();
 
     return {
+
+        // Create a new chat message. Return a promise.
+        //
         createMessage: function(text) {
-            channel.push('create_message', { text });
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('create_message', { text });
+
+                push.receive('ok', function(message) {
+                    resolve(message);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
         },
 
         on: dispatcher.on,
         off: dispatcher.off,
+        once: dispatcher.once,
     };
 };
 

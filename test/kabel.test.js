@@ -1,11 +1,9 @@
-import { jest } from '@jest/globals';
-
 import { Socket } from './mocks/phoenix.js';
 
 const { initKabel } = await import('../src/kabel.js');
 
 
-test('initKabel inits a socket', () => {
+test('kabel inits a phoenix socket', () => {
     let kabel = initKabel('url', 'token');
     expect(kabel).toBeTruthy();
 

@@ -19,14 +19,60 @@ test('on/off/once unknown event', () => {
     }).toThrow();
 });
 
-test('send → on works', (done) => {
-    let dispatcher = initDispatcher(['test']);
+test('send → on', () => {
+    expect.assertions(1);
 
-    const callback = function(value) {
+    let dispatcher = initDispatcher(['answer']);
+
+    dispatcher.on('answer', (value) => {
         expect(value).toBe(42);
-        done();
-    };
+    });
 
-    dispatcher.on('test', callback);
-    dispatcher.send('test', 42);
+    dispatcher.send('answer', 42);
+});
+
+test('send → once', () => {
+    expect.assertions(1);
+
+    let dispatcher = initDispatcher(['answer']);
+
+    dispatcher.once('answer', (value) => {
+        expect(value).toBe(42);
+    });
+
+    dispatcher.send('answer', 42);  // 1 assert
+    dispatcher.send('answer', 42);  // no asserts
+});
+
+test('off without a ref', () => {
+    expect.assertions(2);
+
+    let dispatcher = initDispatcher(['answer']);
+
+    for (let i = 0; i < 2; i++) {
+        dispatcher.on('answer', (value) => {
+            expect(value).toBe(42);
+        });
+    }
+
+    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.off('answer');
+    dispatcher.send('answer', 42);  // 0 asserts
+});
+
+test('off with a ref', () => {
+    expect.assertions(3);
+
+    let dispatcher = initDispatcher(['answer']);
+
+    let ref;
+    for (let i = 0; i < 2; i++) {
+        ref = dispatcher.on('answer', (value) => {
+            expect(value).toBe(42);
+        });
+    }
+
+    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.off('answer', ref);
+    dispatcher.send('answer', 42);  // 1 assert
 });

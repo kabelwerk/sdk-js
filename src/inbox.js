@@ -1,4 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
+import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
 import logger from './logger.js';
 
 
@@ -9,7 +10,7 @@ import logger from './logger.js';
 // Example usage:
 //
 //  let inbox = kabel.openInbox();
-//  inbox.listRooms();
+//  inbox.listRooms().then((rooms) => { console.log(rooms) });
 //  inbox.on('changed', (rooms) => { console.log(rooms) });
 //
 const initInbox = function(channel, params) {
@@ -26,11 +27,26 @@ const initInbox = function(channel, params) {
         // Retrieve a list of rooms.
         //
         listRooms: function(pagination) {
-            channel.push('list_rooms');
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('list_rooms');
+
+                push.receive('ok', function(rooms) {
+                    resolve(rooms);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
         },
 
         on: dispatcher.on,
         off: dispatcher.off,
+        once: dispatcher.once,
     };
 };
 

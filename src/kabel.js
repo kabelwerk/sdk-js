@@ -41,12 +41,12 @@ const initSocket = function(url, token, dispatcher) {
 //
 // Example usage:
 //
-//  let kabel = initKabel({});
+//  let kabel = initKabel(url, token);
 //
 //  kabel.on('connected', () => { console.log('hooray!') });
 //  kabel.on('error', (error) => { console.error(error) });
 //
-//  kabel.on('ready', function() {
+//  kabel.once('ready', function() {
 //      let inbox = kabel.openInbox();
 //      let room = kabel.openRoom(42);
 //  });
@@ -67,7 +67,6 @@ const initKabel = function(url, token) {
 
     // step 2: join the user's private channel
     let userChannel = null;
-    let user = null;
 
     dispatcher.once('connected', function() {
         userChannel = socket.channel('private');
@@ -75,8 +74,7 @@ const initKabel = function(url, token) {
         userChannel.join()
             .receive('ok', function(payload) {
                 logger.info("Joined the user's private channel.");
-                user = payload;
-                dispatcher.send('user_loaded');
+                dispatcher.send('user_loaded', { user: payload });
             })
             .receive('error', function(error) {
                 logger.error(error);
@@ -87,7 +85,7 @@ const initKabel = function(url, token) {
     // step 3: join the user's inbox channel
     let inboxChannel = null;
 
-    dispatcher.once('user_loaded', function() {
+    dispatcher.once('user_loaded', function(user) {
         if (user.hub_id) {
             inboxChannel = socket.channel(`hub_inbox:${user.hub_id}`);
         } else {
