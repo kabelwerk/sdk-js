@@ -2,7 +2,9 @@ import { jest } from '@jest/globals';
 
 
 const Push = (function() {
-    const receive = jest.fn();
+    const receive = jest.fn().mockImplementation(() => {
+        return Push;
+    });
 
     // fake a server response to a push
     const __serverRespond = function(status, payload) {

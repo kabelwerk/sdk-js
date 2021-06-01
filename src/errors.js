@@ -10,7 +10,12 @@ const TIMEOUT = 'Timeout';
 
 // Init an Error instance.
 //
+// Store the type of error in Error.prototype.name, as extending the built-in
+// Error class is not well supported [1].
+//
 // If no message is given, provide one depending on the error type.
+//
+// [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
 //
 const initError = function(type, message) {
     if (!message) {
