@@ -12,7 +12,9 @@ const parseUser = function(payload) {
 };
 
 
-const parseMessage = function(payload) {
+// Parse the payload of a message_posted event.
+//
+export const parseMessage = function(payload) {
     return {
         id: payload.id,
         insertedAt: new Date(payload.inserted_at),
@@ -20,6 +22,16 @@ const parseMessage = function(payload) {
         text: payload.text,
         updatedAt: new Date(payload.updated_at),
         user: payload.user ? parseUser(payload.user) : null,
+    };
+};
+
+
+// Parse the payload of a list_messages response or a successful room channel
+// join response.
+//
+export const parseMessageList = function(payload) {
+    return {
+        messages: payload.messages.map(parseMessage),
     };
 };
 

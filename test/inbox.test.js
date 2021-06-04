@@ -22,7 +22,7 @@ describe('init', () => {
         initInbox(Channel, {
             limit: 50,
             attributes: {country: 'DE'},
-            hubOwner: 1,
+            hubUser: 1,
             archived: true,
         });
 
@@ -31,7 +31,7 @@ describe('init', () => {
             limit: 50,
             offset: 0,
             attributes: {country: 'DE'},
-            hub_owner: 1,
+            hub_user: 1,
             archived: true,
         });
     });
@@ -59,7 +59,7 @@ describe('init', () => {
     });
 });
 
-describe('downstream updates', () => {
+describe('inbox updated', () => {
     let [roomA, roomB] = inboxRoomFactory.createBatch(2);
     let inbox = null;
 
@@ -153,7 +153,7 @@ describe('load more', () => {
         let inbox = initInbox(Channel, {
             limit: 20,
             attributes: {city: 'Berlin'},
-            hubOwner: 2,
+            hubUser: 2,
             archived: true,
         });
         Push.__serverRespond('ok', {rooms: [roomA]});
@@ -165,7 +165,7 @@ describe('load more', () => {
             limit: 20,
             offset: 1,
             attributes: {city: 'Berlin'},
-            hub_owner: 2,
+            hub_user: 2,
             archived: true,
         });
     });

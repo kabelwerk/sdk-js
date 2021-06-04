@@ -7,11 +7,15 @@ const Push = (function() {
     });
 
     // fake a server response to a push
-    const __serverRespond = function(status, payload) {
+    const __serverRespond = function(status, payload, clear=true) {
         for (let call of receive.mock.calls) {
             if (call[0] == status) {
                 call[1](payload);
             }
+        }
+
+        if (clear) {
+            receive.mockClear();
         }
     };
 
@@ -20,7 +24,10 @@ const Push = (function() {
 
 
 const Channel = (function() {
-    const join = jest.fn();
+    const join = jest.fn().mockImplementation(() => {
+        return Push;
+    });
+
     const on = jest.fn();
 
     const push = jest.fn().mockImplementation(() => {

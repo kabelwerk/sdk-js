@@ -12,7 +12,7 @@ import logger from './logger.js';
 //
 // - limit
 // - attributes
-// - hubOwner
+// - hubUser
 // - archived
 //
 // For end users, only the limit is relevant.
@@ -29,7 +29,7 @@ const initInbox = function(channel, params) {
     params = Object.assign({
         limit: 100,
         attributes: null,
-        hubOwner: null,
+        hubUser: null,
         archived: false,
     }, params);
 
@@ -50,8 +50,8 @@ const initInbox = function(channel, params) {
         if (params.attributes) {
             pushParams.attributes = params.attributes;
         }
-        if (params.hubOwner) {
-            pushParams.hub_owner = params.hubOwner;
+        if (params.hubUser) {
+            pushParams.hub_user = params.hubUser;
         }
         return pushParams;
     };
