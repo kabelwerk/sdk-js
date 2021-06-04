@@ -1,6 +1,24 @@
+// Factory for user objects as they would come from the backend.
+//
+export const userFactory = (function() {
+    let counter = 0;
+
+    const create = function(params) {
+        let id = ++counter;
+        return {
+            id: id,
+            key: `key_${id}`,
+            name: `user ${id}`,
+        };
+    };
+
+    return { create };
+})();
+
+
 // Factory for message objects as they would come from the backend.
 //
-const messageFactory = (function() {
+export const messageFactory = (function() {
     let counter = 0;
 
     const create = function(params) {
@@ -30,7 +48,7 @@ const messageFactory = (function() {
 
 // Factory for inbox room objects as they would come from the backend.
 //
-const inboxRoomFactory = (function() {
+export const inboxRoomFactory = (function() {
     let counter = 0;
 
     const create = function() {
@@ -52,6 +70,3 @@ const inboxRoomFactory = (function() {
 
     return { create, createBatch };
 })();
-
-
-export { inboxRoomFactory, messageFactory };

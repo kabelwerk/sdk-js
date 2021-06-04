@@ -1,4 +1,6 @@
+import { USAGE_ERROR, initError } from './errors.js';
 import { initKabel } from './kabel.js';
+import logger from './logger.js';
 
 
 // Init the Kabelwerk singleton object.
@@ -8,16 +10,34 @@ const Kabelwerk = (function() {
 
     return {
 
-        // Init and return a kabel object. Throw an error if there is already an
-        // active kabel object.
+        // Init and return a kabel object. Throw an error if there is already
+        // an active kabel object.
         //
-        connect: function(url, token) {
+        connect: function(params) {
             if (kabel) {
-                let message = 'You already have an active kabel object.';
-                throw new Error(message);
+                throw initError(USAGE_ERROR, 'You have already connected!');
             }
 
-            kabel = initKabel(url, token);
+            if (!params.url) {
+                throw initError(USAGE_ERROR,
+                    'Please specify the URL of the Kabelwerk backend ' +
+                    'to which to connect.'
+                );
+            }
+
+            if (!params.token) {
+                throw initError(USAGE_ERROR,
+                    'Please provide the authentication token of the user ' +
+                    'on behalf of which you are connecting.'
+                );
+            }
+
+            if (params.logging) {
+                logger.setLevel(params.logging);
+            }
+
+            kabel = initKabel(params.url, params.token);
+
             return kabel;
         },
 
@@ -25,20 +45,18 @@ const Kabelwerk = (function() {
         //
         disconnect: function() {
             if (!kabel) {
-                let message = 'You have not connected yet!';
-                throw new Error(message);
+                throw initError(USAGE_ERROR, 'You have not connected yet!');
             }
 
             kabel = null;
         },
 
-        // Return the currently active kabel object or throw an error if there is
-        // not one.
+        // Return the currently active kabel object or throw an error if there
+        // is not one.
         //
         getKabel: function() {
             if (!kabel) {
-                let message = 'You have not connected yet!';
-                throw new Error(message);
+                throw initError(USAGE_ERROR, 'You have not connected yet!');
             }
 
             return kabel;

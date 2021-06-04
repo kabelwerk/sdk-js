@@ -1,5 +1,5 @@
 export default {
     clearMocks: true,
     transform: {},
-    verbose: true,
+    verbose: false,
 };

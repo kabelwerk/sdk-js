@@ -1,5 +1,3 @@
-import { jest } from '@jest/globals';
-
 import { initDispatcher } from '../src/dispatcher.js';
 
 

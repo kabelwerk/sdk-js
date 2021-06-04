@@ -3,7 +3,9 @@
 //
 
 
-const parseUser = function(payload) {
+// Parse the payload of a successful private channel join response.
+//
+export const parseUser = function(payload) {
     return {
         id: payload.id,
         key: payload.key,

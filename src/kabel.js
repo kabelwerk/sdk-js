@@ -1,8 +1,10 @@
 import phoenix from 'phoenix';
 
 import { initDispatcher } from './dispatcher.js';
+import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
+import { parseUser } from './payloads.js';
 import { initRoom } from './room.js';
 
 
@@ -14,18 +16,18 @@ const initSocket = function(url, token, dispatcher) {
     let socket = new phoenix.Socket(url, {params: { token }});
 
     socket.onOpen(function() {
-        logger.info("Websocket connected.");
+        logger.info('Websocket connected.');
         dispatcher.send('connected', {});
     });
 
     socket.onClose(function() {
-        logger.info("Websocket disconnected.");
+        logger.info('Websocket disconnected.');
         dispatcher.send('disconnected', {});
     });
 
     socket.onError(function(error) {
-        logger.error(error);
-        dispatcher.send('error', { error });
+        logger.error(`Websocket error: ${error}.`);
+        dispatcher.send('error', initError(CONNECTION_ERROR, error));
     });
 
     socket.connect();
@@ -66,19 +68,22 @@ const initKabel = function(url, token) {
     let socket = initSocket(url, token, dispatcher);
 
     // step 2: join the user's private channel
-    let userChannel = null;
+    let privateChannel = null;
 
     dispatcher.once('connected', function() {
-        userChannel = socket.channel('private');
+        privateChannel = socket.channel('private');
 
-        userChannel.join()
+        privateChannel.join()
             .receive('ok', function(payload) {
-                logger.info("Joined the user's private channel.");
-                dispatcher.send('user_loaded', { user: payload });
+                let user = parseUser(payload);
+                dispatcher.send('user_loaded', user);
+                logger.info('Joined the private channel.');
             })
-            .receive('error', function(error) {
-                logger.error(error);
-                dispatcher.send('error', { error });
+            .receive('error', function() {
+                dispatcher.send('error', initError(PUSH_REJECTED));
+            })
+            .receive('timeout', function() {
+                dispatcher.send('error', initError(TIMEOUT));
             });
     });
 
@@ -94,14 +99,18 @@ const initKabel = function(url, token) {
 
         inboxChannel.join()
             .receive('ok', function() {
-                logger.info("Joined the user's inbox channel.");
-                logger.info("Kabel ready.");
-                ready = true;
-                dispatcher.send('ready');
+                if (!ready) {
+                    ready = true;
+                    dispatcher.send('ready', {});
+                }
+
+                logger.info(`Joined the ${inboxChannel.topic} channel.`);
             })
-            .receive('error', function(error) {
-                logger.error(error);
-                dispatcher.send('error', { error });
+            .receive('error', function() {
+                dispatcher.send('error', initError(PUSH_REJECTED));
+            })
+            .receive('timeout', function() {
+                dispatcher.send('error', initError(TIMEOUT));
             });
     });
 
@@ -113,8 +122,7 @@ const initKabel = function(url, token) {
         //
         openInbox: function(params) {
             if (!ready) {
-                let message = 'The kabel object is not ready yet.';
-                throw new Error(message);
+                throw initError(USAGE_ERROR, 'The kabel object is not ready yet.');
             }
 
             return initInbox(inboxChannel, params);
@@ -126,8 +134,7 @@ const initKabel = function(url, token) {
         //
         openRoom: function(id) {
             if (!ready) {
-                let message = 'The kabel object is not ready yet.';
-                throw new Error(message);
+                throw initError(USAGE_ERROR, 'The kabel object is not ready yet.');
             }
 
             return initRoom(socket, id);
