@@ -7,6 +7,8 @@
 //
 export const parseUser = function(payload) {
     return {
+        attributes: payload.attributes,
+        hubId: payload.hub_id,
         id: payload.id,
         key: payload.key,
         name: payload.name,
@@ -17,13 +19,20 @@ export const parseUser = function(payload) {
 // Parse the payload of a message_posted event.
 //
 export const parseMessage = function(payload) {
+    const parseAuthor = function(payload) {
+        return {
+            id: payload.id,
+            name: payload.name,
+        };
+    };
+
     return {
         id: payload.id,
         insertedAt: new Date(payload.inserted_at),
         roomId: payload.room_id,
         text: payload.text,
         updatedAt: new Date(payload.updated_at),
-        user: payload.user ? parseUser(payload.user) : null,
+        user: payload.user ? parseAuthor(payload.user) : null,
     };
 };
 

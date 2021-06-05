@@ -32,7 +32,7 @@ kabel.on('error', (error) => {
 });
 ```
 
-The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), and logging (silent by default). There can be only one connection object at a time and you can access it using the `Kabelwerk.getKabel` method.
+The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default). There can be only one connection object at a time and you can access it using the `Kabelwerk.getKabel` method.
 
 
 ### Inboxes

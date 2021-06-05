@@ -10,7 +10,7 @@ import { initRoom } from './room.js';
 
 // Init a Phoenix socket object.
 //
-// Helper for the initKabel factory below.
+// Helper for the kabel object (see below).
 //
 const initSocket = function(url, token, dispatcher) {
     let socket = new phoenix.Socket(url, {params: { token }});
@@ -33,6 +33,63 @@ const initSocket = function(url, token, dispatcher) {
     socket.connect();
 
     return socket;
+};
+
+
+// Init a user object.
+//
+// The user object opens and maintains the connected user's private channel,
+// and from there retrieving and updating the user's info.
+//
+// Helper for the kabel object (see below).
+//
+const initUser = function(socket, dispatcher) {
+    let user = null;
+
+    let channel = socket.channel('private');
+
+    channel.join()
+        .receive('ok', function(payload) {
+            user = parseUser(payload);
+            dispatcher.send('user_loaded', user);
+            logger.info('Joined the private channel.');
+        })
+        .receive('error', function() {
+            dispatcher.send('error', initError(PUSH_REJECTED));
+        })
+        .receive('timeout', function() {
+            dispatcher.send('error', initError(TIMEOUT));
+        });
+
+    channel.on('user_updated', function(payload) {
+        user = parseUser(payload);
+        dispatcher.send('user_updated', user);
+    });
+
+    return {
+        getInfo: function() {
+            return user;
+        },
+
+        updateInfo: function(params) {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('update_user', params);
+
+                push.receive('ok', function(payload) {
+                    user = parseUser(payload);
+                    resolve(user);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+    };
 };
 
 
@@ -62,37 +119,25 @@ const initKabel = function(url, token) {
         'error',
         'ready',
         'user_loaded',
+        'user_updated',
     ]);
 
     // step 1: connect to the websocket
     let socket = initSocket(url, token, dispatcher);
 
     // step 2: join the user's private channel
-    let privateChannel = null;
+    let user = null;
 
     dispatcher.once('connected', function() {
-        privateChannel = socket.channel('private');
-
-        privateChannel.join()
-            .receive('ok', function(payload) {
-                let user = parseUser(payload);
-                dispatcher.send('user_loaded', user);
-                logger.info('Joined the private channel.');
-            })
-            .receive('error', function() {
-                dispatcher.send('error', initError(PUSH_REJECTED));
-            })
-            .receive('timeout', function() {
-                dispatcher.send('error', initError(TIMEOUT));
-            });
+        user = initUser(socket, dispatcher);
     });
 
     // step 3: join the user's inbox channel
     let inboxChannel = null;
 
     dispatcher.once('user_loaded', function(user) {
-        if (user.hub_id) {
-            inboxChannel = socket.channel(`hub_inbox:${user.hub_id}`);
+        if (user.hubId) {
+            inboxChannel = socket.channel(`hub_inbox:${user.hubId}`);
         } else {
             inboxChannel = socket.channel(`user_inbox:${user.id}`);
         }
@@ -114,29 +159,39 @@ const initKabel = function(url, token) {
             });
     });
 
+    const ensureReady = function() {
+        if (!ready) {
+            throw initError(USAGE_ERROR, 'The kabel object is not ready yet.');
+        }
+    };
+
     return {
+
+        // Returns the connected user's info.
+        //
+        getUser: function() {
+            ensureReady();
+            return user.getInfo();
+        },
+
+        // Update the connected user's info. Return a promise.
+        //
+        updateUser: function(params) {
+            ensureReady();
+            return user.updateInfo(params);
+        },
 
         // Init and return an inbox object.
         //
-        // Throw an error if the kabel object is not ready yet.
-        //
         openInbox: function(params) {
-            if (!ready) {
-                throw initError(USAGE_ERROR, 'The kabel object is not ready yet.');
-            }
-
+            ensureReady();
             return initInbox(inboxChannel, params);
         },
 
         // Init and return a room object.
         //
-        // Throw an error if the kabel object is not ready yet.
-        //
         openRoom: function(id) {
-            if (!ready) {
-                throw initError(USAGE_ERROR, 'The kabel object is not ready yet.');
-            }
-
+            ensureReady();
             return initRoom(socket, id);
         },
 

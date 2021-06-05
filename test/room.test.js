@@ -137,7 +137,7 @@ describe('post message', () => {
     });
 
     test('push params', () => {
-        room.postMessage('hello server!');
+        room.postMessage({text: 'hello server!'});
 
         expect(Channel.push).toHaveBeenCalledTimes(1);
         expect(Channel.push).toHaveBeenCalledWith('post_message', {
@@ -148,7 +148,7 @@ describe('post message', () => {
     test('server responds with ok', (done) => {
         let message = messageFactory.create({ room_id: 0 });
 
-        room.postMessage('hello server!').then((res) => {
+        room.postMessage({}).then((res) => {
             expect(res.id).toBe(message.id);
             expect(res.text).toBe(message.text);
 
@@ -159,7 +159,7 @@ describe('post message', () => {
     });
 
     test('server responds with error', (done) => {
-        room.postMessage('hello server!').catch((error) => {
+        room.postMessage({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
 
@@ -170,7 +170,7 @@ describe('post message', () => {
     });
 
     test('server times out', (done) => {
-        room.postMessage('hello server!').catch((error) => {
+        room.postMessage({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
 

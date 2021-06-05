@@ -112,9 +112,9 @@ const initRoom = function(socket, roomId) {
 
         // Create a new chat message. Return a promise.
         //
-        postMessage: function(text) {
+        postMessage: function(params) {
             return new Promise(function(resolve, reject) {
-                let push = channel.push('post_message', { text });
+                let push = channel.push('post_message', params);
 
                 push.receive('ok', function(payload) {
                     let message = parseMessage(payload);
