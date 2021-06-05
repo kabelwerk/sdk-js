@@ -32,14 +32,14 @@ kabel.on('error', (error) => {
 });
 ```
 
-The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), and logging (silent by default). There can be a single active connection object at a time, which you can access by using the `Kabelwerk.getKabel` method.
+The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), and logging (silent by default). There can be only one connection object at a time and you can access it using the `Kabelwerk.getKabel` method.
 
 
 ### Inboxes
 
-An inbox is a view on the rooms the user has access to; it maintains a list of rooms ordered by recency of their latest messages.
+An inbox is a view on the rooms the user has access to; it maintains a list of rooms ordered by recency of their latest message.
 
-```sh
+```js
 let inbox = kabel.openInbox();
 
 inbox.on('ready', (rooms) => {
@@ -52,14 +52,14 @@ inbox.on('updated', (rooms) => {
 });
 ```
 
-Each end user has one room per hub; so if your care team is organised in a single hub, that would be one room per end user. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes for better organisation.
+Each end user has one room per hub; so if your care team is organised in a single hub, that would be one room per end user. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
 
 
 ### Rooms
 
 A room object handles posting and retrieving messages in a chat room.
 
-```sh
+```js
 let room = kabel.openRoom(roomId);
 
 room.on('ready', (messages) => {

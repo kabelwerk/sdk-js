@@ -11,8 +11,6 @@ If you want to report a bug you can use the repository's [issue tracker](https:/
 
 ## Contributing code
 
-### Setup
-
 ```sh
 # clone the repo
 git clone https://github.com/kabelwerk/sdk-js
@@ -31,4 +29,4 @@ npm run demo
 
 ### Conventions
 
-Please follow the `.editorconfig` rules ([take a look here][editorconfig] if this is new for you).
+Please follow the `.editorconfig` rules ([take a look here](https://editorconfig.org/) if this is new for you).
