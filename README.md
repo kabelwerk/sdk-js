@@ -1,6 +1,6 @@
 # Kabelwerk
 
-Here lives the base Kabelwerk SDK for JavaScript.
+This is Kabelwerk's base (low-level) SDK for JavaScript.
 
 
 ## Installation
@@ -94,4 +94,4 @@ Please refer to [CONTRIBUTING.md](https://github.com/kabelwerk/sdk-js/blob/maste
 
 ## Licence
 
-TBD.
+Licensed under the [MIT](https://github.com/kabelwerk/sdk-js/blob/master/LICENSE) license.

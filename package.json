@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "author": "pavelsof",
+  "license": "MIT",
   "dependencies": {
     "phoenix": "^1.5.9"
   },
