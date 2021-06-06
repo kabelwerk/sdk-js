@@ -94,4 +94,4 @@ Please refer to [CONTRIBUTING.md](https://github.com/kabelwerk/sdk-js/blob/maste
 
 ## Licence
 
-Licensed under the [MIT](https://github.com/kabelwerk/sdk-js/blob/master/LICENSE) license.
+Licensed under the [MIT](https://github.com/kabelwerk/sdk-js/blob/master/LICENSE) licence.
