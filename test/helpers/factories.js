@@ -6,6 +6,8 @@ export const userFactory = (function() {
     const create = function(params) {
         let id = ++counter;
         return {
+            attributes: {},
+            hub_id: null,
             id: id,
             key: `key_${id}`,
             name: `user ${id}`,
@@ -20,16 +22,17 @@ export const userFactory = (function() {
 //
 export const messageFactory = (function() {
     let counter = 0;
+    let timestamp = new Date().getTime();
 
     const create = function(params) {
         let id = ++counter;
-        let now = new Date();
+        let dt = new Date(timestamp + id * 1000);
         return {
             id: id,
-            inserted_at: now.toJSON(),
+            inserted_at: dt.toJSON(),
             room_id: params.room_id,
             text: `message ${id}`,
-            updated_at: now.toJSON(),
+            updated_at: dt.toJSON(),
             user: null,
         };
     };

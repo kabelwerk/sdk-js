@@ -1,3 +1,6 @@
+import { USAGE_ERROR, initError } from './errors.js';
+
+
 // Init a dispatcher object.
 //
 const initDispatcher = function(eventNames) {
@@ -5,8 +8,7 @@ const initDispatcher = function(eventNames) {
 
     const checkEventName = function(eventName) {
         if (eventNames.indexOf(eventName) == -1) {
-            let message = `Uknown event name: ${eventName}.`;
-            throw new Error(message);
+            throw initError(USAGE_ERROR, `Uknown event name: ${eventName}.`);
         }
     };
 
@@ -19,12 +21,22 @@ const initDispatcher = function(eventNames) {
         };
     })();
 
+    const readyEvent = {
+        hasFired: false,
+        params: null,
+    };
+
     return {
 
         // Emit an event: invoke the callbacks listening for the event.
         //
         send: function(event, params) {
             checkEventName(event);
+
+            if (event == 'ready') {
+                readyEvent.hasFired = true;
+                readyEvent.params = params;
+            }
 
             callbacks.forEach(function(callback) {
                 if (callback.event == event) {
@@ -44,6 +56,10 @@ const initDispatcher = function(eventNames) {
 
             let ref = refGenerator.next();
             callbacks.push({ ref, event, fn });
+
+            if (event == 'ready' && readyEvent.hasFired) {
+                fn(readyEvent.params);
+            }
 
             return ref;
         },
@@ -86,9 +102,15 @@ const initDispatcher = function(eventNames) {
                 }
             });
 
+            if (event == 'ready' && readyEvent.hasFired) {
+                fn(readyEvent.params);
+                self.off('ready', ref);
+            }
+
             return ref;
         },
     };
 };
+
 
 export { initDispatcher };

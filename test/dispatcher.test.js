@@ -74,3 +74,27 @@ test('off with a ref', () => {
     dispatcher.off('answer', ref);
     dispatcher.send('answer', 42);  // 1 assert
 });
+
+test('the ready event magic with on', () => {
+    expect.assertions(1);
+
+    let dispatcher = initDispatcher(['ready']);
+
+    dispatcher.send('ready', 'fertig');
+
+    dispatcher.on('ready', (res) => {
+        expect(res).toBe('fertig');
+    });
+});
+
+test('the ready event magic with once', () => {
+    expect.assertions(1);
+
+    let dispatcher = initDispatcher(['ready']);
+
+    dispatcher.send('ready', 'fertig');
+
+    dispatcher.once('ready', (res) => {
+        expect(res).toBe('fertig');
+    });
+});

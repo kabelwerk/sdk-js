@@ -99,13 +99,13 @@ describe('inbox updated', () => {
         expect(list[0].lastMessage.id).toBe(roomC.last_message.id);
         expect(list[0].lastMessage.text).toBe(roomC.last_message.text);
 
-        expect(list[1].id).toBe(roomA.id);
-        expect(list[1].lastMessage.id).toBe(roomA.last_message.id);
-        expect(list[1].lastMessage.text).toBe(roomA.last_message.text);
+        expect(list[1].id).toBe(roomB.id);
+        expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
+        expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
 
-        expect(list[2].id).toBe(roomB.id);
-        expect(list[2].lastMessage.id).toBe(roomB.last_message.id);
-        expect(list[2].lastMessage.text).toBe(roomB.last_message.text);
+        expect(list[2].id).toBe(roomA.id);
+        expect(list[2].lastMessage.id).toBe(roomA.last_message.id);
+        expect(list[2].lastMessage.text).toBe(roomA.last_message.text);
     });
 
     test('new message without re-ordering', () => {

@@ -92,7 +92,11 @@ describe('private channel join', () => {
         let user = userFactory.create();
 
         kabel.on('user_loaded', (res) => {
-            expect(res).toEqual(user);
+            expect(res.attributes).toEqual(user.attributes);
+            expect(res.hubId).toBe(user.hub_id);
+            expect(res.id).toBe(user.id);
+            expect(res.key).toBe(user.key);
+            expect(res.name).toBe(user.name);
         });
 
         Push.__serverRespond('ok', user);
@@ -171,52 +175,68 @@ describe('user info', () => {
 
     test('get user', () => {
         let res = kabel.getUser();
-        expect(res).toEqual(user);
+        expect(res.attributes).toEqual(user.attributes);
+        expect(res.hubId).toBe(user.hub_id);
+        expect(res.id).toBe(user.id);
+        expect(res.key).toBe(user.key);
+        expect(res.name).toBe(user.name);
     });
 
     test('update user, server responds with ok', () => {
         let newUser = userFactory.create();
 
         kabel.updateUser({}).then((res) => {
-            expect(res).toEqual(newUser);
+            expect(res.attributes).toEqual(newUser.attributes);
+            expect(res.hubId).toBe(newUser.hub_id);
+            expect(res.id).toBe(newUser.id);
+            expect(res.key).toBe(newUser.key);
+            expect(res.name).toBe(newUser.name);
 
-            expect(kabel.getUser()).toEqual(newUser);
+            expect(kabel.getUser()).toEqual(res);
         });
 
         Push.__serverRespond('ok', newUser);
     });
 
     test('update user, server responds with error', () => {
+        let userBefore = kabel.getUser();
+
         kabel.updateUser({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
 
-            expect(kabel.getUser()).toEqual(user);
+            expect(kabel.getUser()).toEqual(userBefore);
         });
 
         Push.__serverRespond('error');
     });
 
     test('update user, server times out', () => {
+        let userBefore = kabel.getUser();
+
         kabel.updateUser({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
 
-            expect(kabel.getUser()).toEqual(user);
+            expect(kabel.getUser()).toEqual(userBefore);
         });
 
         Push.__serverRespond('timeout');
     });
 
     test('user_updated event', () => {
-        expect.assertions(2);
+        expect.assertions(6);
 
         let newUser = userFactory.create();
 
         kabel.on('user_updated', (res) => {
-            expect(res).toEqual(newUser);
+            expect(res.attributes).toEqual(newUser.attributes);
+            expect(res.hubId).toBe(newUser.hub_id);
+            expect(res.id).toBe(newUser.id);
+            expect(res.key).toBe(newUser.key);
+            expect(res.name).toBe(newUser.name);
 
-            expect(kabel.getUser()).toEqual(newUser);
+            expect(kabel.getUser()).toEqual(res);
         });
 
         Channel.__serverPush('user_updated', newUser);
