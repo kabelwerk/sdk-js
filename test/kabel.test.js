@@ -1,9 +1,8 @@
 import { userFactory } from './helpers/factories.js';
-import { Channel, Push, Socket } from './mocks/phoenix.js';
+import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
-
-const { initKabel } = await import('../src/kabel.js');
+import { initKabel } from '../src/kabel.js';
 
 
 describe('socket connect', () => {
@@ -14,15 +13,15 @@ describe('socket connect', () => {
     });
 
     test('socket params', () => {
-        expect(Socket.constructor).toHaveBeenCalledTimes(1);
-        expect(Socket.constructor).toHaveBeenCalledWith(
+        expect(MockSocket.constructor).toHaveBeenCalledTimes(1);
+        expect(MockSocket.constructor).toHaveBeenCalledWith(
             'url', {params: {token: 'token'}}
         );
 
-        expect(Socket.onOpen).toHaveBeenCalledTimes(1);
-        expect(Socket.onClose).toHaveBeenCalledTimes(1);
-        expect(Socket.onError).toHaveBeenCalledTimes(1);
-        expect(Socket.connect).toHaveBeenCalledTimes(1);
+        expect(MockSocket.onOpen).toHaveBeenCalledTimes(1);
+        expect(MockSocket.onClose).toHaveBeenCalledTimes(1);
+        expect(MockSocket.onError).toHaveBeenCalledTimes(1);
+        expect(MockSocket.connect).toHaveBeenCalledTimes(1);
     });
 
     test('connected event is emitted', () => {
@@ -32,7 +31,7 @@ describe('socket connect', () => {
             expect(res).toEqual({});
         });
 
-        Socket.__open();
+        MockSocket.__open();
     });
 
     test('disconnected event is emitted', () => {
@@ -42,7 +41,7 @@ describe('socket connect', () => {
             expect(res).toEqual({});
         });
 
-        Socket.onClose.mock.calls[0][0]();
+        MockSocket.onClose.mock.calls[0][0]();
     });
 
     test('error event is emitted', () => {
@@ -53,7 +52,7 @@ describe('socket connect', () => {
             expect(error.name).toBe(CONNECTION_ERROR);
         });
 
-        Socket.onError.mock.calls[0][0]('timeout');
+        MockSocket.onError.mock.calls[0][0]('timeout');
     });
 });
 
@@ -62,12 +61,12 @@ describe('private channel join', () => {
 
     beforeEach(() => {
         kabel = initKabel('url', 'token');
-        Socket.__open();
+        MockSocket.__open();
     });
 
     test('channel topic', () => {
-        expect(Socket.channel).toHaveBeenCalledTimes(1);
-        expect(Socket.channel).toHaveBeenCalledWith('private');
+        expect(MockSocket.channel).toHaveBeenCalledTimes(1);
+        expect(MockSocket.channel).toHaveBeenCalledWith('private');
     });
 
     test('join error → error event', () => {
@@ -76,7 +75,7 @@ describe('private channel join', () => {
             expect(error.name).toBe(PUSH_REJECTED);
         });
 
-        Push.__serverRespond('error', {});
+        MockPush.__serverRespond('error', {});
     });
 
     test('join timeout → error event', () => {
@@ -85,7 +84,7 @@ describe('private channel join', () => {
             expect(error.name).toBe(TIMEOUT);
         });
 
-        Push.__serverRespond('timeout', {});
+        MockPush.__serverRespond('timeout', {});
     });
 
     test('join ok → user_loaded', () => {
@@ -99,7 +98,7 @@ describe('private channel join', () => {
             expect(res.name).toBe(user.name);
         });
 
-        Push.__serverRespond('ok', user);
+        MockPush.__serverRespond('ok', user);
     });
 });
 
@@ -109,13 +108,13 @@ describe('inbox channel join', () => {
 
     beforeEach(() => {
         kabel = initKabel('url', 'token');
-        Socket.__open();
-        Push.__serverRespond('ok', user, 'clear-initial');
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user, 'clear-initial');
     });
 
     test('channel topic for an end user', () => {
-        expect(Socket.channel).toHaveBeenCalledTimes(2);
-        expect(Socket.channel).toHaveBeenLastCalledWith(`user_inbox:${user.id}`);
+        expect(MockSocket.channel).toHaveBeenCalledTimes(2);
+        expect(MockSocket.channel).toHaveBeenLastCalledWith(`user_inbox:${user.id}`);
     });
 
     test('join error → error event', () => {
@@ -126,7 +125,7 @@ describe('inbox channel join', () => {
             expect(error.name).toBe(PUSH_REJECTED);
         });
 
-        Push.__serverRespond('error', {});
+        MockPush.__serverRespond('error', {});
     });
 
     test('join timeout → error event', () => {
@@ -137,7 +136,7 @@ describe('inbox channel join', () => {
             expect(error.name).toBe(TIMEOUT);
         });
 
-        Push.__serverRespond('timeout', {});
+        MockPush.__serverRespond('timeout', {});
     });
 
     test('join ok → ready event', () => {
@@ -147,7 +146,7 @@ describe('inbox channel join', () => {
             expect(res).toEqual({});
         });
 
-        Push.__serverRespond('ok', {});
+        MockPush.__serverRespond('ok', {});
     });
 
     test('ready event is emitted once', () => {
@@ -157,8 +156,8 @@ describe('inbox channel join', () => {
             expect(res).toEqual({});
         });
 
-        Push.__serverRespond('ok', {}, false);
-        Push.__serverRespond('ok', {}, false);
+        MockPush.__serverRespond('ok', {}, false);
+        MockPush.__serverRespond('ok', {}, false);
     });
 });
 
@@ -168,9 +167,9 @@ describe('user info', () => {
 
     beforeEach(() => {
         kabel = initKabel('url', 'token');
-        Socket.__open();
-        Push.__serverRespond('ok', user, 'clear-initial');
-        Push.__serverRespond('ok', {});
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', {});
     });
 
     test('get user', () => {
@@ -195,7 +194,7 @@ describe('user info', () => {
             expect(kabel.getUser()).toEqual(res);
         });
 
-        Push.__serverRespond('ok', newUser);
+        MockPush.__serverRespond('ok', newUser);
     });
 
     test('update user, server responds with error', () => {
@@ -208,7 +207,7 @@ describe('user info', () => {
             expect(kabel.getUser()).toEqual(userBefore);
         });
 
-        Push.__serverRespond('error');
+        MockPush.__serverRespond('error');
     });
 
     test('update user, server times out', () => {
@@ -221,7 +220,7 @@ describe('user info', () => {
             expect(kabel.getUser()).toEqual(userBefore);
         });
 
-        Push.__serverRespond('timeout');
+        MockPush.__serverRespond('timeout');
     });
 
     test('user_updated event', () => {
@@ -239,6 +238,6 @@ describe('user info', () => {
             expect(kabel.getUser()).toEqual(res);
         });
 
-        Channel.__serverPush('user_updated', newUser);
+        MockChannel.__serverPush('user_updated', newUser);
     });
 });

@@ -1,5 +1,5 @@
 import { inboxRoomFactory, messageFactory } from './helpers/factories.js';
-import { Channel, Push } from './mocks/phoenix.js';
+import { MockChannel, MockPush } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 
@@ -8,10 +8,10 @@ const { initInbox } = await import('../src/inbox.js');
 
 describe('init', () => {
     test('default params', () => {
-        initInbox(Channel);
+        initInbox(MockChannel);
 
-        expect(Channel.push).toHaveBeenCalledTimes(1);
-        expect(Channel.push).toHaveBeenCalledWith('list_rooms', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
             limit: 100,
             offset: 0,
             archived: false,
@@ -19,15 +19,15 @@ describe('init', () => {
     });
 
     test('custom params', () => {
-        initInbox(Channel, {
+        initInbox(MockChannel, {
             limit: 50,
             attributes: {country: 'DE'},
             hubUser: 1,
             archived: true,
         });
 
-        expect(Channel.push).toHaveBeenCalledTimes(1);
-        expect(Channel.push).toHaveBeenCalledWith('list_rooms', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
             limit: 50,
             offset: 0,
             attributes: {country: 'DE'},
@@ -37,8 +37,8 @@ describe('init', () => {
     });
 
     test('empty inbox', () => {
-        let inbox = initInbox(Channel);
-        Push.__serverRespond('ok', {rooms: []});
+        let inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', {rooms: []});
 
         let list = inbox.listRooms();
         expect(list.length).toBe(0);
@@ -47,8 +47,8 @@ describe('init', () => {
     test('inbox of one room', () => {
         let room = inboxRoomFactory.create();
 
-        let inbox = initInbox(Channel);
-        Push.__serverRespond('ok', {rooms: [room]});
+        let inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', {rooms: [room]});
 
         let list = inbox.listRooms();
         expect(list.length).toBe(1);
@@ -64,13 +64,13 @@ describe('inbox updated', () => {
     let inbox = null;
 
     beforeEach(() => {
-        inbox = initInbox(Channel);
-        Push.__serverRespond('ok', {rooms: [roomA, roomB]});
+        inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', {rooms: [roomA, roomB]});
     });
 
     test('new message moves room to top', () => {
         let newMessage = messageFactory.create({room_id: roomB.id});
-        Channel.__serverPush('inbox_updated', {
+        MockChannel.__serverPush('inbox_updated', {
             id: roomB.id,
             hub_id: null,
             last_message: newMessage,
@@ -90,7 +90,7 @@ describe('inbox updated', () => {
 
     test('new message pushes a new room', () => {
         let roomC = inboxRoomFactory.create();
-        Channel.__serverPush('inbox_updated', roomC);
+        MockChannel.__serverPush('inbox_updated', roomC);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(3);
@@ -110,7 +110,7 @@ describe('inbox updated', () => {
 
     test('new message without re-ordering', () => {
         let newMessage = messageFactory.create({room_id: roomA.id});
-        Channel.__serverPush('inbox_updated', {
+        MockChannel.__serverPush('inbox_updated', {
             id: roomA.id,
             hub_id: null,
             last_message: newMessage,
@@ -134,15 +134,15 @@ describe('load more', () => {
     let inbox = null;
 
     beforeEach(() => {
-        inbox = initInbox(Channel);
-        Push.__serverRespond('ok', {rooms: [roomA]});
+        inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', {rooms: [roomA]});
     });
 
     test('default params', () => {
         inbox.loadMore();
 
-        expect(Channel.push).toHaveBeenCalledTimes(2);
-        expect(Channel.push).toHaveBeenLastCalledWith('list_rooms', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(2);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
             limit: 100,
             offset: 1,
             archived: false,
@@ -150,18 +150,18 @@ describe('load more', () => {
     });
 
     test('custom params', () => {
-        let inbox = initInbox(Channel, {
+        let inbox = initInbox(MockChannel, {
             limit: 20,
             attributes: {city: 'Berlin'},
             hubUser: 2,
             archived: true,
         });
-        Push.__serverRespond('ok', {rooms: [roomA]});
+        MockPush.__serverRespond('ok', {rooms: [roomA]});
 
         inbox.loadMore();
 
-        expect(Channel.push).toHaveBeenCalledTimes(3);
-        expect(Channel.push).toHaveBeenLastCalledWith('list_rooms', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(3);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
             limit: 20,
             offset: 1,
             attributes: {city: 'Berlin'},
@@ -179,7 +179,7 @@ describe('load more', () => {
             done();
         });
 
-        Push.__serverRespond('ok', {rooms: [roomB]});
+        MockPush.__serverRespond('ok', {rooms: [roomB]});
     });
 
     test('server responds with error', (done) => {
@@ -190,7 +190,7 @@ describe('load more', () => {
             done();
         });
 
-        Push.__serverRespond('error');
+        MockPush.__serverRespond('error');
     });
 
     test('server times out', (done) => {
@@ -201,6 +201,6 @@ describe('load more', () => {
             done();
         });
 
-        Push.__serverRespond('timeout');
+        MockPush.__serverRespond('timeout');
     });
 });

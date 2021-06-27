@@ -1,4 +1,4 @@
-import phoenix from 'phoenix';
+import { Socket } from 'phoenix';
 
 import { initDispatcher } from './dispatcher.js';
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
@@ -13,7 +13,7 @@ import { initRoom } from './room.js';
 // Helper for the kabel object (see below).
 //
 const initSocket = function(url, token, dispatcher) {
-    let socket = new phoenix.Socket(url, {params: { token }});
+    let socket = new Socket(url, {params: { token }});
 
     socket.onOpen(function() {
         logger.info('Websocket connected.');

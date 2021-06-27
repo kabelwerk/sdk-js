@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 
 
-const Push = (function() {
+const MockPush = (function() {
     const receive = jest.fn().mockImplementation(() => {
-        return Push;
+        return MockPush;
     });
 
     // fake a server response to a push
@@ -41,15 +41,15 @@ const Push = (function() {
 }());
 
 
-const Channel = (function() {
+const MockChannel = (function() {
     const join = jest.fn().mockImplementation(() => {
-        return Push;
+        return MockPush;
     });
 
     const on = jest.fn();
 
     const push = jest.fn().mockImplementation(() => {
-        return Push;
+        return MockPush;
     });
 
     // fake a server downstream message to a channel
@@ -65,18 +65,18 @@ const Channel = (function() {
 }());
 
 
-const Socket = (function() {
+const MockSocket = (function() {
     const onOpen = jest.fn();
     const onClose = jest.fn();
     const onError = jest.fn();
     const connect = jest.fn();
 
     const constructor = jest.fn().mockImplementation(() => {
-        return Socket;
+        return MockSocket;
     });
 
     const channel = jest.fn().mockImplementation(() => {
-        return Channel;
+        return MockChannel;
     });
 
     // fake the server accepting the connection
@@ -90,11 +90,8 @@ const Socket = (function() {
 })();
 
 
-jest.mock('phoenix', () => {
-    return {
-        Socket: Socket.constructor
-    };
-});
+// this is what is imported by src/kabel.js when running the tests
+const Socket = MockSocket.constructor;
 
 
-export { Push, Channel, Socket };
+export { MockPush, MockChannel, MockSocket, Socket };

@@ -1,5 +1,5 @@
 import { messageFactory } from './helpers/factories.js';
-import { Channel, Push, Socket } from './mocks/phoenix.js';
+import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 
@@ -10,7 +10,7 @@ describe('channel rejoin', () => {
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(Socket, 0);
+        room = initRoom(MockSocket, 0);
     });
 
     test('ready event is emitted once', () => {
@@ -20,8 +20,8 @@ describe('channel rejoin', () => {
             expect(res).toEqual([]);
         });
 
-        Push.__serverRespond('ok', {messages: []}, false);
-        Push.__serverRespond('ok', {messages: []}, false);
+        MockPush.__serverRespond('ok', {messages: []}, false);
+        MockPush.__serverRespond('ok', {messages: []}, false);
     });
 
     test('error event is emitted every time', () => {
@@ -31,8 +31,8 @@ describe('channel rejoin', () => {
             expect(error).toBeInstanceOf(Error);
         });
 
-        Push.__serverRespond('error', {}, false);
-        Push.__serverRespond('error', {}, false);
+        MockPush.__serverRespond('error', {}, false);
+        MockPush.__serverRespond('error', {}, false);
     });
 
     test('messages posted between rejoins are emitted', () => {
@@ -45,10 +45,10 @@ describe('channel rejoin', () => {
         });
 
         // first join
-        Push.__serverRespond('ok', {messages: []}, false);
+        MockPush.__serverRespond('ok', {messages: []}, false);
 
         // rejoin
-        Push.__serverRespond('ok', {messages: [message]}, false);
+        MockPush.__serverRespond('ok', {messages: [message]}, false);
     });
 });
 
@@ -57,8 +57,8 @@ describe('message posted', () => {
     let message = messageFactory.create({ room_id: 0 });
 
     beforeEach(() => {
-        room = initRoom(Socket, 0);
-        Push.__serverRespond('ok', {messages: []});
+        room = initRoom(MockSocket, 0);
+        MockPush.__serverRespond('ok', {messages: []});
     });
 
     test('new message', (done) => {
@@ -71,7 +71,7 @@ describe('message posted', () => {
             done();
         });
 
-        Channel.__serverPush('message_posted', message);
+        MockChannel.__serverPush('message_posted', message);
     });
 });
 
@@ -80,15 +80,15 @@ describe('load earlier', () => {
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(Socket, 0);
-        Push.__serverRespond('ok', {messages: [messageB]});
+        room = initRoom(MockSocket, 0);
+        MockPush.__serverRespond('ok', {messages: [messageB]});
     });
 
     test('push params', () => {
         room.loadEarlier();
 
-        expect(Channel.push).toHaveBeenCalledTimes(1);
-        expect(Channel.push).toHaveBeenCalledWith('list_messages', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('list_messages', {
             before: messageB.id,
         });
     });
@@ -102,7 +102,7 @@ describe('load earlier', () => {
             done();
         });
 
-        Push.__serverRespond('ok', {messages: [messageA]});
+        MockPush.__serverRespond('ok', {messages: [messageA]});
     });
 
     test('server responds with error', (done) => {
@@ -113,7 +113,7 @@ describe('load earlier', () => {
             done();
         });
 
-        Push.__serverRespond('error');
+        MockPush.__serverRespond('error');
     });
 
     test('server times out', (done) => {
@@ -124,7 +124,7 @@ describe('load earlier', () => {
             done();
         });
 
-        Push.__serverRespond('timeout');
+        MockPush.__serverRespond('timeout');
     });
 });
 
@@ -132,15 +132,15 @@ describe('post message', () => {
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(Socket, 0);
-        Push.__serverRespond('ok', {messages: []});
+        room = initRoom(MockSocket, 0);
+        MockPush.__serverRespond('ok', {messages: []});
     });
 
     test('push params', () => {
         room.postMessage({text: 'hello server!'});
 
-        expect(Channel.push).toHaveBeenCalledTimes(1);
-        expect(Channel.push).toHaveBeenCalledWith('post_message', {
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
             text: 'hello server!',
         });
     });
@@ -155,7 +155,7 @@ describe('post message', () => {
             done();
         });
 
-        Push.__serverRespond('ok', message);
+        MockPush.__serverRespond('ok', message);
     });
 
     test('server responds with error', (done) => {
@@ -166,7 +166,7 @@ describe('post message', () => {
             done();
         });
 
-        Push.__serverRespond('error');
+        MockPush.__serverRespond('error');
     });
 
     test('server times out', (done) => {
@@ -177,6 +177,6 @@ describe('post message', () => {
             done();
         });
 
-        Push.__serverRespond('timeout');
+        MockPush.__serverRespond('timeout');
     });
 });
