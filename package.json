@@ -1,6 +1,6 @@
 {
   "name": "kabelwerk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The base Kabelwerk SDK for JavaScript.",
   "keywords": [
     "kabelwerk"
