@@ -56,6 +56,7 @@ describe('init', () => {
         expect(list[0].id).toBe(room.id);
         expect(list[0].lastMessage.id).toBe(room.last_message.id);
         expect(list[0].lastMessage.text).toBe(room.last_message.text);
+        expect(list[0].user.id).toBe(room.user.id);
     });
 });
 
@@ -74,6 +75,7 @@ describe('inbox updated', () => {
             id: roomB.id,
             hub_id: null,
             last_message: newMessage,
+            user: roomB.user,
         });
 
         let list = inbox.listRooms();
@@ -82,10 +84,12 @@ describe('inbox updated', () => {
         expect(list[0].id).toBe(roomB.id);
         expect(list[0].lastMessage.id).toBe(newMessage.id);
         expect(list[0].lastMessage.text).toBe(newMessage.text);
+        expect(list[0].user.id).toBe(roomB.user.id);
 
         expect(list[1].id).toBe(roomA.id);
         expect(list[1].lastMessage.id).toBe(roomA.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomA.last_message.text);
+        expect(list[1].user.id).toBe(roomA.user.id);
     });
 
     test('new message pushes a new room', () => {
@@ -98,14 +102,17 @@ describe('inbox updated', () => {
         expect(list[0].id).toBe(roomC.id);
         expect(list[0].lastMessage.id).toBe(roomC.last_message.id);
         expect(list[0].lastMessage.text).toBe(roomC.last_message.text);
+        expect(list[0].user.id).toBe(roomC.user.id);
 
         expect(list[1].id).toBe(roomB.id);
         expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
+        expect(list[1].user.id).toBe(roomB.user.id);
 
         expect(list[2].id).toBe(roomA.id);
         expect(list[2].lastMessage.id).toBe(roomA.last_message.id);
         expect(list[2].lastMessage.text).toBe(roomA.last_message.text);
+        expect(list[2].user.id).toBe(roomA.user.id);
     });
 
     test('new message without re-ordering', () => {
@@ -114,6 +121,7 @@ describe('inbox updated', () => {
             id: roomA.id,
             hub_id: null,
             last_message: newMessage,
+            user: roomA.user,
         });
 
         let list = inbox.listRooms();
@@ -122,10 +130,12 @@ describe('inbox updated', () => {
         expect(list[0].id).toBe(roomA.id);
         expect(list[0].lastMessage.id).toBe(newMessage.id);
         expect(list[0].lastMessage.text).toBe(newMessage.text);
+        expect(list[0].user.id).toBe(roomA.user.id);
 
         expect(list[1].id).toBe(roomB.id);
         expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
+        expect(list[1].user.id).toBe(roomB.user.id);
     });
 });
 

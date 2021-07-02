@@ -56,10 +56,16 @@ export const inboxRoomFactory = (function() {
 
     const create = function() {
         let id = ++counter;
+        let user = userFactory.create();
         return {
             id: id,
             hub_id: null,
             last_message: messageFactory.create({room_id: id}),
+            user: {
+                id: user.id,
+                key: user.key,
+                name: user.name,
+            },
         };
     };
 

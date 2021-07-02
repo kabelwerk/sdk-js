@@ -5,7 +5,7 @@
 
 // Parse the payload of a successful private channel join response.
 //
-export const parseUser = function(payload) {
+export const parseOwnUser = function(payload) {
     return {
         attributes: payload.attributes,
         hubId: payload.hub_id,
@@ -16,23 +16,27 @@ export const parseUser = function(payload) {
 };
 
 
+// Helper for the parseMessage and parseInboxRoom functions.
+//
+const parseUser = function(payload) {
+    return {
+        id: payload.id,
+        key: payload.key,
+        name: payload.name,
+    };
+};
+
+
 // Parse the payload of a message_posted event.
 //
 export const parseMessage = function(payload) {
-    const parseAuthor = function(payload) {
-        return {
-            id: payload.id,
-            name: payload.name,
-        };
-    };
-
     return {
         id: payload.id,
         insertedAt: new Date(payload.inserted_at),
         roomId: payload.room_id,
         text: payload.text,
         updatedAt: new Date(payload.updated_at),
-        user: payload.user ? parseAuthor(payload.user) : null,
+        user: payload.user ? parseUser(payload.user) : null,
     };
 };
 
@@ -54,6 +58,7 @@ export const parseInboxRoom = function(payload) {
         id: payload.id,
         hubId: payload.hub_id,
         lastMessage: parseMessage(payload.last_message),
+        user: parseUser(payload.user),
     };
 };
 

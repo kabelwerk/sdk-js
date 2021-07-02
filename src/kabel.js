@@ -4,7 +4,7 @@ import { initDispatcher } from './dispatcher.js';
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
-import { parseUser } from './payloads.js';
+import { parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
 
 
@@ -50,7 +50,7 @@ const initUser = function(socket, dispatcher) {
 
     channel.join()
         .receive('ok', function(payload) {
-            user = parseUser(payload);
+            user = parseOwnUser(payload);
             dispatcher.send('user_loaded', user);
             logger.info('Joined the private channel.');
         })
@@ -62,7 +62,7 @@ const initUser = function(socket, dispatcher) {
         });
 
     channel.on('user_updated', function(payload) {
-        user = parseUser(payload);
+        user = parseOwnUser(payload);
         dispatcher.send('user_updated', user);
     });
 
@@ -76,7 +76,7 @@ const initUser = function(socket, dispatcher) {
                 let push = channel.push('update_user', params);
 
                 push.receive('ok', function(payload) {
-                    user = parseUser(payload);
+                    user = parseOwnUser(payload);
                     resolve(user);
                 });
 
