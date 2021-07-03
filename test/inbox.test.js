@@ -60,7 +60,7 @@ describe('init', () => {
     });
 });
 
-describe('inbox updated', () => {
+describe('rooms list re-ordering', () => {
     let [roomA, roomB] = inboxRoomFactory.createBatch(2);
     let inbox = null;
 
@@ -139,7 +139,26 @@ describe('inbox updated', () => {
     });
 });
 
-describe('load more', () => {
+describe('the updated event', () => {
+    let room = inboxRoomFactory.create();
+    let inbox = null;
+
+    test('default params', (done) => {
+        inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', {rooms: []});
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+            expect(rooms[0].id).toBe(room.id);
+
+            done();
+        });
+
+        MockChannel.__serverPush('inbox_updated', room);
+    });
+});
+
+describe('loading more rooms', () => {
     let [roomB, roomA] = inboxRoomFactory.createBatch(2);
     let inbox = null;
 
