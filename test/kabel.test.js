@@ -1,4 +1,4 @@
-import { userFactory } from './helpers/factories.js';
+import { privateChannelFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -88,7 +88,7 @@ describe('private channel join', () => {
     });
 
     test('join ok → user_loaded', () => {
-        let user = userFactory.create();
+        let user = privateChannelFactory.createOwnUser();
 
         kabel.on('user_loaded', (res) => {
             expect(res.attributes).toEqual(user.attributes);
@@ -103,7 +103,7 @@ describe('private channel join', () => {
 });
 
 describe('inbox channel join', () => {
-    let user = userFactory.create();
+    let user = privateChannelFactory.createOwnUser();
     let kabel = null;
 
     beforeEach(() => {
@@ -162,7 +162,7 @@ describe('inbox channel join', () => {
 });
 
 describe('user info', () => {
-    let user = userFactory.create();
+    let user = privateChannelFactory.createOwnUser();
     let kabel = null;
 
     beforeEach(() => {
@@ -182,7 +182,7 @@ describe('user info', () => {
     });
 
     test('update user, server responds with ok', () => {
-        let newUser = userFactory.create();
+        let newUser = privateChannelFactory.createOwnUser();
 
         kabel.updateUser({}).then((res) => {
             expect(res.attributes).toEqual(newUser.attributes);
@@ -226,7 +226,7 @@ describe('user info', () => {
     test('user_updated event', () => {
         expect.assertions(6);
 
-        let newUser = userFactory.create();
+        let newUser = privateChannelFactory.createOwnUser();
 
         kabel.on('user_updated', (res) => {
             expect(res.attributes).toEqual(newUser.attributes);

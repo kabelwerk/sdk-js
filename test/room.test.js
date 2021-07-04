@@ -1,4 +1,4 @@
-import { messageFactory } from './helpers/factories.js';
+import { roomChannelFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -36,7 +36,7 @@ describe('channel rejoin', () => {
     });
 
     test('messages posted between rejoins are emitted', () => {
-        let message = messageFactory.create({room_id: 0});
+        let message = roomChannelFactory.createMessage({room_id: 0});
 
         expect.assertions(1);
 
@@ -54,7 +54,7 @@ describe('channel rejoin', () => {
 
 describe('message posted', () => {
     let room = null;
-    let message = messageFactory.create({ room_id: 0 });
+    let message = roomChannelFactory.createMessage({ room_id: 0 });
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
@@ -76,7 +76,7 @@ describe('message posted', () => {
 });
 
 describe('load earlier', () => {
-    let [messageA, messageB] = messageFactory.createBatch(2, {room_id: 0})
+    let [messageA, messageB] = roomChannelFactory.createMessageList(2, {room_id: 0});
     let room = null;
 
     beforeEach(() => {
@@ -146,7 +146,7 @@ describe('post message', () => {
     });
 
     test('server responds with ok', (done) => {
-        let message = messageFactory.create({ room_id: 0 });
+        let message = roomChannelFactory.createMessage({ room_id: 0 });
 
         room.postMessage({}).then((res) => {
             expect(res.id).toBe(message.id);

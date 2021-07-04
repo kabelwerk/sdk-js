@@ -1,4 +1,7 @@
-import { inboxRoomFactory, messageFactory } from './helpers/factories.js';
+import {
+    hubInboxChannelFactory,
+    userInboxChannelFactory
+} from './helpers/factories.js';
 import { MockChannel, MockPush } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -6,7 +9,70 @@ import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 const { initInbox } = await import('../src/inbox.js');
 
 
-describe('init', () => {
+describe('user inbox init', () => {
+    beforeEach(() => {
+        MockChannel.topic = 'user_inbox:0';
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
+    });
+
+    test('default params', () => {
+        initInbox(MockChannel);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
+            limit: 100,
+            offset: 0,
+        });
+    });
+
+    test('custom params', () => {
+        initInbox(MockChannel, { limit: 50 });
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
+            limit: 50,
+            offset: 0,
+        });
+    });
+
+    test('empty inbox', () => {
+        let inbox = initInbox(MockChannel);
+
+        let response = userInboxChannelFactory.createInbox(0);
+        MockPush.__serverRespond('ok', response);
+
+        let list = inbox.listRooms();
+        expect(list.length).toBe(0);
+    });
+
+    test('inbox of one room', () => {
+        let inbox = initInbox(MockChannel);
+
+        let response = userInboxChannelFactory.createInbox(1);
+        MockPush.__serverRespond('ok', response);
+
+        let list = inbox.listRooms();
+        expect(list.length).toBe(1);
+
+        let left = list[0], right = response.rooms[0];
+        expect(left.id).toBe(right.id);
+        expect(left.lastMessage.id).toBe(right.last_message.id);
+        expect(left.lastMessage.text).toBe(right.last_message.text);
+    });
+});
+
+describe('hub inbox init', () => {
+    beforeEach(() => {
+        MockChannel.topic = 'hub_inbox:0';
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
+    });
+
     test('default params', () => {
         initInbox(MockChannel);
 
@@ -38,133 +104,242 @@ describe('init', () => {
 
     test('empty inbox', () => {
         let inbox = initInbox(MockChannel);
-        MockPush.__serverRespond('ok', {rooms: []});
+
+        let response = hubInboxChannelFactory.createInbox(0);
+        MockPush.__serverRespond('ok', response);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(0);
     });
 
     test('inbox of one room', () => {
-        let room = inboxRoomFactory.create();
-
         let inbox = initInbox(MockChannel);
-        MockPush.__serverRespond('ok', {rooms: [room]});
+
+        let response = hubInboxChannelFactory.createInbox(1);
+        MockPush.__serverRespond('ok', response);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(1);
 
-        expect(list[0].id).toBe(room.id);
-        expect(list[0].lastMessage.id).toBe(room.last_message.id);
-        expect(list[0].lastMessage.text).toBe(room.last_message.text);
-        expect(list[0].user.id).toBe(room.user.id);
+        let left = list[0], right = response.rooms[0];
+        expect(left.id).toBe(right.id);
+        expect(left.lastMessage.id).toBe(right.last_message.id);
+        expect(left.lastMessage.text).toBe(right.last_message.text);
+        expect(left.user.id).toBe(right.user.id);
     });
 });
 
 describe('rooms list re-ordering', () => {
-    let [roomA, roomB] = inboxRoomFactory.createBatch(2);
+    let initialResponse = userInboxChannelFactory.createInbox(2);
+    let [roomA, roomB] = initialResponse.rooms;
     let inbox = null;
 
     beforeEach(() => {
+        MockChannel.topic = 'user_inbox:0';
         inbox = initInbox(MockChannel);
-        MockPush.__serverRespond('ok', {rooms: [roomA, roomB]});
+        MockPush.__serverRespond('ok', initialResponse);
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
     });
 
     test('new message moves room to top', () => {
-        let newMessage = messageFactory.create({room_id: roomB.id});
-        MockChannel.__serverPush('inbox_updated', {
-            id: roomB.id,
-            hub_id: null,
-            last_message: newMessage,
-            user: roomB.user,
-        });
+        let update = userInboxChannelFactory.createInboxRoom({ id: roomB.id });
+        MockChannel.__serverPush('inbox_updated', update);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(2);
 
         expect(list[0].id).toBe(roomB.id);
-        expect(list[0].lastMessage.id).toBe(newMessage.id);
-        expect(list[0].lastMessage.text).toBe(newMessage.text);
-        expect(list[0].user.id).toBe(roomB.user.id);
+        expect(list[0].lastMessage.id).toBe(update.last_message.id);
+        expect(list[0].lastMessage.text).toBe(update.last_message.text);
 
         expect(list[1].id).toBe(roomA.id);
         expect(list[1].lastMessage.id).toBe(roomA.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomA.last_message.text);
-        expect(list[1].user.id).toBe(roomA.user.id);
     });
 
     test('new message pushes a new room', () => {
-        let roomC = inboxRoomFactory.create();
-        MockChannel.__serverPush('inbox_updated', roomC);
+        let update = userInboxChannelFactory.createInboxRoom();
+        MockChannel.__serverPush('inbox_updated', update);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(3);
 
-        expect(list[0].id).toBe(roomC.id);
-        expect(list[0].lastMessage.id).toBe(roomC.last_message.id);
-        expect(list[0].lastMessage.text).toBe(roomC.last_message.text);
-        expect(list[0].user.id).toBe(roomC.user.id);
+        expect(list[0].id).toBe(update.id);
+        expect(list[0].lastMessage.id).toBe(update.last_message.id);
+        expect(list[0].lastMessage.text).toBe(update.last_message.text);
 
         expect(list[1].id).toBe(roomB.id);
         expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
-        expect(list[1].user.id).toBe(roomB.user.id);
 
         expect(list[2].id).toBe(roomA.id);
         expect(list[2].lastMessage.id).toBe(roomA.last_message.id);
         expect(list[2].lastMessage.text).toBe(roomA.last_message.text);
-        expect(list[2].user.id).toBe(roomA.user.id);
     });
 
     test('new message without re-ordering', () => {
-        let newMessage = messageFactory.create({room_id: roomA.id});
-        MockChannel.__serverPush('inbox_updated', {
-            id: roomA.id,
-            hub_id: null,
-            last_message: newMessage,
-            user: roomA.user,
-        });
+        let update = userInboxChannelFactory.createInboxRoom({ id: roomA.id });
+        MockChannel.__serverPush('inbox_updated', update);
 
         let list = inbox.listRooms();
         expect(list.length).toBe(2);
 
         expect(list[0].id).toBe(roomA.id);
-        expect(list[0].lastMessage.id).toBe(newMessage.id);
-        expect(list[0].lastMessage.text).toBe(newMessage.text);
-        expect(list[0].user.id).toBe(roomA.user.id);
+        expect(list[0].lastMessage.id).toBe(update.last_message.id);
+        expect(list[0].lastMessage.text).toBe(update.last_message.text);
 
         expect(list[1].id).toBe(roomB.id);
         expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
         expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
-        expect(list[1].user.id).toBe(roomB.user.id);
     });
 });
 
-describe('the updated event', () => {
-    let room = inboxRoomFactory.create();
+describe('user inbox updated event', () => {
+    const initialResponse = userInboxChannelFactory.createInbox(0);
     let inbox = null;
 
-    test('default params', (done) => {
+    beforeEach(() => {
+        MockChannel.topic = 'user_inbox:0';
         inbox = initInbox(MockChannel);
-        MockPush.__serverRespond('ok', {rooms: []});
+        MockPush.__serverRespond('ok', initialResponse);
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
+    });
+
+    test('works', (done) => {
+        let update = userInboxChannelFactory.createInboxRoom();
 
         inbox.on('updated', (rooms) => {
             expect(rooms.length).toBe(1);
-            expect(rooms[0].id).toBe(room.id);
+            expect(rooms[0].id).toBe(update.id);
 
             done();
         });
 
-        MockChannel.__serverPush('inbox_updated', room);
+        MockChannel.__serverPush('inbox_updated', update);
     });
 });
 
-describe('loading more rooms', () => {
-    let [roomB, roomA] = inboxRoomFactory.createBatch(2);
+describe('hub inbox updated event', () => {
+    const emptyResponse = hubInboxChannelFactory.createInbox(0);
     let inbox = null;
 
     beforeEach(() => {
+        MockChannel.topic = 'hub_inbox:0';
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
+    });
+
+    test('default params', (done) => {
         inbox = initInbox(MockChannel);
-        MockPush.__serverRespond('ok', {rooms: [roomA]});
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        let update = hubInboxChannelFactory.createInboxRoom();
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+            expect(rooms[0].id).toBe(update.id);
+
+            done();
+        });
+
+        MockChannel.__serverPush('inbox_updated', update);
+    });
+});
+
+describe('user inbox loading more rooms', () => {
+    let initialResponse = userInboxChannelFactory.createInbox(1);
+    let inbox = null;
+
+    beforeEach(() => {
+        MockChannel.topic = 'user_inbox:0';
+        inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', initialResponse);
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
+    });
+
+    test('default params', () => {
+        inbox.loadMore();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            limit: 100,
+            offset: 1,
+        });
+    });
+
+    test('custom params', () => {
+        let inbox = initInbox(MockChannel, { limit: 20 });
+        MockPush.__serverRespond('ok', initialResponse);
+
+        inbox.loadMore();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(3);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            limit: 20,
+            offset: 1,
+        });
+    });
+
+    test('server responds with ok', (done) => {
+        let response = userInboxChannelFactory.createInbox(1);
+
+        inbox.loadMore().then((rooms) => {
+            expect(rooms.length).toBe(2);
+            expect(rooms[0].id).toBe(response.rooms[0].id);
+            expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
+
+            done();
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('server responds with error', (done) => {
+        inbox.loadMore().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+
+            done();
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', (done) => {
+        inbox.loadMore().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+
+            done();
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('hub inbox loading more rooms', () => {
+    let initialResponse = hubInboxChannelFactory.createInbox(1);
+    let inbox = null;
+
+    beforeEach(() => {
+        MockChannel.topic = 'hub_inbox:0';
+        inbox = initInbox(MockChannel);
+        MockPush.__serverRespond('ok', initialResponse);
+    });
+
+    afterEach(() => {
+        delete MockChannel.topic;
     });
 
     test('default params', () => {
@@ -185,7 +360,7 @@ describe('loading more rooms', () => {
             hubUser: 2,
             archived: true,
         });
-        MockPush.__serverRespond('ok', {rooms: [roomA]});
+        MockPush.__serverRespond('ok', initialResponse);
 
         inbox.loadMore();
 
@@ -200,15 +375,17 @@ describe('loading more rooms', () => {
     });
 
     test('server responds with ok', (done) => {
+        let response = hubInboxChannelFactory.createInbox(1);
+
         inbox.loadMore().then((rooms) => {
             expect(rooms.length).toBe(2);
-            expect(rooms[0].id).toBe(roomA.id);
-            expect(rooms[1].id).toBe(roomB.id);
+            expect(rooms[0].id).toBe(response.rooms[0].id);
+            expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
 
             done();
         });
 
-        MockPush.__serverRespond('ok', {rooms: [roomB]});
+        MockPush.__serverRespond('ok', response);
     });
 
     test('server responds with error', (done) => {

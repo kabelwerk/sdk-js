@@ -1,6 +1,11 @@
 import { initDispatcher } from './dispatcher.js';
 import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
-import { parseInbox, parseInboxRoom } from './payloads.js';
+import {
+    parseHubInbox,
+    parseHubInboxRoom,
+    parseUserInbox,
+    parseUserInboxRoom
+} from './payloads.js';
 import logger from './logger.js';
 
 
@@ -26,6 +31,8 @@ import logger from './logger.js';
 //  inbox.loadMore().then((rooms) => {});
 //
 const initInbox = function(channel, params) {
+    const isHubInbox = channel.topic.startsWith('hub');
+
     params = Object.assign({
         limit: 100,
         attributes: null,
@@ -41,18 +48,29 @@ const initInbox = function(channel, params) {
         'updated',
     ]);
 
+    const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
+    const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
+
     const pushParams = function() {
         let pushParams = {
             limit: params.limit,
             offset: rooms.size,
-            archived: params.archived,
         };
+
+        if (!isHubInbox) {
+            return pushParams;
+        } else {
+            pushParams.archived = params.archived;
+        }
+
         if (params.attributes) {
             pushParams.attributes = params.attributes;
         }
+
         if (params.hubUser) {
             pushParams.hub_user = params.hubUser;
         }
+
         return pushParams;
     };
 

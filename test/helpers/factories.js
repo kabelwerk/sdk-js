@@ -1,30 +1,100 @@
-// Factory for user objects as they would come from the backend.
+// Factory for response payloads as they would come from a private channel.
 //
-export const userFactory = (function() {
-    let counter = 0;
-
-    const create = function(params) {
-        let id = ++counter;
-        return {
-            attributes: {},
-            hub_id: null,
-            id: id,
-            key: `key_${id}`,
-            name: `user ${id}`,
-        };
-    };
-
-    return { create };
-})();
-
-
-// Factory for message objects as they would come from the backend.
-//
-export const messageFactory = (function() {
+export const privateChannelFactory = (function() {
     let counter = 0;
     let timestamp = new Date().getTime();
 
-    const create = function(params) {
+    const createOwnUser = function(params) {
+        let id = ++counter;
+        let dt = new Date(timestamp + id * 1000);
+        return {
+            hub_id: null,
+            id: id,
+            inserted_at: dt.toJSON(),
+            key: `key_${id}`,
+            name: `user ${id}`,
+            updated_at: dt.toJSON(),
+        };
+    };
+
+    return { createOwnUser };
+})();
+
+
+// Factory for response payloads as they would come from a user inbox channel.
+//
+export const userInboxChannelFactory = (function() {
+    let counter = 0;
+
+    const createInboxRoom = function(params = {}) {
+        let id = params.id ? params.id : ++counter;
+
+        return {
+            hub_id: 1,
+            id: id,
+            last_message: roomChannelFactory.createMessage({room_id: id}),
+        };
+    };
+
+    const createInbox = function(number, params = {}) {
+        let rooms = [];
+
+        for (let i = 0; i < number; i++) {
+            rooms.push(createInboxRoom(params));
+        }
+
+        return { rooms };
+    };
+
+    return { createInboxRoom, createInbox };
+})();
+
+
+// Factory for response payloads as they would come from a hub inbox channel.
+//
+export const hubInboxChannelFactory = (function() {
+    let counter = 0;
+
+    const createInboxRoom = function(params = {}) {
+        let id = params.id ? params.id : ++counter;
+        let user = params.user ? params.user : privateChannelFactory.createOwnUser();
+
+        return {
+            archived: false,
+            attributes: {},
+            hub_id: 1,
+            hub_user_id: null,
+            id: id,
+            last_message: roomChannelFactory.createMessage({room_id: id}),
+            user: {
+                id: user.id,
+                key: user.key,
+                name: user.name,
+            },
+        };
+    };
+
+    const createInbox = function(number, params = {}) {
+        let rooms = [];
+
+        for (let i = 0; i < number; i++) {
+            rooms.push(createInboxRoom(params));
+        }
+
+        return { rooms };
+    };
+
+    return { createInboxRoom, createInbox };
+})();
+
+
+// Factory for response paylods as they would come from a room channel.
+//
+export const roomChannelFactory = (function() {
+    let counter = 0;
+    let timestamp = new Date().getTime();
+
+    const createMessage = function(params) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
         return {
@@ -37,45 +107,13 @@ export const messageFactory = (function() {
         };
     };
 
-    const createBatch = function(number, params) {
-        let batch = [];
+    const createMessageList = function(number, params) {
+        let list = [];
         for (let i = 0; i <= number; i++) {
-            batch.push(create(params));
+            list.push(createMessage(params));
         }
-        return batch;
+        return list;
     };
 
-    return { create, createBatch };
-})();
-
-
-// Factory for inbox room objects as they would come from the backend.
-//
-export const inboxRoomFactory = (function() {
-    let counter = 0;
-
-    const create = function() {
-        let id = ++counter;
-        let user = userFactory.create();
-        return {
-            id: id,
-            hub_id: null,
-            last_message: messageFactory.create({room_id: id}),
-            user: {
-                id: user.id,
-                key: user.key,
-                name: user.name,
-            },
-        };
-    };
-
-    const createBatch = function(number) {
-        let batch = [];
-        for (let i = 0; i <= number; i++) {
-            batch.push(create());
-        }
-        return batch;
-    };
-
-    return { create, createBatch };
+    return { createMessage, createMessageList };
 })();
