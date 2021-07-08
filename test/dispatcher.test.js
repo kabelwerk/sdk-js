@@ -75,6 +75,22 @@ test('off with a ref', () => {
     dispatcher.send('answer', 42);  // 1 assert
 });
 
+test('off without an event', () => {
+    expect.assertions(2);
+
+    let dispatcher = initDispatcher(['answer']);
+
+    for (let i = 0; i < 2; i++) {
+        dispatcher.on('answer', (value) => {
+            expect(value).toBe(42);
+        });
+    }
+
+    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.off();
+    dispatcher.send('answer', 42);  // 0 asserts
+});
+
 test('the ready event magic with on', () => {
     expect.assertions(1);
 

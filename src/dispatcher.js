@@ -66,22 +66,28 @@ const initDispatcher = function(eventNames) {
 
         // Unsubscribe from an event.
         //
-        // If no reference for a particular callback is provided, clear all
+        // If no reference to a particular callback is provided, clear all
         // callbacks registered with the event.
         //
+        // If no event is specified, clear all registered callbacks.
+        //
         off: function(event, ref) {
-            checkEventName(event);
+            if (event) {
+                checkEventName(event);
 
-            callbacks = callbacks.filter(function(callback) {
-                if (callback.event == event) {
-                    if (ref) {
-                        return callback.ref !== ref;
-                    } else {
-                        return false;
+                callbacks = callbacks.filter(function(callback) {
+                    if (callback.event == event) {
+                        if (ref) {
+                            return callback.ref !== ref;
+                        } else {
+                            return false;
+                        }
                     }
-                }
-                return true;
-            });
+                    return true;
+                });
+            } else {
+                callbacks = [];
+            }
         },
 
         // Subscribe to an event and automatically unsubscribe from it after
