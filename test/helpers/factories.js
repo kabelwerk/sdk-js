@@ -56,14 +56,14 @@ export const hubInboxChannelFactory = (function() {
     let counter = 0;
 
     const createInboxRoom = function(params = {}) {
-        let id = params.id ? params.id : ++counter;
-        let user = params.user ? params.user : privateChannelFactory.createOwnUser();
+        let id = 'id' in params ? params.id : ++counter;
+        let user = 'user' in params ? params.user : privateChannelFactory.createOwnUser();
 
         return {
-            archived: false,
-            attributes: {},
+            archived: 'archived' in params ? params.archived : false,
+            attributes: 'attributes' in params ? params.attributes : {},
             hub_id: 1,
-            hub_user_id: null,
+            hub_user_id: 'hub_user_id' in params ? params.hub_user_id : null,
             id: id,
             last_message: roomChannelFactory.createMessage({room_id: id}),
             user: {

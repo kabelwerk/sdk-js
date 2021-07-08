@@ -91,7 +91,6 @@ describe('private channel join', () => {
         let user = privateChannelFactory.createOwnUser();
 
         kabel.on('user_loaded', (res) => {
-            expect(res.attributes).toEqual(user.attributes);
             expect(res.hubId).toBe(user.hub_id);
             expect(res.id).toBe(user.id);
             expect(res.key).toBe(user.key);
@@ -174,7 +173,6 @@ describe('user info', () => {
 
     test('get user', () => {
         let res = kabel.getUser();
-        expect(res.attributes).toEqual(user.attributes);
         expect(res.hubId).toBe(user.hub_id);
         expect(res.id).toBe(user.id);
         expect(res.key).toBe(user.key);
@@ -185,7 +183,6 @@ describe('user info', () => {
         let newUser = privateChannelFactory.createOwnUser();
 
         kabel.updateUser({}).then((res) => {
-            expect(res.attributes).toEqual(newUser.attributes);
             expect(res.hubId).toBe(newUser.hub_id);
             expect(res.id).toBe(newUser.id);
             expect(res.key).toBe(newUser.key);
@@ -224,12 +221,11 @@ describe('user info', () => {
     });
 
     test('user_updated event', () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         let newUser = privateChannelFactory.createOwnUser();
 
         kabel.on('user_updated', (res) => {
-            expect(res.attributes).toEqual(newUser.attributes);
             expect(res.hubId).toBe(newUser.hub_id);
             expect(res.id).toBe(newUser.id);
             expect(res.key).toBe(newUser.key);

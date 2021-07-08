@@ -23,12 +23,12 @@ describe('user inbox init', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
-            limit: 100,
+            limit: 10,
             offset: 0,
         });
     });
 
-    test('custom params', () => {
+    test('custom limit', () => {
         initInbox(MockChannel, { limit: 50 });
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
@@ -78,9 +78,8 @@ describe('hub inbox init', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
-            limit: 100,
+            limit: 10,
             offset: 0,
-            archived: false,
         });
     });
 
@@ -129,7 +128,7 @@ describe('hub inbox init', () => {
     });
 });
 
-describe('rooms list re-ordering', () => {
+describe('user inbox rooms list re-ordering', () => {
     let initialResponse = userInboxChannelFactory.createInbox(2);
     let [roomA, roomB] = initialResponse.rooms;
     let inbox = null;
@@ -226,7 +225,7 @@ describe('user inbox updated event', () => {
 });
 
 describe('hub inbox updated event', () => {
-    const emptyResponse = hubInboxChannelFactory.createInbox(0);
+    let emptyResponse = hubInboxChannelFactory.createInbox(0);
     let inbox = null;
 
     beforeEach(() => {
@@ -237,7 +236,9 @@ describe('hub inbox updated event', () => {
         delete MockChannel.topic;
     });
 
-    test('default params', (done) => {
+    test('default params', () => {
+        expect.assertions(2);
+
         inbox = initInbox(MockChannel);
         MockPush.__serverRespond('ok', emptyResponse);
 
@@ -246,11 +247,113 @@ describe('hub inbox updated event', () => {
         inbox.on('updated', (rooms) => {
             expect(rooms.length).toBe(1);
             expect(rooms[0].id).toBe(update.id);
-
-            done();
         });
 
         MockChannel.__serverPush('inbox_updated', update);
+    });
+
+    test('filter archived rooms', () => {
+        expect.assertions(1);
+
+        inbox = initInbox(MockChannel, { archived: true });
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+        });
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ archived: false })
+        );
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ archived: true })
+        );
+    });
+
+    test('filter unarchived rooms', () => {
+        expect.assertions(1);
+
+        inbox = initInbox(MockChannel, { archived: false });
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+        });
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ archived: false })
+        );
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ archived: true })
+        );
+    });
+
+    test('filter rooms by attribute', () => {
+        expect.assertions(1);
+
+        inbox = initInbox(MockChannel, { attributes: {country: 'DE'} });
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+        });
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({
+                attributes: {country: 'JP', foo: 'bar'}
+            })
+        );
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({
+                attributes: {country: 'DE', foo: 'bar'}
+            })
+        );
+    });
+
+    test('filter assigned rooms', () => {
+        expect.assertions(1);
+
+        inbox = initInbox(MockChannel, { hubUser: 2 });
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+        });
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ hub_user_id: null })
+        );
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ hub_user_id: 2 })
+        );
+    });
+
+    test('filter unassigned rooms', () => {
+        expect.assertions(1);
+
+        inbox = initInbox(MockChannel, { hubUser: null });
+        MockPush.__serverRespond('ok', emptyResponse);
+
+        inbox.on('updated', (rooms) => {
+            expect(rooms.length).toBe(1);
+        });
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ hub_user_id: null })
+        );
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({ hub_user_id: 2 })
+        );
     });
 });
 
@@ -273,12 +376,12 @@ describe('user inbox loading more rooms', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(2);
         expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
-            limit: 100,
+            limit: 10,
             offset: 1,
         });
     });
 
-    test('custom params', () => {
+    test('custom limit', () => {
         let inbox = initInbox(MockChannel, { limit: 20 });
         MockPush.__serverRespond('ok', initialResponse);
 
@@ -347,9 +450,8 @@ describe('hub inbox loading more rooms', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(2);
         expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
-            limit: 100,
+            limit: 10,
             offset: 1,
-            archived: false,
         });
     });
 

@@ -30,15 +30,8 @@ import logger from './logger.js';
 //  inbox.on('updated', (rooms) => {});
 //  inbox.loadMore().then((rooms) => {});
 //
-const initInbox = function(channel, params) {
+const initInbox = function(channel, params = {}) {
     const isHubInbox = channel.topic.startsWith('hub');
-
-    params = Object.assign({
-        limit: 100,
-        attributes: null,
-        hubUser: null,
-        archived: false,
-    }, params);
 
     let rooms = new Map();  // room id: room
 
@@ -51,23 +44,25 @@ const initInbox = function(channel, params) {
     const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
     const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
 
-    const pushParams = function() {
+    const inferPushParams = function() {
         let pushParams = {
-            limit: params.limit,
+            limit: 'limit' in params ? params.limit : 10,
             offset: rooms.size,
         };
 
         if (!isHubInbox) {
             return pushParams;
-        } else {
+        }
+
+        if ('archived' in params) {
             pushParams.archived = params.archived;
         }
 
-        if (params.attributes) {
+        if ('attributes' in params) {
             pushParams.attributes = params.attributes;
         }
 
-        if (params.hubUser) {
+        if ('hubUser' in params) {
             pushParams.hub_user = params.hubUser;
         }
 
@@ -87,12 +82,34 @@ const initInbox = function(channel, params) {
     channel.on('inbox_updated', function(payload) {
         let room = parseInboxRoom(payload);
 
+        if (isHubInbox) {
+            if ('archived' in params) {
+                if (room.archived !== params.archived) {
+                    return;
+                }
+            }
+
+            if ('attributes' in params) {
+                for (let key of Object.keys(params.attributes)) {
+                    if (room.attributes[key] !== params.attributes[key]) {
+                        return;
+                    }
+                }
+            }
+
+            if ('hubUser' in params) {
+                if (room.hubUserId !== params.hubUser) {
+                    return;
+                }
+            }
+        }
+
         rooms.set(room.id, room);
         dispatcher.send('updated', listRooms());
     });
 
     channel
-        .push('list_rooms', pushParams())
+        .push('list_rooms', inferPushParams())
         .receive('ok', function(payload) {
             for (let room of parseInbox(payload).rooms) {
                 rooms.set(room.id, room);
@@ -116,7 +133,7 @@ const initInbox = function(channel, params) {
         //
         loadMore: function() {
             return new Promise(function(resolve, reject) {
-                let push = channel.push('list_rooms', pushParams());
+                let push = channel.push('list_rooms', inferPushParams());
 
                 push.receive('ok', function(payload) {
                     for (let room of parseInbox(payload).rooms) {
