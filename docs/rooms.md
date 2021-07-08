@@ -62,6 +62,8 @@ room.getAttributes().then((attributes) => {
     return room.setAttributes(attributes);
 }).then((attributes) => {
     console.assert(attributes.country == 'DE');
+}).catch((error) => {
+    // e.g. if the server times out
 });
 ```
 
@@ -71,9 +73,13 @@ room.getAttributes().then((attributes) => {
 ```js
 const hubUsers = kabel.listHubUsers();
 
-room.getHubInfo();  // { assignedTo, isArchived }
+room.getHubInfo().then((inboxInfo) => {
+    // { archived, attributes, hubUser }
+}).catch((error) => {
+    // e.g. if the server times out
+});
 
-room.assignTo(hubUsers[0]).then(() => {
+room.assign(hubUsers[0].id).then(() => {
     console.assert(room.getHubInfo().assignedTo.id == hubUsers[0].id);
 });
 ```

@@ -3,6 +3,7 @@ import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
 import logger from './logger.js';
 import {
     parseAttributes,
+    parseInboxInfo,
     parseMessage,
     parseMessageList
 } from './payloads.js';
@@ -168,6 +169,50 @@ const initRoom = function(socket, roomId) {
 
                 push.receive('ok', function(payload) {
                     resolve(parseAttributes(payload).attributes);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        // Retrieve the room's inbox info. Return a promise.
+        //
+        // This only works for hub users.
+        //
+        getInboxInfo: function() {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('get_inbox_info', {});
+
+                push.receive('ok', function(payload) {
+                    resolve(parseInboxInfo(payload));
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        // Set the room's hub user. Return a promise.
+        //
+        // This only works for hub users.
+        //
+        assign: function(hubUser) {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('assign', { hub_user: hubUser });
+
+                push.receive('ok', function(payload) {
+                    resolve(parseInboxInfo(payload));
                 });
 
                 push.receive('error', function() {

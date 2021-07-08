@@ -115,7 +115,7 @@ export const parseInboxInfo = function(payload) {
     return {
         archived: payload.archived,
         attributes: payload.attributes,
-        hubUser: parseUser(payload.user),
+        hubUser: payload.hub_user ? parseUser(payload.hub_user) : null,
         id: payload.id,
     };
 };

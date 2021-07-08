@@ -118,12 +118,26 @@ export const roomChannelFactory = (function() {
         return { messages };
     };
 
-    const createAttributes = function(params) {
+    const createAttributes = function(params = {}) {
         return {
             attributes: 'attributes' in params ? params.attributes : {},
             id: 'id' in params ? params.id : ++counter,
         };
     };
 
-    return { createMessage, createMessageList, createAttributes };
+    const createInboxInfo = function(params = {}) {
+        return {
+            archived: 'archived' in params ? params.archived : false,
+            attributes: 'attributes' in params ? params.attributes : {},
+            hub_user: 'hub_user' in params ? params.hub_user : null,
+            id: 'id' in params ? params.id : ++counter,
+        };
+    };
+
+    return {
+        createMessage,
+        createMessageList,
+        createAttributes,
+        createInboxInfo,
+    };
 })();
