@@ -26,17 +26,25 @@ A room object has the following fields:
 - `hubId`: the ID of the hub to which the room belongs;
 - `id`: an integer;
 - `lastMessage`: the latest message posted in this room; either a message object or `null` if the room is empty;
-- `user`: the user to whom the room belongs, as an `{ id, key, name }` object.
 
 
 ## On the hub side
+
+Inbox objects are more powerful for hub users. The room objects have a few more fields in addition to those listed above:
+
+- `archived`: a boolean indicating whether the room is currently archived;
+- `attributes`: the room's custom attributes (set by `room.setAttributes`);
+- `hubUserId`: the ID of the hub user who is assigned to the room, or `null` if nobody is assigned;
+- `user`: the user to whom the room belongs, as an `{ id, key, name }` object.
+
+When initing an inbox object, you can (optionally) specify a filter:
 
 ```js
 const params = {
     archived: true,               // archived rooms
 
-    assignedTo: kabel.getUser(),  // assigned to the connected hub user
-    assignedTo: null,             // unassigned rooms
+    hubUser: kabel.getUser().id,  // assigned to the connected hub user
+    hubUser: null,                // unassigned rooms
 
     attributes: {                 // set by the end user clients
         country: 'DE',            // e.g. room.setAttributes({ country: 'DE' })

@@ -57,12 +57,11 @@ A message object has the following fields:
 ### Custom attributes
 
 ```js
-let attributes = room.getAttributes();
-
-attributes.country = 'DE';
-
-room.setAttributes(attributes).then((res) => {
-    console.assert(res.country == room.getAttributes().country);
+room.getAttributes().then((attributes) => {
+    attributes.country = 'DE';
+    return room.setAttributes(attributes);
+}).then((attributes) => {
+    console.assert(attributes.country == 'DE');
 });
 ```
 

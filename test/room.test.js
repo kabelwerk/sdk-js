@@ -52,36 +52,36 @@ describe('channel rejoin', () => {
     });
 });
 
-describe('message posted', () => {
+describe('message posted event', () => {
+    let initialResponse = roomChannelFactory.createMessageList(1);
     let room = null;
-    let message = roomChannelFactory.createMessage({ room_id: 0 });
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
-        MockPush.__serverRespond('ok', {messages: []});
+        MockPush.__serverRespond('ok', initialResponse);
     });
 
-    test('new message', (done) => {
+    test('new message', () => {
         expect.assertions(2);
+
+        let message = roomChannelFactory.createMessage();
 
         room.on('message_posted', (res) => {
             expect(res.id).toBe(message.id);
             expect(res.text).toBe(message.text);
-
-            done();
         });
 
         MockChannel.__serverPush('message_posted', message);
     });
 });
 
-describe('load earlier', () => {
-    let [messageA, messageB] = roomChannelFactory.createMessageList(2, {room_id: 0});
+describe('load earlier messages', () => {
+    let initialResponse = roomChannelFactory.createMessageList(1);
     let room = null;
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
-        MockPush.__serverRespond('ok', {messages: [messageB]});
+        MockPush.__serverRespond('ok', initialResponse);
     });
 
     test('push params', () => {
@@ -89,39 +89,41 @@ describe('load earlier', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('list_messages', {
-            before: messageB.id,
+            before: initialResponse.messages[0].id,
         });
     });
 
-    test('server responds with ok', (done) => {
+    test('server responds with ok', () => {
+        expect.assertions(3);
+
+        let response = roomChannelFactory.createMessageList(1);
+
         room.loadEarlier().then((res) => {
             expect(res.length).toBe(1);
-            expect(res[0].id).toBe(messageA.id);
-            expect(res[0].text).toBe(messageA.text);
-
-            done();
+            expect(res[0].id).toBe(response.messages[0].id);
+            expect(res[0].text).toBe(response.messages[0].text);
         });
 
-        MockPush.__serverRespond('ok', {messages: [messageA]});
+        MockPush.__serverRespond('ok', response);
     });
 
-    test('server responds with error', (done) => {
+    test('server responds with error', () => {
+        expect.assertions(2);
+
         room.loadEarlier().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
-
-            done();
         });
 
         MockPush.__serverRespond('error');
     });
 
-    test('server times out', (done) => {
+    test('server times out', () => {
+        expect.assertions(2);
+
         room.loadEarlier().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
-
-            done();
         });
 
         MockPush.__serverRespond('timeout');
@@ -129,11 +131,12 @@ describe('load earlier', () => {
 });
 
 describe('post message', () => {
+    let initialResponse = roomChannelFactory.createMessageList(0);
     let room = null;
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
-        MockPush.__serverRespond('ok', {messages: []});
+        MockPush.__serverRespond('ok', initialResponse);
     });
 
     test('push params', () => {
@@ -145,36 +148,135 @@ describe('post message', () => {
         });
     });
 
-    test('server responds with ok', (done) => {
+    test('server responds with ok', () => {
+        expect.assertions(2);
+
         let message = roomChannelFactory.createMessage({ room_id: 0 });
 
         room.postMessage({}).then((res) => {
             expect(res.id).toBe(message.id);
             expect(res.text).toBe(message.text);
-
-            done();
         });
 
         MockPush.__serverRespond('ok', message);
     });
 
-    test('server responds with error', (done) => {
+    test('server responds with error', () => {
+        expect.assertions(2);
+
         room.postMessage({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
-
-            done();
         });
 
         MockPush.__serverRespond('error');
     });
 
-    test('server times out', (done) => {
+    test('server times out', () => {
+        expect.assertions(2);
+
         room.postMessage({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
+        });
 
-            done();
+        MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('room attributes', () => {
+    let initialResponse = roomChannelFactory.createMessageList(0);
+    let room = null;
+
+    let attributes = {
+        number: 42,
+        string: '',
+    };
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0);
+        MockPush.__serverRespond('ok', initialResponse);
+    });
+
+    test('get params', () => {
+        room.getAttributes();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('get_attributes', {});
+    });
+
+    test('get, server responds with ok', () => {
+        expect.assertions(1);
+
+        let response = roomChannelFactory.createAttributes({ attributes });
+
+        room.getAttributes().then((attributes) => {
+            expect(attributes).toEqual(attributes);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('get, server responds with error', () => {
+        expect.assertions(2);
+
+        room.getAttributes().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('get, server times out', () => {
+        expect.assertions(2);
+
+        room.getAttributes().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+
+    test('set params', () => {
+        room.setAttributes(attributes);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('set_attributes', {
+            attributes: attributes,
+        });
+    });
+
+    test('set, server responds with ok', () => {
+        expect.assertions(1);
+
+        let response = roomChannelFactory.createAttributes({ attributes });
+
+        room.setAttributes(attributes).then((attributes) => {
+            expect(attributes).toEqual(attributes);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('set, server responds with error', () => {
+        expect.assertions(2);
+
+        room.setAttributes(attributes).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('set, server times out', () => {
+        expect.assertions(2);
+
+        room.setAttributes(attributes).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
         });
 
         MockPush.__serverRespond('timeout');

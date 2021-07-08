@@ -94,26 +94,36 @@ export const roomChannelFactory = (function() {
     let counter = 0;
     let timestamp = new Date().getTime();
 
-    const createMessage = function(params) {
+    const createMessage = function(params = {}) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
+
         return {
             id: id,
             inserted_at: dt.toJSON(),
-            room_id: params.room_id,
+            room_id: 'room_id' in params ? params.room_id : 0,
             text: `message ${id}`,
             updated_at: dt.toJSON(),
             user: null,
         };
     };
 
-    const createMessageList = function(number, params) {
-        let list = [];
-        for (let i = 0; i <= number; i++) {
-            list.push(createMessage(params));
+    const createMessageList = function(number, params = {}) {
+        let messages = [];
+
+        for (let i = 0; i < number; i++) {
+            messages.push(createMessage(params));
         }
-        return list;
+
+        return { messages };
     };
 
-    return { createMessage, createMessageList };
+    const createAttributes = function(params) {
+        return {
+            attributes: 'attributes' in params ? params.attributes : {},
+            id: 'id' in params ? params.id : ++counter,
+        };
+    };
+
+    return { createMessage, createMessageList, createAttributes };
 })();

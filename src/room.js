@@ -1,7 +1,11 @@
 import { initDispatcher } from './dispatcher.js';
 import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
 import logger from './logger.js';
-import { parseMessage, parseMessageList } from './payloads.js';
+import {
+    parseAttributes,
+    parseMessage,
+    parseMessageList
+} from './payloads.js';
 
 
 // Init a room object.
@@ -124,6 +128,46 @@ const initRoom = function(socket, roomId) {
                     }
 
                     resolve(message);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        // Retrieve the room's attributes. Return a promise.
+        //
+        getAttributes: function() {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('get_attributes', {});
+
+                push.receive('ok', function(payload) {
+                    resolve(parseAttributes(payload).attributes);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        // Set the room's attributes. Return a promise.
+        //
+        setAttributes: function(attributes) {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('set_attributes', { attributes });
+
+                push.receive('ok', function(payload) {
+                    resolve(parseAttributes(payload).attributes);
                 });
 
                 push.receive('error', function() {
