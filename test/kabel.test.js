@@ -173,6 +173,7 @@ describe('user info', () => {
 
     test('get user', () => {
         let res = kabel.getUser();
+
         expect(res.hubId).toBe(user.hub_id);
         expect(res.id).toBe(user.id);
         expect(res.key).toBe(user.key);
@@ -235,5 +236,121 @@ describe('user info', () => {
         });
 
         MockChannel.__serverPush('user_updated', newUser);
+    });
+});
+
+describe('create room', () => {
+    let user = privateChannelFactory.createOwnUser();
+    let kabel = null;
+
+    beforeEach(() => {
+        kabel = initKabel('url', 'token');
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', {});
+    });
+
+    test('push params', () => {
+        kabel.createRoom();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('create_room', {hub: 1});
+    });
+
+    test('server responds with ok', () => {
+        let response = {id: 42};
+
+        kabel.createRoom().then((res) => {
+            expect(res.id).toBe(response.id);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        kabel.createRoom().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        kabel.createRoom().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('load hub info', () => {
+    let user = privateChannelFactory.createOwnUser();
+    let kabel = null;
+
+    beforeEach(() => {
+        kabel = initKabel('url', 'token');
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', {});
+    });
+
+    test('push params', () => {
+        kabel.loadHubInfo();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('get_hub', {});
+    });
+
+    test('server responds with ok', () => {
+        const info = {
+            id: 1,
+            name: 'Hub',
+            users: [{
+                id: user.id,
+                key: user.key,
+                name: user.name,
+            }],
+        };
+
+        kabel.loadHubInfo().then((res) => {
+            expect(res.id).toBe(info.id);
+            expect(res.name).toBe(info.name);
+            expect(res.users.length).toBe(1);
+
+            expect(res.users[0].id).toBe(user.id);
+            expect(res.users[0].key).toBe(user.key);
+            expect(res.users[0].name).toBe(user.name);
+        });
+
+        MockPush.__serverRespond('ok', info);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        kabel.loadHubInfo().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        kabel.loadHubInfo().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
     });
 });

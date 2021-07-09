@@ -1,10 +1,16 @@
 import { Socket } from 'phoenix';
 
 import { initDispatcher } from './dispatcher.js';
-import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
+import {
+    CONNECTION_ERROR,
+    PUSH_REJECTED,
+    TIMEOUT,
+    USAGE_ERROR,
+    initError
+} from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
-import { parseOwnUser } from './payloads.js';
+import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
 
 
@@ -78,6 +84,42 @@ const initUser = function(socket, dispatcher) {
                 push.receive('ok', function(payload) {
                     user = parseOwnUser(payload);
                     resolve(user);
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        createRoom: function(hubId) {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('create_room', {hub: hubId});
+
+                push.receive('ok', function(payload) {
+                    resolve({ id: payload.id });
+                });
+
+                push.receive('error', function() {
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function() {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        loadHubInfo: function() {
+            return new Promise(function(resolve, reject) {
+                let push = channel.push('get_hub', {});
+
+                push.receive('ok', function(payload) {
+                    resolve(parseOwnHub(payload));
                 });
 
                 push.receive('error', function() {
@@ -174,7 +216,8 @@ const initKabel = function(url, token) {
             return user.getInfo();
         },
 
-        // Update the connected user's info. Return a promise.
+        // Update the connected user's info. Return a promise resolving into
+        // the (updated) user info.
         //
         updateUser: function(params) {
             ensureReady();
@@ -188,11 +231,29 @@ const initKabel = function(url, token) {
             return initInbox(inboxChannel, params);
         },
 
+        // Create a room for the connected user. Return a promise resolving
+        // into an object with the newly created room's ID.
+        //
+        createRoom: function(hubId = 1) {
+            ensureReady();
+            return user.createRoom(hubId);
+        },
+
         // Init and return a room object.
         //
         openRoom: function(id) {
             ensureReady();
             return initRoom(socket, id);
+        },
+
+        // Retrieve info about the user's hub (name, list of fellow hub users).
+        // Return a promise resolving into that info.
+        //
+        // This method only works for hub users.
+        //
+        loadHubInfo: function() {
+            ensureReady();
+            return user.loadHubInfo();
         },
 
         on: dispatcher.on,

@@ -16,6 +16,16 @@ export const parseOwnUser = function(payload) {
     };
 };
 
+// Parse the payload of a get_hub response.
+//
+export const parseOwnHub = function(payload) {
+    return {
+        id: payload.id,
+        name: payload.name,
+        users: payload.users.map(parseUser),
+    };
+};
+
 
 //
 // user inbox channel
@@ -126,7 +136,7 @@ export const parseInboxInfo = function(payload) {
 //
 
 
-// Helper for parseMessage, parseHubInboxRoom, and parseInboxInfo.
+// Helper for parseMessage, parseHubInboxRoom, parseInboxInfo, and others.
 //
 const parseUser = function(payload) {
     return {
