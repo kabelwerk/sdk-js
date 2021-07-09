@@ -34,6 +34,8 @@ kabel.on('error', (error) => {
 
 The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default). There can be only one connection object at a time and you can access it using the `Kabelwerk.getKabel` method.
 
+Read more about [the connection object](./docs/kabel.md) in the docs.
+
 
 ### Inboxes
 
@@ -53,6 +55,8 @@ inbox.on('updated', (rooms) => {
 ```
 
 Each end user has one room per hub; so if your care team is organised in a single hub, that would be one room per end user. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
+
+Read more about [inboxes](./docs/inboxes.md) in the docs.
 
 
 ### Rooms
@@ -85,6 +89,8 @@ room.loadEarlier().then((messages) => {
 ```
 
 You can open as many rooms as you need. However, if you just want to listen for newly posted messages, then it is simpler to leverage the `inbox.on('updated')` hook.
+
+Read more about [rooms](./docs/rooms.md) in the docs.
 
 
 ## Contributing
