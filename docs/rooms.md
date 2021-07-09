@@ -57,9 +57,9 @@ A message object has the following fields:
 ### Custom attributes
 
 ```js
-room.getAttributes().then((attributes) => {
+room.loadAttributes().then((attributes) => {
     attributes.country = 'DE';
-    return room.setAttributes(attributes);
+    return room.updateAttributes(attributes);
 }).then((attributes) => {
     console.assert(attributes.country == 'DE');
 }).catch((error) => {
@@ -70,16 +70,18 @@ room.getAttributes().then((attributes) => {
 
 ### On the hub side
 
-```js
-const hubUsers = kabel.listHubUsers();
+Room objects provide some additional functionality if the connected user is a hub user:
 
-room.getHubInfo().then((inboxInfo) => {
-    // { archived, attributes, hubUser }
+```js
+room.loadInboxInfo().then((inboxInfo) => {
+    // { archived, assignedTo, attributes }
 }).catch((error) => {
-    // e.g. if the server times out
+    // e.g. if the connected user is not a hub user
 });
 
-room.assign(hubUsers[0].id).then(() => {
-    console.assert(room.getHubInfo().assignedTo.id == hubUsers[0].id);
+room.assignTo(kabel.getUser().id).then((inboxInfo) => {
+    // { archived, assignedTo, attributes }
+}).catch((error) => {
+    // e.g. if the connected user is not a hub user
 });
 ```

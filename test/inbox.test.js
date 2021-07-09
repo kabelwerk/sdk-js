@@ -86,18 +86,18 @@ describe('hub inbox init', () => {
     test('custom params', () => {
         initInbox(MockChannel, {
             limit: 50,
-            attributes: {country: 'DE'},
-            hubUser: 1,
             archived: true,
+            assignedTo: 1,
+            attributes: {country: 'DE'},
         });
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('list_rooms', {
             limit: 50,
             offset: 0,
-            attributes: {country: 'DE'},
-            hub_user: 1,
             archived: true,
+            hub_user: 1,
+            attributes: {country: 'DE'},
         });
     });
 
@@ -319,7 +319,7 @@ describe('hub inbox updated event', () => {
     test('filter assigned rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockChannel, { hubUser: 2 });
+        inbox = initInbox(MockChannel, { assignedTo: 2 });
         MockPush.__serverRespond('ok', emptyResponse);
 
         inbox.on('updated', (rooms) => {
@@ -339,7 +339,7 @@ describe('hub inbox updated event', () => {
     test('filter unassigned rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockChannel, { hubUser: null });
+        inbox = initInbox(MockChannel, { assignedTo: null });
         MockPush.__serverRespond('ok', emptyResponse);
 
         inbox.on('updated', (rooms) => {
@@ -458,9 +458,9 @@ describe('hub inbox loading more rooms', () => {
     test('custom params', () => {
         let inbox = initInbox(MockChannel, {
             limit: 20,
-            attributes: {city: 'Berlin'},
-            hubUser: 2,
             archived: true,
+            assignedTo: 2,
+            attributes: {city: 'Berlin'},
         });
         MockPush.__serverRespond('ok', initialResponse);
 
@@ -470,9 +470,9 @@ describe('hub inbox loading more rooms', () => {
         expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
             limit: 20,
             offset: 1,
-            attributes: {city: 'Berlin'},
-            hub_user: 2,
             archived: true,
+            hub_user: 2,
+            attributes: {city: 'Berlin'},
         });
     });
 

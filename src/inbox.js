@@ -16,9 +16,9 @@ import logger from './logger.js';
 // For hub users, the params object can include the following keys:
 //
 // - limit
-// - attributes
-// - hubUser
 // - archived
+// - assignedTo
+// - attributes
 //
 // For end users, only the limit is relevant.
 //
@@ -58,12 +58,12 @@ const initInbox = function(channel, params = {}) {
             pushParams.archived = params.archived;
         }
 
-        if ('attributes' in params) {
-            pushParams.attributes = params.attributes;
+        if ('assignedTo' in params) {
+            pushParams.hub_user = params.assignedTo;
         }
 
-        if ('hubUser' in params) {
-            pushParams.hub_user = params.hubUser;
+        if ('attributes' in params) {
+            pushParams.attributes = params.attributes;
         }
 
         return pushParams;
@@ -89,17 +89,17 @@ const initInbox = function(channel, params = {}) {
                 }
             }
 
+            if ('assignedTo' in params) {
+                if (room.assignedTo !== params.assignedTo) {
+                    return;
+                }
+            }
+
             if ('attributes' in params) {
                 for (let key of Object.keys(params.attributes)) {
                     if (room.attributes[key] !== params.attributes[key]) {
                         return;
                     }
-                }
-            }
-
-            if ('hubUser' in params) {
-                if (room.hubUserId !== params.hubUser) {
-                    return;
                 }
             }
         }

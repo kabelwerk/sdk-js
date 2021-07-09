@@ -52,9 +52,9 @@ export const parseUserInbox = function(payload) {
 export const parseHubInboxRoom = function(payload) {
     return {
         archived: payload.archived,
+        assignedTo: payload.hub_user_id,
         attributes: payload.attributes,
         hubId: payload.hub_id,
-        hubUserId: payload.hub_user_id,
         id: payload.id,
         lastMessage: parseMessage(payload.last_message),
         user: parseUser(payload.user),
@@ -114,8 +114,8 @@ export const parseAttributes = function(payload) {
 export const parseInboxInfo = function(payload) {
     return {
         archived: payload.archived,
+        assignedTo: payload.hub_user ? parseUser(payload.hub_user) : null,
         attributes: payload.attributes,
-        hubUser: payload.hub_user ? parseUser(payload.hub_user) : null,
         id: payload.id,
     };
 };

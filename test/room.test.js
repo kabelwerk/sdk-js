@@ -184,7 +184,7 @@ describe('post message in room', () => {
     });
 });
 
-describe('get room attributes', () => {
+describe('load room attributes', () => {
     let initialResponse = roomChannelFactory.createMessageList(0);
     let room = null;
 
@@ -199,7 +199,7 @@ describe('get room attributes', () => {
     });
 
     test('push params', () => {
-        room.getAttributes();
+        room.loadAttributes();
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('get_attributes', {});
@@ -210,7 +210,7 @@ describe('get room attributes', () => {
 
         let response = roomChannelFactory.createAttributes({ attributes });
 
-        room.getAttributes().then((attributes) => {
+        room.loadAttributes().then((attributes) => {
             expect(attributes).toEqual(attributes);
         });
 
@@ -220,7 +220,7 @@ describe('get room attributes', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        room.getAttributes().catch((error) => {
+        room.loadAttributes().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -231,7 +231,7 @@ describe('get room attributes', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        room.getAttributes().catch((error) => {
+        room.loadAttributes().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });
@@ -240,7 +240,7 @@ describe('get room attributes', () => {
     });
 });
 
-describe('set room attributes', () => {
+describe('update room attributes', () => {
     let initialResponse = roomChannelFactory.createMessageList(0);
     let room = null;
 
@@ -255,7 +255,7 @@ describe('set room attributes', () => {
     });
 
     test('push params', () => {
-        room.setAttributes(attributes);
+        room.updateAttributes(attributes);
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('set_attributes', {
@@ -268,7 +268,7 @@ describe('set room attributes', () => {
 
         let response = roomChannelFactory.createAttributes({ attributes });
 
-        room.setAttributes(attributes).then((attributes) => {
+        room.updateAttributes(attributes).then((attributes) => {
             expect(attributes).toEqual(attributes);
         });
 
@@ -278,7 +278,7 @@ describe('set room attributes', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        room.setAttributes(attributes).catch((error) => {
+        room.updateAttributes(attributes).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -289,7 +289,7 @@ describe('set room attributes', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        room.setAttributes(attributes).catch((error) => {
+        room.updateAttributes(attributes).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });
@@ -298,7 +298,7 @@ describe('set room attributes', () => {
     });
 });
 
-describe('get inbox info', () => {
+describe('load inbox info', () => {
     let initialResponse = roomChannelFactory.createMessageList(0);
     let room = null;
 
@@ -308,7 +308,7 @@ describe('get inbox info', () => {
     });
 
     test('push params', () => {
-        room.getInboxInfo();
+        room.loadInboxInfo();
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('get_inbox_info', {});
@@ -319,10 +319,10 @@ describe('get inbox info', () => {
 
         let info = roomChannelFactory.createInboxInfo();
 
-        room.getInboxInfo().then((res) => {
+        room.loadInboxInfo().then((res) => {
             expect(res.archived).toBe(info.archived);
+            expect(res.assignedTo).toEqual(info.hub_user);
             expect(res.attributes).toEqual(info.attributes);
-            expect(res.hubUser).toEqual(info.hub_user);
             expect(res.id).toBe(info.id);
         });
 
@@ -332,7 +332,7 @@ describe('get inbox info', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        room.getInboxInfo().catch((error) => {
+        room.loadInboxInfo().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -343,7 +343,7 @@ describe('get inbox info', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        room.getInboxInfo().catch((error) => {
+        room.loadInboxInfo().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });
@@ -362,7 +362,7 @@ describe('assign room to hub user', () => {
     });
 
     test('push params', () => {
-        room.assign(null);
+        room.assignTo(null);
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('assign', {
@@ -375,10 +375,10 @@ describe('assign room to hub user', () => {
 
         let info = roomChannelFactory.createInboxInfo();
 
-        room.assign(null).then((res) => {
+        room.assignTo(null).then((res) => {
             expect(res.archived).toBe(info.archived);
+            expect(res.assignedTo).toEqual(info.hub_user);
             expect(res.attributes).toEqual(info.attributes);
-            expect(res.hubUser).toEqual(info.hub_user);
             expect(res.id).toBe(info.id);
         });
 
@@ -388,7 +388,7 @@ describe('assign room to hub user', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        room.assign(null).catch((error) => {
+        room.assignTo(null).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -399,7 +399,7 @@ describe('assign room to hub user', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        room.assign(null).catch((error) => {
+        room.assignTo(null).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });

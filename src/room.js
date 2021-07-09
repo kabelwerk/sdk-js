@@ -85,7 +85,8 @@ const initRoom = function(socket, roomId) {
 
     return {
 
-        // Load more messages from earlier in the history. Return a promise.
+        // Load more messages, from earlier in the history. Return a promise
+        // resolving into the list of fetched messages.
         //
         loadEarlier: function() {
             if (!firstMessageId) {
@@ -115,7 +116,8 @@ const initRoom = function(socket, roomId) {
             });
         },
 
-        // Create a new chat message. Return a promise.
+        // Create a new chat message. Return a promise resolving into the newly
+        // created message.
         //
         postMessage: function(params) {
             return new Promise(function(resolve, reject) {
@@ -141,9 +143,10 @@ const initRoom = function(socket, roomId) {
             });
         },
 
-        // Retrieve the room's attributes. Return a promise.
+        // Retrieve the room's attributes. Return a promise resolving into the
+        // attributes object.
         //
-        getAttributes: function() {
+        loadAttributes: function() {
             return new Promise(function(resolve, reject) {
                 let push = channel.push('get_attributes', {});
 
@@ -161,9 +164,10 @@ const initRoom = function(socket, roomId) {
             });
         },
 
-        // Set the room's attributes. Return a promise.
+        // Update the room's attributes. Return a promise resolving into the
+        // (updated) attributes object.
         //
-        setAttributes: function(attributes) {
+        updateAttributes: function(attributes) {
             return new Promise(function(resolve, reject) {
                 let push = channel.push('set_attributes', { attributes });
 
@@ -181,11 +185,12 @@ const initRoom = function(socket, roomId) {
             });
         },
 
-        // Retrieve the room's inbox info. Return a promise.
+        // Retrieve the room's inbox info (attributes, archive status, assigned
+        // hub user). Return a promise resolving into this inbox info.
         //
-        // This only works for hub users.
+        // This method only works for hub users.
         //
-        getInboxInfo: function() {
+        loadInboxInfo: function() {
             return new Promise(function(resolve, reject) {
                 let push = channel.push('get_inbox_info', {});
 
@@ -203,11 +208,12 @@ const initRoom = function(socket, roomId) {
             });
         },
 
-        // Set the room's hub user. Return a promise.
+        // Update the room's assigned hub user. Return a promise resolving into
+        // an inbox info object.
         //
-        // This only works for hub users.
+        // This method only works for hub users.
         //
-        assign: function(hubUser) {
+        assignTo: function(hubUser) {
             return new Promise(function(resolve, reject) {
                 let push = channel.push('assign', { hub_user: hubUser });
 
