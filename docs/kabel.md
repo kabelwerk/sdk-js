@@ -66,6 +66,8 @@ See the [rooms](./rooms.md) page.
 
 ## On the hub side
 
+The kabel object provides some additional functionality if the connected user is a hub user:
+
 ```js
 kabel.loadHubInfo().then(() => {
     // {id, name, users}

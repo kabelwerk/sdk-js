@@ -1,7 +1,18 @@
 # Rooms
 
+A room is where chat messages are exchanged between an end user on one side and your care team (hub users) on the other side.
 
-## Creating rooms
+To init a room object, you need the room's ID (usually you would obtain it from an [inbox](./inboxes.md)):
+
+```js
+let room = kabel.openRoom(roomId);
+
+room.on('ready', ({ messages }) => {
+    // this event is fired once when the room is loaded
+});
+```
+
+If the room does not exist yet, it has to be explicitly created (usually by the client of the end user) before the room object can be inited:
 
 ```js
 kabel.createRoom(hubId).then(({ id }) => {
@@ -12,18 +23,7 @@ kabel.createRoom(hubId).then(({ id }) => {
 ```
 
 
-## The room object
-
-```js
-let room = kabel.openRoom(roomId);
-
-room.on('ready', ({ messages }) => {
-    // this event is fired once when the room is loaded
-});
-```
-
-
-### Messaging
+## Messaging
 
 ```js
 room.on('message_posted', (message) => {
@@ -47,14 +47,14 @@ room.loadEarlier().then((messages) => {
 A message object has the following fields:
 
 - `id`: an integer;
-- `insertedAt`: a `Date` instance of when the message was created in the database;
+- `insertedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the message was created in the database;
 - `roomId`: the ID of the room to which the message belongs;
 - `text`: the content of the message;
 - `updatedAt`: for the time being the same as `insertedAt`;
 - `user`: the user who posted the message, as an `{ id, key, name }` object.
 
 
-### Custom attributes
+## Custom attributes
 
 ```js
 room.loadAttributes().then((attributes) => {
@@ -68,7 +68,7 @@ room.loadAttributes().then((attributes) => {
 ```
 
 
-### On the hub side
+## On the hub side
 
 Room objects provide some additional functionality if the connected user is a hub user:
 
@@ -85,3 +85,9 @@ room.assignTo(kabel.getUser().id).then((inboxInfo) => {
     // e.g. if the connected user is not a hub user
 });
 ```
+
+
+## See also
+
+- [Inboxes](./inboxes.md)
+- [The kabel object](./kabel.md)
