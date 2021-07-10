@@ -1,6 +1,6 @@
 {
   "name": "kabelwerk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The base Kabelwerk SDK for JavaScript.",
   "keywords": [
     "kabelwerk"
@@ -13,6 +13,7 @@
   "license": "MIT",
   "author": "Kabelwerk <devs@kabelwerk.io> (https://kabelwerk.io)",
   "files": [
+    "docs/",
     "src/",
     "CHANGELOG.md",
     "CONTRIBUTING.md",

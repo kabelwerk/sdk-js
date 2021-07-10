@@ -16,6 +16,7 @@ export const parseOwnUser = function(payload) {
     };
 };
 
+
 // Parse the payload of a get_hub response.
 //
 export const parseOwnHub = function(payload) {
@@ -36,9 +37,9 @@ export const parseOwnHub = function(payload) {
 //
 export const parseUserInboxRoom = function(payload) {
     return {
-        id: payload.id,
         hubId: payload.hub_id,
-        lastMessage: parseMessage(payload.last_message),
+        id: payload.id,
+        lastMessage: payload.last_message ? parseMessage(payload.last_message) : null,
     };
 };
 
@@ -66,7 +67,7 @@ export const parseHubInboxRoom = function(payload) {
         attributes: payload.attributes,
         hubId: payload.hub_id,
         id: payload.id,
-        lastMessage: parseMessage(payload.last_message),
+        lastMessage: payload.last_message ? parseMessage(payload.last_message) : null,
         user: parseUser(payload.user),
     };
 };
