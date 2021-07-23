@@ -16,8 +16,8 @@ describe('channel rejoin', () => {
     test('ready event is emitted once', () => {
         expect.assertions(1);
 
-        room.on('ready', (res) => {
-            expect(res).toEqual([]);
+        room.on('ready', ({ messages }) => {
+            expect(messages).toEqual([]);
         });
 
         MockPush.__serverRespond('ok', {messages: []}, false);
@@ -98,10 +98,10 @@ describe('load earlier messages', () => {
 
         let response = roomChannelFactory.createMessageList(1);
 
-        room.loadEarlier().then((res) => {
-            expect(res.length).toBe(1);
-            expect(res[0].id).toBe(response.messages[0].id);
-            expect(res[0].text).toBe(response.messages[0].text);
+        room.loadEarlier().then(({ messages }) => {
+            expect(messages.length).toBe(1);
+            expect(messages[0].id).toBe(response.messages[0].id);
+            expect(messages[0].text).toBe(response.messages[0].text);
         });
 
         MockPush.__serverRespond('ok', response);

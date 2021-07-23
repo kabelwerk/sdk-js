@@ -69,7 +69,9 @@ const initRoom = function(socket, roomId) {
                 }
             } else {
                 ready = true;
-                dispatcher.send('ready', messages);
+                dispatcher.send('ready', {
+                    messages: messages,
+                });
             }
 
             updateFirstLastIds(messages);
@@ -103,7 +105,9 @@ const initRoom = function(socket, roomId) {
 
                     updateFirstLastIds(messages);
 
-                    resolve(messages);
+                    resolve({
+                        messages: messages,
+                    });
                 });
 
                 push.receive('error', function() {
