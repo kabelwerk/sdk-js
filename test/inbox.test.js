@@ -210,14 +210,14 @@ describe('user inbox updated event', () => {
         delete MockChannel.topic;
     });
 
-    test('works', (done) => {
+    test('works', () => {
+        expect.assertions(2);
+
         let update = userInboxChannelFactory.createInboxRoom();
 
         inbox.on('updated', (rooms) => {
             expect(rooms.length).toBe(1);
             expect(rooms[0].id).toBe(update.id);
-
-            done();
         });
 
         MockChannel.__serverPush('inbox_updated', update);
@@ -394,40 +394,54 @@ describe('user inbox loading more rooms', () => {
         });
     });
 
-    test('server responds with ok', (done) => {
+    test('server responds with ok', () => {
+        expect.assertions(3);
+
         let response = userInboxChannelFactory.createInbox(1);
 
         inbox.loadMore().then((rooms) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(response.rooms[0].id);
             expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
-
-            done();
         });
 
         MockPush.__serverRespond('ok', response);
     });
 
-    test('server responds with error', (done) => {
+    test('server responds with error', () => {
+        expect.assertions(2);
+
         inbox.loadMore().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
-
-            done();
         });
 
         MockPush.__serverRespond('error');
     });
 
-    test('server times out', (done) => {
+    test('server times out', () => {
+        expect.assertions(2);
+
         inbox.loadMore().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
-
-            done();
         });
 
         MockPush.__serverRespond('timeout');
+    });
+
+    test('room without last message', () => {
+        expect.assertions(3);
+
+        let response = userInboxChannelFactory.createInbox(1, {last_message: null});
+
+        inbox.loadMore().then((rooms) => {
+            expect(rooms.length).toBe(2);
+            expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
+            expect(rooms[1].id).toBe(response.rooms[0].id);
+        });
+
+        MockPush.__serverRespond('ok', response);
     });
 });
 
@@ -476,39 +490,53 @@ describe('hub inbox loading more rooms', () => {
         });
     });
 
-    test('server responds with ok', (done) => {
+    test('server responds with ok', () => {
+        expect.assertions(3);
+
         let response = hubInboxChannelFactory.createInbox(1);
 
         inbox.loadMore().then((rooms) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(response.rooms[0].id);
             expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
-
-            done();
         });
 
         MockPush.__serverRespond('ok', response);
     });
 
-    test('server responds with error', (done) => {
+    test('server responds with error', () => {
+        expect.assertions(2);
+
         inbox.loadMore().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
-
-            done();
         });
 
         MockPush.__serverRespond('error');
     });
 
-    test('server times out', (done) => {
+    test('server times out', () => {
+        expect.assertions(2);
+
         inbox.loadMore().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
-
-            done();
         });
 
         MockPush.__serverRespond('timeout');
+    });
+
+    test('room without last message', () => {
+        expect.assertions(3);
+
+        let response = hubInboxChannelFactory.createInbox(1, {last_message: null});
+
+        inbox.loadMore().then((rooms) => {
+            expect(rooms.length).toBe(2);
+            expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
+            expect(rooms[1].id).toBe(response.rooms[0].id);
+        });
+
+        MockPush.__serverRespond('ok', response);
     });
 });

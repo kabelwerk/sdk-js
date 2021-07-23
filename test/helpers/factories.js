@@ -27,12 +27,14 @@ export const userInboxChannelFactory = (function() {
     let counter = 0;
 
     const createInboxRoom = function(params = {}) {
-        let id = params.id ? params.id : ++counter;
+        let id = 'id' in params ? params.id : ++counter;
 
         return {
             hub_id: 1,
             id: id,
-            last_message: roomChannelFactory.createMessage({room_id: id}),
+            last_message: 'last_message' in params
+                ? params.last_message
+                : roomChannelFactory.createMessage({room_id: id}),
         };
     };
 
@@ -65,7 +67,9 @@ export const hubInboxChannelFactory = (function() {
             hub_id: 1,
             hub_user_id: 'hub_user_id' in params ? params.hub_user_id : null,
             id: id,
-            last_message: roomChannelFactory.createMessage({room_id: id}),
+            last_message: 'last_message' in params
+                ? params.last_message
+                : roomChannelFactory.createMessage({room_id: id}),
             user: {
                 id: user.id,
                 key: user.key,

@@ -72,8 +72,11 @@ const initInbox = function(channel, params = {}) {
     const listRooms = function() {
         let list = Array.from(rooms.values());
 
-        list.sort(function(a, b) {
-            return b.lastMessage.insertedAt.getTime() - a.lastMessage.insertedAt.getTime();
+        list.sort(function(roomA, roomB) {
+            let a = roomA.lastMessage ? roomA.lastMessage.insertedAt.getTime() : null;
+            let b = roomB.lastMessage ? roomB.lastMessage.insertedAt.getTime() : null;
+
+            return b - a;
         });
 
         return list;
