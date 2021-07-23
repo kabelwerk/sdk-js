@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 0.1.3 (2021-07-24)
+
+- Fixed the issue where inboxes get broken by rooms without messages.
+- Updated some callback payloads and promise resolves as per the docs.
+
+
 ## 0.1.2 (2021-07-10)
 
 - More functionality.

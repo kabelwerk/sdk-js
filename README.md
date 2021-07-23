@@ -44,11 +44,11 @@ An inbox is a view on the rooms the user has access to; it maintains a list of r
 ```js
 let inbox = kabel.openInbox();
 
-inbox.on('ready', (rooms) => {
+inbox.on('ready', ({ rooms }) => {
     // this event is fired once when the initial list of rooms is loaded
 });
 
-inbox.on('updated', (rooms) => {
+inbox.on('updated', ({ rooms }) => {
     // whenever a new message is posted, the list of rooms is updated
     // accordingly and this event is fired
 });
@@ -66,7 +66,7 @@ A room object handles posting and retrieving messages in a chat room.
 ```js
 let room = kabel.openRoom(roomId);
 
-room.on('ready', (messages) => {
+room.on('ready', ({ messages }) => {
     // this event is fired once when the room is loaded
 });
 
@@ -80,7 +80,7 @@ room.postMessage({ text }).then((message) => {
     // e.g. when the server rejects the message
 });
 
-room.loadEarlier().then((messages) => {
+room.loadEarlier().then(({ messages }) => {
     // resolves into the list of messages which come right before the earliest
     // message seen by the room object
 }).catch((error) => {

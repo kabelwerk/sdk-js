@@ -36,7 +36,7 @@ room.postMessage({ text }).then((message) => {
     // e.g. if the given text is an empty string
 });
 
-room.loadEarlier().then((messages) => {
+room.loadEarlier().then(({ messages }) => {
     // resolves into the list of messages which come right before the earliest
     // message seen by the room object
 }).catch((error) => {
