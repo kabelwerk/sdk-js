@@ -108,7 +108,10 @@ const initInbox = function(channel, params = {}) {
         }
 
         rooms.set(room.id, room);
-        dispatcher.send('updated', listRooms());
+
+        dispatcher.send('updated', {
+            rooms: listRooms(),
+        });
     });
 
     channel
@@ -117,7 +120,10 @@ const initInbox = function(channel, params = {}) {
             for (let room of parseInbox(payload).rooms) {
                 rooms.set(room.id, room);
             }
-            dispatcher.send('ready', listRooms());
+
+            dispatcher.send('ready', {
+                rooms: listRooms(),
+            });
         })
         .receive('error', function() {
             dispatcher.send('error', initError(PUSH_REJECTED));
@@ -142,7 +148,10 @@ const initInbox = function(channel, params = {}) {
                     for (let room of parseInbox(payload).rooms) {
                         rooms.set(room.id, room);
                     }
-                    resolve(listRooms());
+
+                    resolve({
+                        rooms: listRooms(),
+                    });
                 });
 
                 push.receive('error', function() {

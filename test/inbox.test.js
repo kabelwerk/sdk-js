@@ -215,7 +215,7 @@ describe('user inbox updated event', () => {
 
         let update = userInboxChannelFactory.createInboxRoom();
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
             expect(rooms[0].id).toBe(update.id);
         });
@@ -244,7 +244,7 @@ describe('hub inbox updated event', () => {
 
         let update = hubInboxChannelFactory.createInboxRoom();
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
             expect(rooms[0].id).toBe(update.id);
         });
@@ -258,7 +258,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockChannel, { archived: true });
         MockPush.__serverRespond('ok', emptyResponse);
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
         });
 
@@ -278,7 +278,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockChannel, { archived: false });
         MockPush.__serverRespond('ok', emptyResponse);
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
         });
 
@@ -298,7 +298,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockChannel, { attributes: {country: 'DE'} });
         MockPush.__serverRespond('ok', emptyResponse);
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
         });
 
@@ -322,7 +322,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockChannel, { assignedTo: 2 });
         MockPush.__serverRespond('ok', emptyResponse);
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
         });
 
@@ -342,7 +342,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockChannel, { assignedTo: null });
         MockPush.__serverRespond('ok', emptyResponse);
 
-        inbox.on('updated', (rooms) => {
+        inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
         });
 
@@ -399,7 +399,7 @@ describe('user inbox loading more rooms', () => {
 
         let response = userInboxChannelFactory.createInbox(1);
 
-        inbox.loadMore().then((rooms) => {
+        inbox.loadMore().then(({ rooms }) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(response.rooms[0].id);
             expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
@@ -435,7 +435,7 @@ describe('user inbox loading more rooms', () => {
 
         let response = userInboxChannelFactory.createInbox(1, {last_message: null});
 
-        inbox.loadMore().then((rooms) => {
+        inbox.loadMore().then(({ rooms }) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
             expect(rooms[1].id).toBe(response.rooms[0].id);
@@ -495,7 +495,7 @@ describe('hub inbox loading more rooms', () => {
 
         let response = hubInboxChannelFactory.createInbox(1);
 
-        inbox.loadMore().then((rooms) => {
+        inbox.loadMore().then(({ rooms }) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(response.rooms[0].id);
             expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
@@ -531,7 +531,7 @@ describe('hub inbox loading more rooms', () => {
 
         let response = hubInboxChannelFactory.createInbox(1, {last_message: null});
 
-        inbox.loadMore().then((rooms) => {
+        inbox.loadMore().then(({ rooms }) => {
             expect(rooms.length).toBe(2);
             expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
             expect(rooms[1].id).toBe(response.rooms[0].id);
