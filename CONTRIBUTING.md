@@ -24,9 +24,13 @@ npm test
 
 # check it out in a browser at localhost:8080
 npm run demo
+
+# run prettier
+npm run format
 ```
 
 
 ### Conventions
 
-Please follow the `.editorconfig` rules ([take a look here](https://editorconfig.org/) if this is new for you).
+- Follow the `.editorconfig` rules ([take a look here](https://editorconfig.org/) if this is new for you).
+- Run [Prettier](https://prettier.io/) using `npm run format` before making a commit.
