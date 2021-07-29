@@ -32,6 +32,8 @@ An inbox room object has the following fields:
 
 Please note that the inbox room objects just hold information; in order to send and receive messages in these chat rooms, you have to explicitly [init room objects](./rooms.md).
 
+Each end user has one room per hub; so if your care team is organised in a single hub, an end user's inbox will contain (at most) one room. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
+
 
 ## On the hub side
 

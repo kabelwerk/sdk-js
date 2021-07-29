@@ -21,7 +21,7 @@ import Kabelwerk from 'kabelwerk';
 
 Kabelwerk.config({ url, token });
 
-kabel.on('ready', () => {
+Kabelwerk.on('ready', () => {
     // this event is fired once when the intiial connection is established
     let inbox = Kabelwerk.openInbox();
     let room = Kabelwerk.openRoom();
@@ -34,7 +34,7 @@ Kabelwerk.on('error', (error) => {
 Kabelwerk.connect();
 ```
 
-The `Kabelwerk` object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default). There can be only one active connection at a time.
+The `Kabelwerk` object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default).
 
 Read more about [the Kabelwerk object](./docs/kabelwerk.md) in the docs.
 
@@ -54,9 +54,9 @@ inbox.on('updated', ({ rooms }) => {
     // whenever a new message is posted, the list of rooms is updated
     // accordingly and this event is fired
 });
-```
 
-Each end user has one room per hub; so if your care team is organised in a single hub, that would be one room per end user. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
+inbox.connect();
+```
 
 Read more about [inboxes](./docs/inboxes.md) in the docs.
 
@@ -76,6 +76,8 @@ room.on('message_posted', (message) => {
     // this event is fired every time a new message is posted in this room
 });
 
+room.connect();
+
 room.postMessage({ text }).then((message) => {
     // you will also get the same message via the `message_posted` event
 }).catch((error) => {
@@ -90,7 +92,7 @@ room.loadEarlier().then(({ messages }) => {
 });
 ```
 
-You can open as many rooms as you need. However, if you just want to listen for newly posted messages, then it is simpler to leverage the `inbox.on('updated')` hook.
+You can open as many rooms as you need. However, if you just want to listen for newly posted messages, then it is simpler to leverage the `inbox.on('updated')` event.
 
 Read more about [rooms](./docs/rooms.md) in the docs.
 
