@@ -5,18 +5,22 @@ A room is where chat messages are exchanged between an end user on one side and 
 To init a room object, you need the room's ID (usually you would obtain it from an [inbox](./inboxes.md)):
 
 ```js
-let room = kabel.openRoom(roomId);
+let room = Kabelwerk.openRoom(roomId);
 
 room.on('ready', ({ messages }) => {
     // this event is fired once when the room is loaded
 });
+
+// make it live
+room.connect();
 ```
 
 If the room does not exist yet, it has to be explicitly created (usually by the client of the end user) before the room object can be inited:
 
 ```js
-kabel.createRoom(hubId).then(({ id }) => {
-    let room = kabel.openRoom(id);
+Kabelwerk.createRoom(hubId).then(({ id }) => {
+    let room = Kabelwerk.openRoom(id);
+    room.connect();
 }).catch((error) => {
     // e.g. if there already exists a room for this user and hub
 });
@@ -79,7 +83,7 @@ room.loadInboxInfo().then((inboxInfo) => {
     // e.g. if the connected user is not a hub user
 });
 
-room.assignTo(kabel.getUser().id).then((inboxInfo) => {
+room.assignTo(Kabelwerk.getUser().id).then((inboxInfo) => {
     // { archived, assignedTo, attributes }
 }).catch((error) => {
     // e.g. if the connected user is not a hub user
@@ -90,4 +94,4 @@ room.assignTo(kabel.getUser().id).then((inboxInfo) => {
 ## See also
 
 - [Inboxes](./inboxes.md)
-- [The kabel object](./kabel.md)
+- [The Kabelwerk object](./kabelwerk.md)

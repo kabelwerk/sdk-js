@@ -2,6 +2,6 @@
 
 Welcome to the documentation for Kabelwerk's low-level SDK for JavaScript.
 
-- [The kabel object](./kabel.md)
+- [The Kabelwerk object](./kabelwerk.md)
 - [Inboxes](./inboxes.md)
 - [Rooms](./rooms.md)

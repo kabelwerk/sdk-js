@@ -3,7 +3,7 @@
 An inbox is a view on the [rooms](./rooms.md) the user has access to; it maintains a list of rooms ordered by recency of their latest message.
 
 ```js
-let inbox = kabel.openInbox();
+let inbox = Kabelwerk.openInbox();
 
 inbox.on('ready', ({ rooms }) => {
     // this event is fired once when the initial list of inbox rooms is loaded
@@ -13,6 +13,9 @@ inbox.on('updated', ({ rooms }) => {
     // whenever a new message is posted, the list of inbox rooms is updated
     // accordingly and this event is fired
 });
+
+// bring it to life, preferably after attaching the desired event listeners
+inbox.connect();
 
 inbox.loadMore().then(({ rooms }) => {
     // resolves into the expanded list of inbox rooms
@@ -43,17 +46,17 @@ Also, when initing an inbox object, you can (optionally) specify a filter:
 
 ```js
 const params = {
-    archived: true,                  // archived rooms
+    archived: true,                      // archived rooms
 
-    assignedTo: kabel.getUser().id,  // assigned to the connected user
-    assignedTo: null,                // unassigned rooms
+    assignedTo: Kabelwerk.getUser().id,  // assigned to the connected user
+    assignedTo: null,                    // unassigned rooms
 
-    attributes: {                    // usually set by the end user client
-        country: 'DE',               // with room.updateAttributes()
+    attributes: {                        // usually set by the end user client
+        country: 'DE',                   // with room.updateAttributes()
     },
 };
 
-let inbox =  kabel.openInbox(params);
+let inbox =  Kabelwerk.openInbox(params);
 
 inbox.on('ready', ({ rooms }) => {
     // all rooms are archived, unassigned, and belong to users from Germany
@@ -62,10 +65,12 @@ inbox.on('ready', ({ rooms }) => {
 inbox.on('updated', ({ rooms }) => {
     // only fired for rooms which meet the criteria set by the params
 });
+
+inbox.connect();
 ```
 
 
 ## See aso
 
 - [Rooms](./rooms.md)
-- [The kabel object](./kabel.md)
+- [The Kabelwerk object](./kabelwerk.md)

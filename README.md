@@ -14,27 +14,29 @@ npm install kabelwerk
 
 ### Connection
 
-The entry point is the `Kabelwerk.connect` method, which takes as parameters the URL of the Kabelwerk backend to connect to and an authentication token identifying the user (e.g. a JWT token), and returns a connection object.
+The entry point is the `Kabelwerk` object, which opens and maintains the websocket connection to the Kabelwerk backend.
 
 ```js
 import Kabelwerk from 'kabelwerk';
 
-let kabel = Kabelwerk.connect({ url, token });
+Kabelwerk.config({ url, token });
 
 kabel.on('ready', () => {
     // this event is fired once when the intiial connection is established
-    let inbox = kabel.openInbox();
-    let room = kabel.openRoom();
+    let inbox = Kabelwerk.openInbox();
+    let room = Kabelwerk.openRoom();
 });
 
-kabel.on('error', (error) => {
+Kabelwerk.on('error', (error) => {
     // e.g. when the token is invalid
 });
+
+Kabelwerk.connect();
 ```
 
-The connection object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default). There can be only one connection object at a time and you can access it using the `Kabelwerk.getKabel` method.
+The `Kabelwerk` object takes care of automatically re-connecting when the connection drops, opening inboxes and rooms (see below), retrieving and updating user info, and logging (silent by default). There can be only one active connection at a time.
 
-Read more about [the connection object](./docs/kabel.md) in the docs.
+Read more about [the Kabelwerk object](./docs/kabelwerk.md) in the docs.
 
 
 ### Inboxes
@@ -42,7 +44,7 @@ Read more about [the connection object](./docs/kabel.md) in the docs.
 An inbox is a view on the rooms the user has access to; it maintains a list of rooms ordered by recency of their latest message.
 
 ```js
-let inbox = kabel.openInbox();
+let inbox = Kabelwerk.openInbox();
 
 inbox.on('ready', ({ rooms }) => {
     // this event is fired once when the initial list of rooms is loaded
@@ -64,7 +66,7 @@ Read more about [inboxes](./docs/inboxes.md) in the docs.
 A room object handles posting and retrieving messages in a chat room.
 
 ```js
-let room = kabel.openRoom(roomId);
+let room = Kabelwerk.openRoom(roomId);
 
 room.on('ready', ({ messages }) => {
     // this event is fired once when the room is loaded
