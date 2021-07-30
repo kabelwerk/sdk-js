@@ -72,7 +72,7 @@ const initKabelwerk = function() {
                 });
             }
 
-            logger.error('Websocket error', error);
+            logger.error('Websocket error.', error);
             dispatcher.send('error', initError(CONNECTION_ERROR, error));
         });
     };
@@ -80,18 +80,18 @@ const initKabelwerk = function() {
     // the private channel
     let privateChannel = null;
 
-    const setupPrivateChannel = function() {
+    const setupPrivateChannel = function () {
         privateChannel = socket.channel('private');
 
-        privateChannel.on('user_updated', function(payload) {
+        privateChannel.on('user_updated', function (payload) {
             user = parseOwnUser(payload);
             dispatcher.send('user_updated', user);
         });
 
-        dispatcher.once('connected', function() {
+        dispatcher.once('connected', function () {
             privateChannel.join()
-                .receive('ok', function(payload) {
-                    logger.info('Joined the private channel.');
+                .receive('ok', function (payload) {
+                    logger.info("Joined the user's private channel.");
 
                     if (user) {
                         user = parseOwnUser(payload);
@@ -105,10 +105,11 @@ const initKabelwerk = function() {
                         dispatcher.send('ready', {});
                     }
                 })
-                .receive('error', function(error) {
+                .receive('error', function (error) {
+                    logger.error("Failed to join the user's private channel.", error);
                     dispatcher.send('error', initError(PUSH_REJECTED));
                 })
-                .receive('timeout', function() {
+                .receive('timeout', function () {
                     dispatcher.send('error', initError(TIMEOUT));
                 });
         });
@@ -124,7 +125,7 @@ const initKabelwerk = function() {
 
         // Update the config.
         //
-        config: function(newConfig) {
+        config: function (newConfig) {
             for (let key of Object.keys(newConfig)) {
                 if (config.hasOwnProperty(key)) {
                     config[key] = newConfig[key];
@@ -136,7 +137,7 @@ const initKabelwerk = function() {
 
         // Connect to the Kabelwerk backend.
         //
-        connect: function() {
+        connect: function () {
             if (socket) {
                 throw initError(USAGE_ERROR, 'Kabewerk.connect was already called once.');
             }
@@ -149,7 +150,7 @@ const initKabelwerk = function() {
 
         // Disconnect the websocket.
         //
-        disconnect: function() {
+        disconnect: function () {
             if (socket) {
                 socket.disconnect();
             }
@@ -163,7 +164,7 @@ const initKabelwerk = function() {
 
         // Returns the connected user's info.
         //
-        getUser: function() {
+        getUser: function () {
             ensureReady();
             return user;
         },
@@ -171,22 +172,23 @@ const initKabelwerk = function() {
         // Update the connected user's info. Return a promise resolving into
         // the (updated) user info.
         //
-        updateUser: function(params) {
+        updateUser: function (params) {
             ensureReady();
 
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 let push = privateChannel.push('update_user', params);
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     user = parseOwnUser(payload);
                     resolve(user);
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error("Failed to update the user's info.", error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -194,7 +196,7 @@ const initKabelwerk = function() {
 
         // Init and return an inbox object.
         //
-        openInbox: function(params) {
+        openInbox: function (params) {
             ensureReady();
 
             let topic = user.hubId ? `hub_inbox:${user.hubId}` : `user_inbox:${user.id}`;
@@ -205,21 +207,22 @@ const initKabelwerk = function() {
         // Create a room for the connected user. Return a promise resolving
         // into an object with the newly created room's ID.
         //
-        createRoom: function(hubId) {
+        createRoom: function (hubId) {
             ensureReady();
 
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 let push = privateChannel.push('create_room', { hub: hubId });
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve({ id: payload.id });
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error('Failed to create a new room.', error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -227,7 +230,7 @@ const initKabelwerk = function() {
 
         // Init and return a room object.
         //
-        openRoom: function(roomId) {
+        openRoom: function (roomId) {
             ensureReady();
             return initRoom(socket, roomId);
         },
@@ -237,21 +240,22 @@ const initKabelwerk = function() {
         //
         // This method only works for hub users.
         //
-        loadHubInfo: function() {
+        loadHubInfo: function () {
             ensureReady();
 
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 let push = privateChannel.push('get_hub', {});
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve(parseOwnHub(payload));
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error("Failed to load the user hub's info.", error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });

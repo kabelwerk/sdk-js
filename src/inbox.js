@@ -1,12 +1,12 @@
 import { initDispatcher } from './dispatcher.js';
 import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
+import logger from './logger.js';
 import {
     parseHubInbox,
     parseHubInboxRoom,
     parseUserInbox,
     parseUserInboxRoom
 } from './payloads.js';
-import logger from './logger.js';
 
 
 // Init an inbox object.
@@ -124,21 +124,22 @@ const initInbox = function(socket, topic, params = {}) {
         });
 
         channel.join()
-            .receive('ok', function() {
+            .receive('ok', function () {
                 logger.info(`Joined the ${channel.topic} channel.`);
                 loadFirstRooms();
             })
-            .receive('error', function() {
+            .receive('error', function (error) {
+                logger.error(`Failed to join the ${channel.topic} channel.`, error);
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
-            .receive('timeout', function() {
+            .receive('timeout', function () {
                 dispatcher.send('error', initError(TIMEOUT));
             });
     };
 
-    const loadFirstRooms = function() {
+    const loadFirstRooms = function () {
         channel.push('list_rooms', inferPushParams())
-            .receive('ok', function(payload) {
+            .receive('ok', function (payload) {
                 for (let room of parseInbox(payload).rooms) {
                     rooms.set(room.id, room);
                 }
@@ -151,16 +152,17 @@ const initInbox = function(socket, topic, params = {}) {
                     });
                 }
             })
-            .receive('error', function() {
+            .receive('error', function (error) {
+                logger.error("Failed to retrieve the inbox's rooms.", error);
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
-            .receive('timeout', function() {
+            .receive('timeout', function () {
                 dispatcher.send('error', initError(TIMEOUT));
             });
     };
 
     return {
-        connect: function() {
+        connect: function () {
             if (channel) {
                 throw initError(USAGE_ERROR, 'The connect() method was already called once.');
             }
@@ -168,7 +170,7 @@ const initInbox = function(socket, topic, params = {}) {
             setupChannel();
         },
 
-        disconnect: function() {
+        disconnect: function () {
             if (channel) {
                 channel.leave();
             }
@@ -187,11 +189,11 @@ const initInbox = function(socket, topic, params = {}) {
         // Return a promise that either resolves into the list of rooms or
         // rejects into an error.
         //
-        loadMore: function() {
-            return new Promise(function(resolve, reject) {
+        loadMore: function () {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('list_rooms', inferPushParams());
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     for (let room of parseInbox(payload).rooms) {
                         rooms.set(room.id, room);
                     }
@@ -201,11 +203,12 @@ const initInbox = function(socket, topic, params = {}) {
                     });
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error('Failed to load more inbox rooms.', error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });

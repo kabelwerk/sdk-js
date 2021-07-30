@@ -1,4 +1,5 @@
 import { USAGE_ERROR, initError } from './errors.js';
+import logger from './logger.js';
 
 // Init a dispatcher object.
 //
@@ -25,6 +26,7 @@ const initDispatcher = function (eventNames) {
         //
         send: function (event, params) {
             checkEventName(event);
+            logger.debug(event, params);
 
             callbacks.forEach(function (callback) {
                 if (callback.event == event) {
@@ -37,7 +39,7 @@ const initDispatcher = function (eventNames) {
         // callback will be invoked.
         //
         // Return a reference which can be used to clear the callback without
-        // afecting the other callbacks attached to the event.
+        // affecting the other callbacks attached to the event.
         //
         on: function (event, fn) {
             checkEventName(event);

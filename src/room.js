@@ -65,7 +65,9 @@ const initRoom = function(socket, roomId) {
         });
 
         channel.join()
-            .receive('ok', function(payload) {
+            .receive('ok', function (payload) {
+                logger.info(`Joined the ${channel.topic} channel.`);
+
                 let messages = parseMessageList(payload).messages;
 
                 if (ready) {  // channel was rejoined
@@ -80,19 +82,18 @@ const initRoom = function(socket, roomId) {
                 }
 
                 updateFirstLastIds(messages);
-
-                logger.info(`Joined the ${channel.topic} channel.`);
             })
-            .receive('error', function() {
+            .receive('error', function (error) {
+                logger.error(`Failed to join the ${channel.topic} channel.`, error);
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
-            .receive('timeout', function() {
+            .receive('timeout', function () {
                 dispatcher.send('error', initError(TIMEOUT));
             });
     };
 
     return {
-        connect: function() {
+        connect: function () {
             if (channel) {
                 throw initError(USAGE_ERROR, 'The connect() method was already called once.');
             }
@@ -100,7 +101,7 @@ const initRoom = function(socket, roomId) {
             setupChannel();
         },
 
-        disconnect: function() {
+        disconnect: function () {
             if (channel) {
                 channel.leave();
             }
@@ -114,17 +115,17 @@ const initRoom = function(socket, roomId) {
         // Load more messages, from earlier in the history. Return a promise
         // resolving into the list of fetched messages.
         //
-        loadEarlier: function() {
+        loadEarlier: function () {
             if (!firstMessageId) {
                 return Promise.resolve([]);
             }
 
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('list_messages', {
                     before: firstMessageId,
                 });
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     let messages = parseMessageList(payload).messages;
 
                     updateFirstLastIds(messages);
@@ -134,11 +135,12 @@ const initRoom = function(socket, roomId) {
                     });
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error('Failed to load earlier messages.', error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -147,11 +149,11 @@ const initRoom = function(socket, roomId) {
         // Create a new chat message. Return a promise resolving into the newly
         // created message.
         //
-        postMessage: function(params) {
-            return new Promise(function(resolve, reject) {
+        postMessage: function (params) {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('post_message', params);
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     let message = parseMessage(payload);
 
                     if (message.id > lastMessageId) {
@@ -161,11 +163,12 @@ const initRoom = function(socket, roomId) {
                     resolve(message);
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error('Failed to post the new message.', error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -174,19 +177,20 @@ const initRoom = function(socket, roomId) {
         // Retrieve the room's attributes. Return a promise resolving into the
         // attributes object.
         //
-        loadAttributes: function() {
-            return new Promise(function(resolve, reject) {
+        loadAttributes: function () {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('get_attributes', {});
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve(parseAttributes(payload).attributes);
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error("Failed to load the room's attributes.", error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -195,19 +199,20 @@ const initRoom = function(socket, roomId) {
         // Update the room's attributes. Return a promise resolving into the
         // (updated) attributes object.
         //
-        updateAttributes: function(attributes) {
-            return new Promise(function(resolve, reject) {
+        updateAttributes: function (attributes) {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('set_attributes', { attributes });
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve(parseAttributes(payload).attributes);
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error("Failed to update the room's attributes.", error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -218,19 +223,20 @@ const initRoom = function(socket, roomId) {
         //
         // This method only works for hub users.
         //
-        loadInboxInfo: function() {
-            return new Promise(function(resolve, reject) {
+        loadInboxInfo: function () {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('get_inbox_info', {});
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve(parseInboxInfo(payload));
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error("Failed to load the room's inbox info.", error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
@@ -241,19 +247,20 @@ const initRoom = function(socket, roomId) {
         //
         // This method only works for hub users.
         //
-        assignTo: function(hubUser) {
-            return new Promise(function(resolve, reject) {
+        assignTo: function (hubUser) {
+            return new Promise(function (resolve, reject) {
                 let push = channel.push('assign', { hub_user: hubUser });
 
-                push.receive('ok', function(payload) {
+                push.receive('ok', function (payload) {
                     resolve(parseInboxInfo(payload));
                 });
 
-                push.receive('error', function() {
+                push.receive('error', function (error) {
+                    logger.error('Failed to assign the room.', error);
                     reject(initError(PUSH_REJECTED));
                 });
 
-                push.receive('timeout', function() {
+                push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
             });
