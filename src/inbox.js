@@ -30,10 +30,8 @@ import logger from './logger.js';
 //  inbox.on('updated', (rooms) => {});
 //  inbox.loadMore().then((rooms) => {});
 //
-const initInbox = function(channel, params = {}) {
-    const isHubInbox = channel.topic.startsWith('hub');
-
-    let rooms = new Map();  // room id: room
+const initInbox = function(socket, topic, params = {}) {
+    const isHubInbox = topic.startsWith('hub');
 
     let dispatcher = initDispatcher([
         'error',
@@ -41,6 +39,11 @@ const initInbox = function(channel, params = {}) {
         'updated',
     ]);
 
+    // internal state
+    let rooms = new Map();  // room id: room
+    let ready = false;
+
+    // helper functions
     const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
     const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
 
@@ -82,57 +85,101 @@ const initInbox = function(channel, params = {}) {
         return list;
     };
 
-    channel.on('inbox_updated', function(payload) {
-        let room = parseInboxRoom(payload);
+    // the phoenix channel
+    let channel = null;
 
-        if (isHubInbox) {
-            if ('archived' in params) {
-                if (room.archived !== params.archived) {
-                    return;
-                }
-            }
+    const setupChannel = function() {
+        channel = socket.channel(topic);
 
-            if ('assignedTo' in params) {
-                if (room.assignedTo !== params.assignedTo) {
-                    return;
-                }
-            }
+        channel.on('inbox_updated', function(payload) {
+            let room = parseInboxRoom(payload);
 
-            if ('attributes' in params) {
-                for (let key of Object.keys(params.attributes)) {
-                    if (room.attributes[key] !== params.attributes[key]) {
+            if (isHubInbox) {
+                if ('archived' in params) {
+                    if (room.archived !== params.archived) {
                         return;
                     }
                 }
+
+                if ('assignedTo' in params) {
+                    if (room.assignedTo !== params.assignedTo) {
+                        return;
+                    }
+                }
+
+                if ('attributes' in params) {
+                    for (let key of Object.keys(params.attributes)) {
+                        if (room.attributes[key] !== params.attributes[key]) {
+                            return;
+                        }
+                    }
+                }
             }
-        }
 
-        rooms.set(room.id, room);
+            rooms.set(room.id, room);
 
-        dispatcher.send('updated', {
-            rooms: listRooms(),
-        });
-    });
-
-    channel
-        .push('list_rooms', inferPushParams())
-        .receive('ok', function(payload) {
-            for (let room of parseInbox(payload).rooms) {
-                rooms.set(room.id, room);
-            }
-
-            dispatcher.send('ready', {
+            dispatcher.send('updated', {
                 rooms: listRooms(),
             });
-        })
-        .receive('error', function() {
-            dispatcher.send('error', initError(PUSH_REJECTED));
-        })
-        .receive('timeout', function() {
-            dispatcher.send('error', initError(TIMEOUT));
         });
 
+        channel.join()
+            .receive('ok', function() {
+                logger.info(`Joined the ${channel.topic} channel.`);
+                loadFirstRooms();
+            })
+            .receive('error', function() {
+                dispatcher.send('error', initError(PUSH_REJECTED));
+            })
+            .receive('timeout', function() {
+                dispatcher.send('error', initError(TIMEOUT));
+            });
+    };
+
+    const loadFirstRooms = function() {
+        channel.push('list_rooms', inferPushParams())
+            .receive('ok', function(payload) {
+                for (let room of parseInbox(payload).rooms) {
+                    rooms.set(room.id, room);
+                }
+
+                if (!ready) {
+                    ready = true;
+
+                    dispatcher.send('ready', {
+                        rooms: listRooms(),
+                    });
+                }
+            })
+            .receive('error', function() {
+                dispatcher.send('error', initError(PUSH_REJECTED));
+            })
+            .receive('timeout', function() {
+                dispatcher.send('error', initError(TIMEOUT));
+            });
+    };
+
     return {
+        connect: function() {
+            if (channel) {
+                throw initError(USAGE_ERROR, 'The connect() method was already called once.');
+            }
+
+            setupChannel();
+        },
+
+        disconnect: function() {
+            if (channel) {
+                channel.leave();
+            }
+
+            channel = null;
+            rooms = new Map();
+            ready = false;
+        },
+
+        // Return the list of rooms stored locally.
+        //
         listRooms: listRooms,
 
         // Load more rooms.
