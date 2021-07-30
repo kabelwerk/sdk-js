@@ -1,5 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
-import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
+import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import logger from './logger.js';
 import {
     parseAttributes,
@@ -20,11 +20,12 @@ const initRoom = function(socket, roomId) {
         'message_posted',
     ]);
 
-    let ready = false;
-
+    // internal state
     let firstMessageId = null;
     let lastMessageId = null;
+    let ready = false;
 
+    // helper functions
     const updateFirstLastIds = function(messages) {
         if (messages.length) {
             let lastMessage = messages[messages.length - 1];
@@ -39,53 +40,76 @@ const initRoom = function(socket, roomId) {
         }
     };
 
-    let channel = socket.channel(`room:${roomId}`, function() {
-        let params = {};
+    // the phoenix channel
+    let channel = null;
 
-        if (lastMessageId) {
-            params.after = lastMessageId;
-        }
+    const setupChannel = function() {
+        channel = socket.channel(`room:${roomId}`, function() {
+            let params = {};
 
-        return params;
-    });
-
-    channel.on('message_posted', function(payload) {
-        let message = parseMessage(payload);
-
-        if (message.id > lastMessageId) {
-            lastMessageId = message.id;
-        }
-
-        dispatcher.send('message_posted', message);
-    });
-
-    channel.join()
-        .receive('ok', function(payload) {
-            let messages = parseMessageList(payload).messages;
-
-            if (ready) {  // channel was rejoined
-                for (let message of messages) {
-                    dispatcher.send('message_posted', message);
-                }
-            } else {
-                ready = true;
-                dispatcher.send('ready', {
-                    messages: messages,
-                });
+            if (lastMessageId) {
+                params.after = lastMessageId;
             }
 
-            updateFirstLastIds(messages);
-
-            logger.info(`Joined the ${channel.topic} channel.`);
-        })
-        .receive('error', function() {
-            dispatcher.send('error', initError(PUSH_REJECTED));
-        })
-        .receive('timeout', function() {
-            dispatcher.send('error', initError(TIMEOUT));
+            return params;
         });
 
+        channel.on('message_posted', function(payload) {
+            let message = parseMessage(payload);
+
+            if (message.id > lastMessageId) {
+                lastMessageId = message.id;
+            }
+
+            dispatcher.send('message_posted', message);
+        });
+
+        channel.join()
+            .receive('ok', function(payload) {
+                let messages = parseMessageList(payload).messages;
+
+                if (ready) {  // channel was rejoined
+                    for (let message of messages) {
+                        dispatcher.send('message_posted', message);
+                    }
+                } else {
+                    ready = true;
+                    dispatcher.send('ready', {
+                        messages: messages,
+                    });
+                }
+
+                updateFirstLastIds(messages);
+
+                logger.info(`Joined the ${channel.topic} channel.`);
+            })
+            .receive('error', function() {
+                dispatcher.send('error', initError(PUSH_REJECTED));
+            })
+            .receive('timeout', function() {
+                dispatcher.send('error', initError(TIMEOUT));
+            });
+    };
+
     return {
+        connect: function() {
+            if (channel) {
+                throw initError(USAGE_ERROR, 'The connect() method was already called once.');
+            }
+
+            setupChannel();
+        },
+
+        disconnect: function() {
+            if (channel) {
+                channel.leave();
+            }
+
+            channel = null;
+            firstMessageId = null;
+            lastMessageId = null;
+            ready = false;
+        },
 
         // Load more messages, from earlier in the history. Return a promise
         // resolving into the list of fetched messages.

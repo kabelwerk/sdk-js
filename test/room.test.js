@@ -6,11 +6,41 @@ import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 const { initRoom } = await import('../src/room.js');
 
 
-describe('channel rejoin', () => {
+describe('connect', () => {
     let room = null;
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+    });
+
+    test('channel is joined', () => {
+        room.connect();
+        expect(MockSocket.channel).toHaveBeenCalledTimes(1);
+        expect(MockSocket.channel).toHaveBeenCalledWith('room:0', expect.any(Function));
+    });
+
+    test('join error → error event', () => {
+        expect.assertions(2);
+
+        room.on('error', (error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('error', {});
+    });
+
+    test('join timeout → error event', () => {
+        expect.assertions(2);
+
+        room.on('error', (error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('timeout', {});
     });
 
     test('ready event is emitted once', () => {
@@ -19,6 +49,8 @@ describe('channel rejoin', () => {
         room.on('ready', ({ messages }) => {
             expect(messages).toEqual([]);
         });
+
+        room.connect();
 
         MockPush.__serverRespond('ok', {messages: []}, false);
         MockPush.__serverRespond('ok', {messages: []}, false);
@@ -30,6 +62,8 @@ describe('channel rejoin', () => {
         room.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
         });
+
+        room.connect();
 
         MockPush.__serverRespond('error', {}, false);
         MockPush.__serverRespond('error', {}, false);
@@ -43,6 +77,8 @@ describe('channel rejoin', () => {
         room.on('message_posted', (res) => {
             expect(res.id).toBe(message.id);
         });
+
+        room.connect();
 
         // first join
         MockPush.__serverRespond('ok', {messages: []}, false);
@@ -58,6 +94,7 @@ describe('message posted event', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -81,6 +118,7 @@ describe('load earlier messages', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -136,6 +174,7 @@ describe('post message in room', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -195,6 +234,7 @@ describe('load room attributes', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -251,6 +291,7 @@ describe('update room attributes', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -304,6 +345,7 @@ describe('load inbox info', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 
@@ -358,6 +400,7 @@ describe('assign room to hub user', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
         MockPush.__serverRespond('ok', initialResponse);
     });
 

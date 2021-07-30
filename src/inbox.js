@@ -1,5 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
-import { PUSH_REJECTED, TIMEOUT, initError } from './errors.js';
+import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import {
     parseHubInbox,
     parseHubInboxRoom,
