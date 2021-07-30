@@ -1,6 +1,11 @@
 # Changelog
 
 
+## 0.1.4 (2021-07-30)
+
+- Changed the API: a new `Kabelwerk` object.
+
+
 ## 0.1.3 (2021-07-24)
 
 - Fixed the issue where inboxes get broken by rooms without messages.
