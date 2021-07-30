@@ -1,18 +1,17 @@
 import { initDispatcher } from '../src/dispatcher.js';
 
-
 test('on/off/once unknown event', () => {
     let dispatcher = initDispatcher(['test']);
 
-    expect(function() {
+    expect(function () {
         dispatcher.on('unknown', () => {});
     }).toThrow();
 
-    expect(function() {
+    expect(function () {
         dispatcher.off('unknown');
     }).toThrow();
 
-    expect(function() {
+    expect(function () {
         dispatcher.once('unknown', () => {});
     }).toThrow();
 });
@@ -38,8 +37,8 @@ test('send → once', () => {
         expect(value).toBe(42);
     });
 
-    dispatcher.send('answer', 42);  // 1 assert
-    dispatcher.send('answer', 42);  // no asserts
+    dispatcher.send('answer', 42); // 1 assert
+    dispatcher.send('answer', 42); // no asserts
 });
 
 test('off without a ref', () => {
@@ -53,9 +52,9 @@ test('off without a ref', () => {
         });
     }
 
-    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.send('answer', 42); // 2 asserts
     dispatcher.off('answer');
-    dispatcher.send('answer', 42);  // 0 asserts
+    dispatcher.send('answer', 42); // 0 asserts
 });
 
 test('off with a ref', () => {
@@ -70,9 +69,9 @@ test('off with a ref', () => {
         });
     }
 
-    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.send('answer', 42); // 2 asserts
     dispatcher.off('answer', ref);
-    dispatcher.send('answer', 42);  // 1 assert
+    dispatcher.send('answer', 42); // 1 assert
 });
 
 test('off without an event', () => {
@@ -86,31 +85,7 @@ test('off without an event', () => {
         });
     }
 
-    dispatcher.send('answer', 42);  // 2 asserts
+    dispatcher.send('answer', 42); // 2 asserts
     dispatcher.off();
-    dispatcher.send('answer', 42);  // 0 asserts
-});
-
-test('the ready event magic with on', () => {
-    expect.assertions(1);
-
-    let dispatcher = initDispatcher(['ready']);
-
-    dispatcher.send('ready', 'fertig');
-
-    dispatcher.on('ready', (res) => {
-        expect(res).toBe('fertig');
-    });
-});
-
-test('the ready event magic with once', () => {
-    expect.assertions(1);
-
-    let dispatcher = initDispatcher(['ready']);
-
-    dispatcher.send('ready', 'fertig');
-
-    dispatcher.once('ready', (res) => {
-        expect(res).toBe('fertig');
-    });
+    dispatcher.send('answer', 42); // 0 asserts
 });
