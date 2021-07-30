@@ -37,7 +37,7 @@ Kabelwerk.connect();
 - `url`: the URL of the Kabelwerk backend to connect to;
 - `token`: a JWT token identifying the user on behalf of whom the connection is established;
 - `refreshToken`: a function that should take as argument the current token and should return a promise resolving into the new token (or the same token, if no refresh is needed); the default is `null`, which means that the same token is going to be used for reconnection;
-- `logging`: one of the (case-insensitive) strings `info`, `error`, `silent` (the default).
+- `logging`: one of the (case-insensitive) strings `debug`, `info`, `error`, `silent` (the default).
 
 The `Kabelwerk.config()` method can be called mutliple times; also, only the given keys are updated.
 

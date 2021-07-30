@@ -40,36 +40,39 @@ const initKabelwerk = function() {
     // the phoenix socket
     let socket = null;
 
-    const setupSocket = function() {
+    const setupSocket = function () {
         socket = new Socket(config.url, {
-            params: function() {
+            params: function () {
                 return { token: config.token };
+            },
+            logger: function (kind, msg, data) {
+                logger.debug(`${kind}: ${msg}`, data);
             },
         });
 
-        socket.onOpen(function() {
+        socket.onOpen(function () {
             logger.info('Websocket connected.');
             dispatcher.send('connected', {});
         });
 
-        socket.onClose(function(event) {
+        socket.onClose(function (event) {
             logger.info('Websocket disconnected.');
             dispatcher.send('disconnected', {});
         });
 
-        socket.onError(function(error) {
+        socket.onError(function (error) {
             if (config.refreshToken && !tokenIsRefreshing) {
                 tokenIsRefreshing = true;
 
                 config.refreshToken(config.token).then(function(newToken) {
                     config.token = newToken;
                     tokenIsRefreshing = false;
-                }).catch(function(error) {
+                }).catch(function (error) {
                     tokenIsRefreshing = false;
                 });
             }
 
-            logger.error(`Websocket error: ${error}.`);
+            logger.error('Websocket error', error);
             dispatcher.send('error', initError(CONNECTION_ERROR, error));
         });
     };

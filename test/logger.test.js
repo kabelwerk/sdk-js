@@ -2,11 +2,11 @@ import { jest } from '@jest/globals';
 
 import logger from '../src/logger.js';
 
-
 describe('tests with mock console', () => {
     let mockConsole = {};
 
     beforeEach(() => {
+        mockConsole.debug = jest.spyOn(console, 'debug').mockImplementation();
         mockConsole.info = jest.spyOn(console, 'info').mockImplementation();
         mockConsole.error = jest.spyOn(console, 'error').mockImplementation();
     });
@@ -22,6 +22,15 @@ describe('tests with mock console', () => {
         expect(() => {
             logger.setLevel('hallo!');
         }).toThrow(Error);
+    });
+
+    test('level debug', () => {
+        logger.debug('hallo!');
+        expect(mockConsole.debug).toHaveBeenCalledTimes(0);
+
+        logger.setLevel('debug');
+        logger.debug('hallo!');
+        expect(mockConsole.debug).toHaveBeenCalledTimes(1);
     });
 
     test('level info', () => {
@@ -40,5 +49,5 @@ describe('tests with mock console', () => {
         logger.setLevel('error');
         logger.error('hallo!');
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
-    })
+    });
 });
