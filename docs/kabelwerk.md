@@ -13,19 +13,21 @@ Kabelwerk.config({
 });
 
 Kabelwerk.on('ready', () => {
-    // this event is fired once, when the initial connection is established
+    // this event is fired once: when the initial connection is established and
+    // the other methods are ready to be used (openInbox, openRoom, etc.)
 });
 
 Kabelwerk.on('error', (error) => {
-    // e.g. when the token is invalid
-});
-
-Kabelwerk.on('connected', () => {
-    // this event is fired every time the connection is (re-)established
+    // e.g. if the token is invalid
 });
 
 Kabelwerk.on('disconnected', () => {
-    // this event is fired every time the connection drops
+    // this event is fired every time when the connection drops
+});
+
+Kabelwerk.on('reconnected', () => {
+    // this event is fired every time when the connection is automatically
+    // re-established after a disconnect
 });
 
 Kabelwerk.connect();

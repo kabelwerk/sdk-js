@@ -4,7 +4,6 @@ import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 import { initKabelwerk } from '../src/kabelwerk.js';
 
-
 describe('socket connect', () => {
     let kabelwerk = null;
 
@@ -26,8 +25,8 @@ describe('socket connect', () => {
     test('connected event is emitted', () => {
         expect.assertions(1);
 
-        kabelwerk.on('connected', (res) => {
-            expect(res).toEqual({});
+        kabelwerk.on('connected', (arg) => {
+            expect(arg).toEqual({});
         });
 
         kabelwerk.connect();
@@ -55,6 +54,36 @@ describe('socket connect', () => {
 
         kabelwerk.connect();
         MockSocket.onError.mock.calls[0][0]('timeout');
+    });
+
+    test('ready event is emitted once', () => {
+        expect.assertions(1);
+
+        kabelwerk.on('ready', (res) => {
+            expect(res).toEqual({});
+        });
+
+        kabelwerk.connect();
+
+        for (let i = 0; i < 2; i++) {
+            MockSocket.__open();
+            MockPush.__serverRespond('ok', {}, false);
+        }
+    });
+
+    test('reconnected event is emitted', () => {
+        expect.assertions(2);
+
+        kabelwerk.on('reconnected', (arg) => {
+            expect(arg).toEqual({});
+        });
+
+        kabelwerk.connect();
+
+        for (let i = 0; i < 3; i++) {
+            MockSocket.__open();
+            MockPush.__serverRespond('ok', {}, false);
+        }
     });
 });
 
@@ -110,28 +139,6 @@ describe('private channel join', () => {
         });
 
         MockPush.__serverRespond('ok', rawUser);
-    });
-});
-
-describe('ready event', () => {
-    let kabelwerk = null;
-
-    beforeEach(() => {
-        kabelwerk = initKabelwerk();
-    });
-
-    test('ready event is emitted once', () => {
-        expect.assertions(1);
-
-        kabelwerk.on('ready', (res) => {
-            expect(res).toEqual({});
-        });
-
-        kabelwerk.connect();
-        MockSocket.__open();
-
-        MockPush.__serverRespond('ok', {}, false);
-        MockPush.__serverRespond('ok', {}, false);
     });
 });
 

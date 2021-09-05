@@ -22,7 +22,7 @@ import Kabelwerk from 'kabelwerk';
 Kabelwerk.config({ url, token });
 
 Kabelwerk.on('ready', () => {
-    // this event is fired once when the intiial connection is established
+    // this event is fired once when the initial connection is established
     let inbox = Kabelwerk.openInbox();
     let room = Kabelwerk.openRoom();
 });

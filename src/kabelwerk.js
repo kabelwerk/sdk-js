@@ -27,10 +27,11 @@ const initKabelwerk = function () {
     };
 
     let dispatcher = initDispatcher([
-        'connected',
-        'disconnected',
         'error',
         'ready',
+        'connected',
+        'disconnected',
+        'reconnected',
         'user_updated',
     ]);
 
@@ -54,7 +55,12 @@ const initKabelwerk = function () {
 
         socket.onOpen(function () {
             logger.info('Websocket connected.');
-            dispatcher.send('connected', {});
+
+            if (ready) {
+                dispatcher.send('reconnected', {});
+            } else {
+                dispatcher.send('connected', {});
+            }
         });
 
         socket.onClose(function (event) {
