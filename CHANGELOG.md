@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 0.1.5 (TBA)
+
+- New event emitted by the `Kabelwerk` object: `reconnected`.
+- Changed the room objects' API.
+
+
 ## 0.1.4 (2021-07-30)
 
 - Changed the API: a new `Kabelwerk` object.
