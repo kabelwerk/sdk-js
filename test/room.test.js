@@ -229,60 +229,90 @@ describe('post message in room', () => {
     });
 });
 
-describe('load room attributes', () => {
-    let initialResponse = roomChannelFactory.createJoin(0);
+describe('get room user', () => {
+    let joinRes = roomChannelFactory.createJoin(0);
     let room = null;
 
-    let attributes = {
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0);
+    });
+
+    test('throws an error if called before ready', () => {
+        expect(room.getUser).toThrow(Error);
+    });
+
+    test('returns the user otherwise', () => {
+        expect.assertions(1);
+
+        room.on('ready', () => {
+            let user = room.getUser();
+
+            expect(user).toEqual(joinRes.user);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('the user is updated on rejoin', () => {
+        room.connect();
+
+        // first join
+        MockPush.__serverRespond('ok', joinRes, false);
+
+        expect(room.getUser()).toEqual(joinRes.user);
+
+        // rejoin
+        let newJoinRes = roomChannelFactory.createJoin(0);
+        MockPush.__serverRespond('ok', newJoinRes, false);
+
+        expect(room.getUser()).toEqual(newJoinRes.user);
+    });
+});
+
+describe('get room attributes', () => {
+    const attributes = {
         number: 42,
         string: '',
     };
 
+    let joinRes = roomChannelFactory.createJoin(0, { attributes });
+    let room = null;
+
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
-        room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
     });
 
-    test('push params', () => {
-        room.loadAttributes();
-
-        expect(MockChannel.push).toHaveBeenCalledTimes(1);
-        expect(MockChannel.push).toHaveBeenCalledWith('get_attributes', {});
+    test('throws an error if called before ready', () => {
+        expect(room.getAttributes).toThrow(Error);
     });
 
-    test('server responds with ok', () => {
+    test('returns the attributes otherwise', () => {
         expect.assertions(1);
 
-        let response = roomChannelFactory.createRoom({ attributes });
+        room.on('ready', () => {
+            let res = room.getAttributes();
 
-        room.loadAttributes().then((attributes) => {
-            expect(attributes).toEqual(attributes);
+            expect(res).toEqual(attributes);
         });
 
-        MockPush.__serverRespond('ok', response);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('server responds with error', () => {
-        expect.assertions(2);
+    test('the attributes are updated on rejoin', () => {
+        room.connect();
 
-        room.loadAttributes().catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(PUSH_REJECTED);
-        });
+        // first join
+        MockPush.__serverRespond('ok', joinRes, false);
 
-        MockPush.__serverRespond('error');
-    });
+        expect(room.getAttributes()).toEqual(attributes);
 
-    test('server times out', () => {
-        expect.assertions(2);
+        // rejoin
+        let newJoinRes = roomChannelFactory.createJoin(0, { attributes: {} });
+        MockPush.__serverRespond('ok', newJoinRes, false);
 
-        room.loadAttributes().catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(TIMEOUT);
-        });
-
-        MockPush.__serverRespond('timeout');
+        expect(room.getAttributes()).toEqual({});
     });
 });
 

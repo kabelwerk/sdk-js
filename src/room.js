@@ -19,6 +19,8 @@ const initRoom = function (socket, roomId) {
     // internal state
     let firstMessageId = null;
     let lastMessageId = null;
+    let attributes = null;
+    let user = null;
     let ready = false;
 
     // helper functions
@@ -65,21 +67,24 @@ const initRoom = function (socket, roomId) {
             .receive('ok', function (payload) {
                 logger.info(`Joined the ${channel.topic} channel.`);
 
-                let messages = parseRoomJoin(payload).messages;
+                payload = parseRoomJoin(payload);
+
+                user = payload.user;
+                attributes = payload.attributes;
 
                 if (ready) {
                     // channel was rejoined
-                    for (let message of messages) {
+                    for (let message of payload.messages) {
                         dispatcher.send('message_posted', message);
                     }
                 } else {
                     ready = true;
                     dispatcher.send('ready', {
-                        messages: messages,
+                        messages: payload.messages,
                     });
                 }
 
-                updateFirstLastIds(messages);
+                updateFirstLastIds(payload.messages);
             })
             .receive('error', function (error) {
                 logger.error(
@@ -180,29 +185,30 @@ const initRoom = function (socket, roomId) {
             });
         },
 
-        // Retrieve the room's attributes. Return a promise resolving into the
-        // attributes object.
+        // Return the room's user.
         //
-        loadAttributes: function () {
-            return new Promise(function (resolve, reject) {
-                let push = channel.push('get_attributes', {});
+        getUser: function () {
+            if (!ready) {
+                throw initError(
+                    USAGE_ERROR,
+                    'The room object is not ready yet.'
+                );
+            }
 
-                push.receive('ok', function (payload) {
-                    resolve(parseRoom(payload).attributes);
-                });
+            return user;
+        },
 
-                push.receive('error', function (error) {
-                    logger.error(
-                        "Failed to load the room's attributes.",
-                        error
-                    );
-                    reject(initError(PUSH_REJECTED));
-                });
+        // Return the room's attributes.
+        //
+        getAttributes: function () {
+            if (!ready) {
+                throw initError(
+                    USAGE_ERROR,
+                    'The room object is not ready yet.'
+                );
+            }
 
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
-            });
+            return attributes;
         },
 
         // Update the room's attributes. Return a promise resolving into the

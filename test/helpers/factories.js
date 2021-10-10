@@ -120,7 +120,8 @@ export const roomChannelFactory = (function () {
     const createHubRoom = function (params = {}) {
         return Object.assign(createRoom(params), {
             archived: 'archived' in params ? params.archived : false,
-            archived_until: 'archived_until' in params ? params.archived_until : null,
+            archived_until:
+                'archived_until' in params ? params.archived_until : null,
             hub_user: 'hub_user' in params ? params.hub_user : null,
         });
     };
@@ -150,7 +151,10 @@ export const roomChannelFactory = (function () {
     };
 
     const createJoin = function (number, params = {}) {
-        return Object.assign(createRoom(params), createMessages(number, params));
+        return Object.assign(
+            createRoom(params),
+            createMessages(number, params)
+        );
     };
 
     return {
