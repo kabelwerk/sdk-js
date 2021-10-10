@@ -5,7 +5,6 @@ import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 
 const { initRoom } = await import('../src/room.js');
 
-
 describe('connect', () => {
     let room = null;
 
@@ -16,7 +15,10 @@ describe('connect', () => {
     test('channel is joined', () => {
         room.connect();
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
-        expect(MockSocket.channel).toHaveBeenCalledWith('room:0', expect.any(Function));
+        expect(MockSocket.channel).toHaveBeenCalledWith(
+            'room:0',
+            expect.any(Function)
+        );
     });
 
     test('join error → error event', () => {
@@ -52,8 +54,8 @@ describe('connect', () => {
 
         room.connect();
 
-        MockPush.__serverRespond('ok', {messages: []}, false);
-        MockPush.__serverRespond('ok', {messages: []}, false);
+        MockPush.__serverRespond('ok', { messages: [] }, false);
+        MockPush.__serverRespond('ok', { messages: [] }, false);
     });
 
     test('error event is emitted every time', () => {
@@ -70,7 +72,7 @@ describe('connect', () => {
     });
 
     test('messages posted between rejoins are emitted', () => {
-        let message = roomChannelFactory.createMessage({room_id: 0});
+        let message = roomChannelFactory.createMessage({ room_id: 0 });
 
         expect.assertions(1);
 
@@ -81,10 +83,10 @@ describe('connect', () => {
         room.connect();
 
         // first join
-        MockPush.__serverRespond('ok', {messages: []}, false);
+        MockPush.__serverRespond('ok', { messages: [] }, false);
 
         // rejoin
-        MockPush.__serverRespond('ok', {messages: [message]}, false);
+        MockPush.__serverRespond('ok', { messages: [message] }, false);
     });
 });
 
@@ -179,7 +181,7 @@ describe('post message in room', () => {
     });
 
     test('push params', () => {
-        room.postMessage({text: 'hello server!'});
+        room.postMessage({ text: 'hello server!' });
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
@@ -448,5 +450,35 @@ describe('assign room to hub user', () => {
         });
 
         MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('disconnect', () => {
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0);
+    });
+
+    test('leaves the channel', () => {
+        room.connect();
+        room.disconnect();
+
+        expect(MockChannel.leave).toHaveBeenCalledTimes(1);
+    });
+
+    test('removes the event listeners', () => {
+        expect.assertions(0);
+
+        let message = roomChannelFactory.createMessage();
+
+        room.on('message_posted', (data) => {
+            expect(data.id).toBe(message.id);
+        });
+
+        room.connect();
+        room.disconnect();
+
+        MockChannel.__serverPush('message_posted', message);
     });
 });

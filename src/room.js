@@ -5,20 +5,15 @@ import {
     parseAttributes,
     parseInboxInfo,
     parseMessage,
-    parseMessageList
+    parseMessageList,
 } from './payloads.js';
-
 
 // Init a room object.
 //
 // A room object joins and maintains connection to a room channel.
 //
-const initRoom = function(socket, roomId) {
-    let dispatcher = initDispatcher([
-        'error',
-        'ready',
-        'message_posted',
-    ]);
+const initRoom = function (socket, roomId) {
+    let dispatcher = initDispatcher(['error', 'ready', 'message_posted']);
 
     // internal state
     let firstMessageId = null;
@@ -26,7 +21,7 @@ const initRoom = function(socket, roomId) {
     let ready = false;
 
     // helper functions
-    const updateFirstLastIds = function(messages) {
+    const updateFirstLastIds = function (messages) {
         if (messages.length) {
             let lastMessage = messages[messages.length - 1];
 
@@ -43,8 +38,8 @@ const initRoom = function(socket, roomId) {
     // the phoenix channel
     let channel = null;
 
-    const setupChannel = function() {
-        channel = socket.channel(`room:${roomId}`, function() {
+    const setupChannel = function () {
+        channel = socket.channel(`room:${roomId}`, function () {
             let params = {};
 
             if (lastMessageId) {
@@ -54,7 +49,7 @@ const initRoom = function(socket, roomId) {
             return params;
         });
 
-        channel.on('message_posted', function(payload) {
+        channel.on('message_posted', function (payload) {
             let message = parseMessage(payload);
 
             if (message.id > lastMessageId) {
@@ -64,13 +59,15 @@ const initRoom = function(socket, roomId) {
             dispatcher.send('message_posted', message);
         });
 
-        channel.join()
+        channel
+            .join()
             .receive('ok', function (payload) {
                 logger.info(`Joined the ${channel.topic} channel.`);
 
                 let messages = parseMessageList(payload).messages;
 
-                if (ready) {  // channel was rejoined
+                if (ready) {
+                    // channel was rejoined
                     for (let message of messages) {
                         dispatcher.send('message_posted', message);
                     }
@@ -84,7 +81,10 @@ const initRoom = function(socket, roomId) {
                 updateFirstLastIds(messages);
             })
             .receive('error', function (error) {
-                logger.error(`Failed to join the ${channel.topic} channel.`, error);
+                logger.error(
+                    `Failed to join the ${channel.topic} channel.`,
+                    error
+                );
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
             .receive('timeout', function () {
@@ -95,13 +95,18 @@ const initRoom = function(socket, roomId) {
     return {
         connect: function () {
             if (channel) {
-                throw initError(USAGE_ERROR, 'The connect() method was already called once.');
+                throw initError(
+                    USAGE_ERROR,
+                    'The connect() method was already called once.'
+                );
             }
 
             setupChannel();
         },
 
         disconnect: function () {
+            dispatcher.off();
+
             if (channel) {
                 channel.leave();
             }
@@ -186,7 +191,10 @@ const initRoom = function(socket, roomId) {
                 });
 
                 push.receive('error', function (error) {
-                    logger.error("Failed to load the room's attributes.", error);
+                    logger.error(
+                        "Failed to load the room's attributes.",
+                        error
+                    );
                     reject(initError(PUSH_REJECTED));
                 });
 
@@ -208,7 +216,10 @@ const initRoom = function(socket, roomId) {
                 });
 
                 push.receive('error', function (error) {
-                    logger.error("Failed to update the room's attributes.", error);
+                    logger.error(
+                        "Failed to update the room's attributes.",
+                        error
+                    );
                     reject(initError(PUSH_REJECTED));
                 });
 
@@ -232,7 +243,10 @@ const initRoom = function(socket, roomId) {
                 });
 
                 push.receive('error', function (error) {
-                    logger.error("Failed to load the room's inbox info.", error);
+                    logger.error(
+                        "Failed to load the room's inbox info.",
+                        error
+                    );
                     reject(initError(PUSH_REJECTED));
                 });
 
@@ -271,6 +285,5 @@ const initRoom = function(socket, roomId) {
         once: dispatcher.once,
     };
 };
-
 
 export { initRoom };

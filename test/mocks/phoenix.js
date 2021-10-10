@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 
-
-const MockPush = (function() {
+const MockPush = (function () {
     const receive = jest.fn().mockImplementation(() => {
         return MockPush;
     });
@@ -17,7 +16,7 @@ const MockPush = (function() {
     // if the callbacks list was mutated (see above), then only those initial
     // callbacks can be cleared using clear='clear-initial'
     //
-    const __serverRespond = function(status, payload, clear=true) {
+    const __serverRespond = function (status, payload, clear = true) {
         let initialLength = receive.mock.calls.length;
 
         for (let i = 0; i < initialLength; i++) {
@@ -38,13 +37,14 @@ const MockPush = (function() {
     };
 
     return { receive, __serverRespond };
-}());
+})();
 
-
-const MockChannel = (function() {
+const MockChannel = (function () {
     const join = jest.fn().mockImplementation(() => {
         return MockPush;
     });
+
+    const leave = jest.fn();
 
     const on = jest.fn();
 
@@ -53,7 +53,7 @@ const MockChannel = (function() {
     });
 
     // fake a server downstream message to a channel
-    const __serverPush = function(event, payload) {
+    const __serverPush = function (event, payload) {
         for (let call of on.mock.calls) {
             if (call[0] == event) {
                 call[1](payload);
@@ -61,11 +61,10 @@ const MockChannel = (function() {
         }
     };
 
-    return { join, on, push, __serverPush };
-}());
+    return { join, leave, on, push, __serverPush };
+})();
 
-
-const MockSocket = (function() {
+const MockSocket = (function () {
     const onOpen = jest.fn();
     const onClose = jest.fn();
     const onError = jest.fn();
@@ -80,7 +79,7 @@ const MockSocket = (function() {
     });
 
     // fake the server accepting the connection
-    const __open = function() {
+    const __open = function () {
         for (let call of onOpen.mock.calls) {
             call[0]();
         }
@@ -89,9 +88,7 @@ const MockSocket = (function() {
     return { constructor, onOpen, onClose, onError, connect, channel, __open };
 })();
 
-
 // this is what is imported by src/kabel.js when running the tests
 const Socket = MockSocket.constructor;
-
 
 export { MockPush, MockChannel, MockSocket, Socket };
