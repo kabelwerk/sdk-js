@@ -5,9 +5,8 @@ import {
     parseHubInbox,
     parseHubInboxRoom,
     parseUserInbox,
-    parseUserInboxRoom
+    parseUserInboxRoom,
 } from './payloads.js';
-
 
 // Init an inbox object.
 //
@@ -30,24 +29,20 @@ import {
 //  inbox.on('updated', (rooms) => {});
 //  inbox.loadMore().then((rooms) => {});
 //
-const initInbox = function(socket, topic, params = {}) {
+const initInbox = function (socket, topic, params = {}) {
     const isHubInbox = topic.startsWith('hub');
 
-    let dispatcher = initDispatcher([
-        'error',
-        'ready',
-        'updated',
-    ]);
+    let dispatcher = initDispatcher(['error', 'ready', 'updated']);
 
     // internal state
-    let rooms = new Map();  // room id: room
+    let rooms = new Map(); // room id: room
     let ready = false;
 
     // helper functions
     const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
     const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
 
-    const inferPushParams = function() {
+    const inferPushParams = function () {
         let pushParams = {
             limit: 'limit' in params ? params.limit : 10,
             offset: rooms.size,
@@ -72,12 +67,16 @@ const initInbox = function(socket, topic, params = {}) {
         return pushParams;
     };
 
-    const listRooms = function() {
+    const listRooms = function () {
         let list = Array.from(rooms.values());
 
-        list.sort(function(roomA, roomB) {
-            let a = roomA.lastMessage ? roomA.lastMessage.insertedAt.getTime() : null;
-            let b = roomB.lastMessage ? roomB.lastMessage.insertedAt.getTime() : null;
+        list.sort(function (roomA, roomB) {
+            let a = roomA.lastMessage
+                ? roomA.lastMessage.insertedAt.getTime()
+                : null;
+            let b = roomB.lastMessage
+                ? roomB.lastMessage.insertedAt.getTime()
+                : null;
 
             return b - a;
         });
@@ -88,10 +87,10 @@ const initInbox = function(socket, topic, params = {}) {
     // the phoenix channel
     let channel = null;
 
-    const setupChannel = function() {
+    const setupChannel = function () {
         channel = socket.channel(topic);
 
-        channel.on('inbox_updated', function(payload) {
+        channel.on('inbox_updated', function (payload) {
             let room = parseInboxRoom(payload);
 
             if (isHubInbox) {
@@ -123,13 +122,17 @@ const initInbox = function(socket, topic, params = {}) {
             });
         });
 
-        channel.join()
+        channel
+            .join()
             .receive('ok', function () {
                 logger.info(`Joined the ${channel.topic} channel.`);
                 loadFirstRooms();
             })
             .receive('error', function (error) {
-                logger.error(`Failed to join the ${channel.topic} channel.`, error);
+                logger.error(
+                    `Failed to join the ${channel.topic} channel.`,
+                    error
+                );
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
             .receive('timeout', function () {
@@ -138,7 +141,8 @@ const initInbox = function(socket, topic, params = {}) {
     };
 
     const loadFirstRooms = function () {
-        channel.push('list_rooms', inferPushParams())
+        channel
+            .push('list_rooms', inferPushParams())
             .receive('ok', function (payload) {
                 for (let room of parseInbox(payload).rooms) {
                     rooms.set(room.id, room);
@@ -164,13 +168,18 @@ const initInbox = function(socket, topic, params = {}) {
     return {
         connect: function () {
             if (channel) {
-                throw initError(USAGE_ERROR, 'The connect() method was already called once.');
+                throw initError(
+                    USAGE_ERROR,
+                    'The connect() method was already called once.'
+                );
             }
 
             setupChannel();
         },
 
         disconnect: function () {
+            dispatcher.off();
+
             if (channel) {
                 channel.leave();
             }
@@ -219,6 +228,5 @@ const initInbox = function(socket, topic, params = {}) {
         once: dispatcher.once,
     };
 };
-
 
 export { initInbox };

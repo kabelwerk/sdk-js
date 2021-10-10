@@ -458,10 +458,10 @@ describe('disconnect', () => {
 
     beforeEach(() => {
         room = initRoom(MockSocket, 0);
+        room.connect();
     });
 
     test('leaves the channel', () => {
-        room.connect();
         room.disconnect();
 
         expect(MockChannel.leave).toHaveBeenCalledTimes(1);
@@ -476,7 +476,6 @@ describe('disconnect', () => {
             expect(data.id).toBe(message.id);
         });
 
-        room.connect();
         room.disconnect();
 
         MockChannel.__serverPush('message_posted', message);
