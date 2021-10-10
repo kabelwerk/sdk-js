@@ -2,10 +2,9 @@
 // private channel
 //
 
-
 // Parse the payload of a successful join response.
 //
-export const parseOwnUser = function(payload) {
+export const parseOwnUser = function (payload) {
     return {
         hubId: payload.hub_id,
         id: payload.id,
@@ -16,10 +15,9 @@ export const parseOwnUser = function(payload) {
     };
 };
 
-
 // Parse the payload of a get_hub response.
 //
-export const parseOwnHub = function(payload) {
+export const parseOwnHub = function (payload) {
     return {
         id: payload.id,
         name: payload.name,
@@ -27,69 +25,84 @@ export const parseOwnHub = function(payload) {
     };
 };
 
-
 //
 // user inbox channel
 //
 
-
 // Parse the payload of an inbox_updated event.
 //
-export const parseUserInboxRoom = function(payload) {
+export const parseUserInboxRoom = function (payload) {
     return {
         hubId: payload.hub_id,
         id: payload.id,
-        lastMessage: payload.last_message ? parseMessage(payload.last_message) : null,
+        lastMessage: payload.last_message
+            ? parseMessage(payload.last_message)
+            : null,
     };
 };
 
-
 // Parse the payload of a list_rooms response.
 //
-export const parseUserInbox = function(payload) {
+export const parseUserInbox = function (payload) {
     return {
         rooms: payload.rooms.map(parseUserInboxRoom),
     };
 };
 
-
 //
 // hub inbox channel
 //
 
-
 // Parse the payload of an inbox_updated event.
 //
-export const parseHubInboxRoom = function(payload) {
+export const parseHubInboxRoom = function (payload) {
     return {
         archived: payload.archived,
         assignedTo: payload.hub_user_id,
         attributes: payload.attributes,
         hubId: payload.hub_id,
         id: payload.id,
-        lastMessage: payload.last_message ? parseMessage(payload.last_message) : null,
+        lastMessage: payload.last_message
+            ? parseMessage(payload.last_message)
+            : null,
         user: parseUser(payload.user),
     };
 };
 
-
 // Parse the payload of a list_rooms response.
 //
-export const parseHubInbox = function(payload) {
+export const parseHubInbox = function (payload) {
     return {
         rooms: payload.rooms.map(parseHubInboxRoom),
     };
 };
 
-
 //
 // room channel
 //
 
-
-// Parse the payload of a message_posted event.
+// Parse the payload of a (get|set)_attributes response.
 //
-export const parseMessage = function(payload) {
+export const parseRoom = function (payload) {
+    return {
+        attributes: payload.attributes,
+        id: payload.id,
+        user: parseUser(payload.user),
+    };
+};
+
+// Parse the payload of a (get|set)_inbox_info response.
+//
+export const parseHubRoom = function (payload) {
+    return Object.assign(parseRoom(payload), {
+        archived: payload.archived,
+        assignedTo: payload.hub_user ? parseUser(payload.hub_user) : null,
+    });
+};
+
+// Parse the payload of a message_posted event or a post_message response.
+//
+export const parseMessage = function (payload) {
     return {
         id: payload.id,
         insertedAt: new Date(payload.inserted_at),
@@ -100,46 +113,27 @@ export const parseMessage = function(payload) {
     };
 };
 
-
-// Parse the payload of a list_messages response or a successful join response.
+// Parse the payload of a list_messages response.
 //
-export const parseMessageList = function(payload) {
+export const parseMessages = function (payload) {
     return {
         messages: payload.messages.map(parseMessage),
     };
 };
 
-
-// Parse the payload of a get_attributes or a set_attributes response.
+// Parse a successful join response.
 //
-export const parseAttributes = function(payload) {
-    return {
-        attributes: payload.attributes,
-        id: payload.id,
-    };
+export const parseRoomJoin = function (payload) {
+    return Object.assign(parseRoom(payload), parseMessages(payload));
 };
-
-
-// Parse the payload of a get_inbox_info, an assign, or an archive response.
-//
-export const parseInboxInfo = function(payload) {
-    return {
-        archived: payload.archived,
-        assignedTo: payload.hub_user ? parseUser(payload.hub_user) : null,
-        attributes: payload.attributes,
-        id: payload.id,
-    };
-};
-
 
 //
 // helpers
 //
 
-
 // Helper for parseMessage, parseHubInboxRoom, parseInboxInfo, and others.
 //
-const parseUser = function(payload) {
+const parseUser = function (payload) {
     return {
         id: payload.id,
         key: payload.key,

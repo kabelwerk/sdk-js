@@ -46,6 +46,8 @@ describe('connect', () => {
     });
 
     test('ready event is emitted once', () => {
+        let joinRes = roomChannelFactory.createJoin(0);
+
         expect.assertions(1);
 
         room.on('ready', ({ messages }) => {
@@ -54,8 +56,8 @@ describe('connect', () => {
 
         room.connect();
 
-        MockPush.__serverRespond('ok', { messages: [] }, false);
-        MockPush.__serverRespond('ok', { messages: [] }, false);
+        MockPush.__serverRespond('ok', joinRes, false);
+        MockPush.__serverRespond('ok', joinRes, false);
     });
 
     test('error event is emitted every time', () => {
@@ -72,6 +74,7 @@ describe('connect', () => {
     });
 
     test('messages posted between rejoins are emitted', () => {
+        let joinRes = roomChannelFactory.createJoin(0);
         let message = roomChannelFactory.createMessage({ room_id: 0 });
 
         expect.assertions(1);
@@ -83,15 +86,16 @@ describe('connect', () => {
         room.connect();
 
         // first join
-        MockPush.__serverRespond('ok', { messages: [] }, false);
+        MockPush.__serverRespond('ok', joinRes, false);
 
         // rejoin
-        MockPush.__serverRespond('ok', { messages: [message] }, false);
+        joinRes.messages.push(message);
+        MockPush.__serverRespond('ok', joinRes, false);
     });
 });
 
 describe('message posted event', () => {
-    let initialResponse = roomChannelFactory.createMessageList(1);
+    let initialResponse = roomChannelFactory.createJoin(1);
     let room = null;
 
     beforeEach(() => {
@@ -115,7 +119,7 @@ describe('message posted event', () => {
 });
 
 describe('load earlier messages', () => {
-    let initialResponse = roomChannelFactory.createMessageList(1);
+    let initialResponse = roomChannelFactory.createJoin(1);
     let room = null;
 
     beforeEach(() => {
@@ -136,7 +140,7 @@ describe('load earlier messages', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = roomChannelFactory.createMessageList(1);
+        let response = roomChannelFactory.createMessages(1);
 
         room.loadEarlier().then(({ messages }) => {
             expect(messages.length).toBe(1);
@@ -171,7 +175,7 @@ describe('load earlier messages', () => {
 });
 
 describe('post message in room', () => {
-    let initialResponse = roomChannelFactory.createMessageList(0);
+    let initialResponse = roomChannelFactory.createJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -226,7 +230,7 @@ describe('post message in room', () => {
 });
 
 describe('load room attributes', () => {
-    let initialResponse = roomChannelFactory.createMessageList(0);
+    let initialResponse = roomChannelFactory.createJoin(0);
     let room = null;
 
     let attributes = {
@@ -250,7 +254,7 @@ describe('load room attributes', () => {
     test('server responds with ok', () => {
         expect.assertions(1);
 
-        let response = roomChannelFactory.createAttributes({ attributes });
+        let response = roomChannelFactory.createRoom({ attributes });
 
         room.loadAttributes().then((attributes) => {
             expect(attributes).toEqual(attributes);
@@ -283,7 +287,7 @@ describe('load room attributes', () => {
 });
 
 describe('update room attributes', () => {
-    let initialResponse = roomChannelFactory.createMessageList(0);
+    let initialResponse = roomChannelFactory.createJoin(0);
     let room = null;
 
     let attributes = {
@@ -309,7 +313,7 @@ describe('update room attributes', () => {
     test('server responds with ok', () => {
         expect.assertions(1);
 
-        let response = roomChannelFactory.createAttributes({ attributes });
+        let response = roomChannelFactory.createRoom({ attributes });
 
         room.updateAttributes(attributes).then((attributes) => {
             expect(attributes).toEqual(attributes);
@@ -342,7 +346,7 @@ describe('update room attributes', () => {
 });
 
 describe('load inbox info', () => {
-    let initialResponse = roomChannelFactory.createMessageList(0);
+    let initialResponse = roomChannelFactory.createJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -361,7 +365,7 @@ describe('load inbox info', () => {
     test('server responds with ok', () => {
         expect.assertions(4);
 
-        let info = roomChannelFactory.createInboxInfo();
+        let info = roomChannelFactory.createHubRoom();
 
         room.loadInboxInfo().then((res) => {
             expect(res.archived).toBe(info.archived);
@@ -397,7 +401,7 @@ describe('load inbox info', () => {
 });
 
 describe('assign room to hub user', () => {
-    let initialResponse = roomChannelFactory.createMessageList(0);
+    let initialResponse = roomChannelFactory.createJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -418,7 +422,7 @@ describe('assign room to hub user', () => {
     test('server responds with ok', () => {
         expect.assertions(4);
 
-        let info = roomChannelFactory.createInboxInfo();
+        let info = roomChannelFactory.createHubRoom();
 
         room.assignTo(null).then((res) => {
             expect(res.archived).toBe(info.archived);

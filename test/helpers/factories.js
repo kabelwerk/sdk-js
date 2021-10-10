@@ -1,10 +1,10 @@
 // Factory for response payloads as they would come from a private channel.
 //
-export const privateChannelFactory = (function() {
+export const privateChannelFactory = (function () {
     let counter = 0;
     let timestamp = new Date().getTime();
 
-    const createOwnUser = function(params) {
+    const createOwnUser = function (params) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
         return {
@@ -20,25 +20,25 @@ export const privateChannelFactory = (function() {
     return { createOwnUser };
 })();
 
-
 // Factory for response payloads as they would come from a user inbox channel.
 //
-export const userInboxChannelFactory = (function() {
+export const userInboxChannelFactory = (function () {
     let counter = 0;
 
-    const createInboxRoom = function(params = {}) {
+    const createInboxRoom = function (params = {}) {
         let id = 'id' in params ? params.id : ++counter;
 
         return {
             hub_id: 1,
             id: id,
-            last_message: 'last_message' in params
-                ? params.last_message
-                : roomChannelFactory.createMessage({room_id: id}),
+            last_message:
+                'last_message' in params
+                    ? params.last_message
+                    : roomChannelFactory.createMessage({ room_id: id }),
         };
     };
 
-    const createInbox = function(number, params = {}) {
+    const createInbox = function (number, params = {}) {
         let rooms = [];
 
         for (let i = 0; i < number; i++) {
@@ -51,15 +51,17 @@ export const userInboxChannelFactory = (function() {
     return { createInboxRoom, createInbox };
 })();
 
-
 // Factory for response payloads as they would come from a hub inbox channel.
 //
-export const hubInboxChannelFactory = (function() {
+export const hubInboxChannelFactory = (function () {
     let counter = 0;
 
-    const createInboxRoom = function(params = {}) {
+    const createInboxRoom = function (params = {}) {
         let id = 'id' in params ? params.id : ++counter;
-        let user = 'user' in params ? params.user : privateChannelFactory.createOwnUser();
+        let user =
+            'user' in params
+                ? params.user
+                : privateChannelFactory.createOwnUser();
 
         return {
             archived: 'archived' in params ? params.archived : false,
@@ -67,9 +69,10 @@ export const hubInboxChannelFactory = (function() {
             hub_id: 1,
             hub_user_id: 'hub_user_id' in params ? params.hub_user_id : null,
             id: id,
-            last_message: 'last_message' in params
-                ? params.last_message
-                : roomChannelFactory.createMessage({room_id: id}),
+            last_message:
+                'last_message' in params
+                    ? params.last_message
+                    : roomChannelFactory.createMessage({ room_id: id }),
             user: {
                 id: user.id,
                 key: user.key,
@@ -78,7 +81,7 @@ export const hubInboxChannelFactory = (function() {
         };
     };
 
-    const createInbox = function(number, params = {}) {
+    const createInbox = function (number, params = {}) {
         let rooms = [];
 
         for (let i = 0; i < number; i++) {
@@ -91,14 +94,38 @@ export const hubInboxChannelFactory = (function() {
     return { createInboxRoom, createInbox };
 })();
 
-
 // Factory for response paylods as they would come from a room channel.
 //
-export const roomChannelFactory = (function() {
+export const roomChannelFactory = (function () {
     let counter = 0;
     let timestamp = new Date().getTime();
 
-    const createMessage = function(params = {}) {
+    const createRoom = function (params = {}) {
+        let user =
+            'user' in params
+                ? params.user
+                : privateChannelFactory.createOwnUser();
+
+        return {
+            attributes: 'attributes' in params ? params.attributes : {},
+            id: 'id' in params ? params.id : ++counter,
+            user: {
+                id: user.id,
+                key: user.key,
+                name: user.name,
+            },
+        };
+    };
+
+    const createHubRoom = function (params = {}) {
+        return Object.assign(createRoom(params), {
+            archived: 'archived' in params ? params.archived : false,
+            archived_until: 'archived_until' in params ? params.archived_until : null,
+            hub_user: 'hub_user' in params ? params.hub_user : null,
+        });
+    };
+
+    const createMessage = function (params = {}) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
 
@@ -112,7 +139,7 @@ export const roomChannelFactory = (function() {
         };
     };
 
-    const createMessageList = function(number, params = {}) {
+    const createMessages = function (number, params = {}) {
         let messages = [];
 
         for (let i = 0; i < number; i++) {
@@ -122,26 +149,15 @@ export const roomChannelFactory = (function() {
         return { messages };
     };
 
-    const createAttributes = function(params = {}) {
-        return {
-            attributes: 'attributes' in params ? params.attributes : {},
-            id: 'id' in params ? params.id : ++counter,
-        };
-    };
-
-    const createInboxInfo = function(params = {}) {
-        return {
-            archived: 'archived' in params ? params.archived : false,
-            attributes: 'attributes' in params ? params.attributes : {},
-            hub_user: 'hub_user' in params ? params.hub_user : null,
-            id: 'id' in params ? params.id : ++counter,
-        };
+    const createJoin = function (number, params = {}) {
+        return Object.assign(createRoom(params), createMessages(number, params));
     };
 
     return {
+        createHubRoom,
+        createJoin,
         createMessage,
-        createMessageList,
-        createAttributes,
-        createInboxInfo,
+        createMessages,
+        createRoom,
     };
 })();

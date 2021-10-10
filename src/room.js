@@ -2,10 +2,11 @@ import { initDispatcher } from './dispatcher.js';
 import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import logger from './logger.js';
 import {
-    parseAttributes,
-    parseInboxInfo,
+    parseHubRoom,
     parseMessage,
-    parseMessageList,
+    parseMessages,
+    parseRoom,
+    parseRoomJoin,
 } from './payloads.js';
 
 // Init a room object.
@@ -64,7 +65,7 @@ const initRoom = function (socket, roomId) {
             .receive('ok', function (payload) {
                 logger.info(`Joined the ${channel.topic} channel.`);
 
-                let messages = parseMessageList(payload).messages;
+                let messages = parseRoomJoin(payload).messages;
 
                 if (ready) {
                     // channel was rejoined
@@ -131,7 +132,7 @@ const initRoom = function (socket, roomId) {
                 });
 
                 push.receive('ok', function (payload) {
-                    let messages = parseMessageList(payload).messages;
+                    let messages = parseMessages(payload).messages;
 
                     updateFirstLastIds(messages);
 
@@ -187,7 +188,7 @@ const initRoom = function (socket, roomId) {
                 let push = channel.push('get_attributes', {});
 
                 push.receive('ok', function (payload) {
-                    resolve(parseAttributes(payload).attributes);
+                    resolve(parseRoom(payload).attributes);
                 });
 
                 push.receive('error', function (error) {
@@ -212,7 +213,7 @@ const initRoom = function (socket, roomId) {
                 let push = channel.push('set_attributes', { attributes });
 
                 push.receive('ok', function (payload) {
-                    resolve(parseAttributes(payload).attributes);
+                    resolve(parseRoom(payload).attributes);
                 });
 
                 push.receive('error', function (error) {
@@ -239,7 +240,7 @@ const initRoom = function (socket, roomId) {
                 let push = channel.push('get_inbox_info', {});
 
                 push.receive('ok', function (payload) {
-                    resolve(parseInboxInfo(payload));
+                    resolve(parseHubRoom(payload));
                 });
 
                 push.receive('error', function (error) {
@@ -266,7 +267,7 @@ const initRoom = function (socket, roomId) {
                 let push = channel.push('assign', { hub_user: hubUser });
 
                 push.receive('ok', function (payload) {
-                    resolve(parseInboxInfo(payload));
+                    resolve(parseHubRoom(payload));
                 });
 
                 push.receive('error', function (error) {
