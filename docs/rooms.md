@@ -120,13 +120,13 @@ room.updateHubUser(Kabelwerk.getUser().id).then(() => {
 ## List of methods
 
 - **`room.archive(until)`** → Marks the room as archived. If the optional parameter `until` is specified (it should be a Date object), the room will be automatically un-archived at that point in time; the default value is `null`, meaning that the room will not automatically move out of the archive. Returns a Promise. This method is only available on the hub side.
-- **`room.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 - **`room.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
+- **`room.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 - **`room.getAttributes()`** → Returns the room's custom attributes.
 - **`room.getHubUser()`** → Returns the hub user who is assigned to this room, as an `{id, key, name}` object. Returns `null` if there is no hub user assigned to this room. This method is only available on the hub side.
 - **`room.getUser()`** → Returns the room's user, as an `{id, key, name}` object.
 - **`room.isArchived()`** → Returns a boolean indicating whether the room is marked as archived. This method is only available on the hub side.
-- **`room.loadEarlier()`** → Loads more messages from earlier in the chat history. A room object keeps track of the earliest message it has processed, so this method would usually just work when loading a chat room's history. Returns a promise which resolves into a `{messages}` object.
+- **`room.loadEarlier()`** → Loads more messages from earlier in the chat history. A room object keeps track of the earliest message it has processed, so this method would usually just work when loading a chat room's history. Returns a Promise which resolves into a `{messages}` object.
 - **`room.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
 - **`room.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `room.off(event, ref)` method.
 - **`room.once(event, listener)`** → The same as the `room.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.

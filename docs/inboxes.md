@@ -72,7 +72,25 @@ inbox.connect();
 ```
 
 
-## See aso
+## List of methods
+
+- **`inbox.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
+- **`inbox.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
+- **`inbox.listRooms()`** → Returns the list of rooms already loaded by the inbox. The list is sorted by the rooms' latest messages (the room with the most recent message comes first).
+- **`inbox.loadMore()`** → Loads more rooms. Returns a Promise which resolves into a `{rooms}` object containing the updated list of rooms.
+- **`inbox.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the inbox object are removed.
+- **`inbox.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `inbox.off(event, ref)` method.
+- **`inbox.once(event, listener)`** → The same as the `inbox.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
+
+
+## List of events
+
+- `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout).
+- `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing the list of initially loaded rooms.
+- `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including those not yet loaded. The attached listeners are called with the updated list of rooms.
+
+
+## See also
 
 - [Rooms](./rooms.md)
 - [The Kabelwerk object](./kabelwerk.md)
