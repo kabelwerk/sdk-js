@@ -341,42 +341,49 @@ describe('update room attributes', () => {
     });
 
     test('server responds with ok', () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         let response = roomChannelFactory.createRoom({ attributes });
 
         room.updateAttributes(attributes).then((attributes) => {
             expect(attributes).toEqual(attributes);
+
+            expect(room.getAttributes()).toEqual(attributes);
         });
 
         MockPush.__serverRespond('ok', response);
     });
 
     test('server responds with error', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         room.updateAttributes(attributes).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
+
+            expect(room.getAttributes()).toEqual({});
         });
 
         MockPush.__serverRespond('error');
     });
 
     test('server times out', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         room.updateAttributes(attributes).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
+
+            expect(room.getAttributes()).toEqual({});
         });
 
         MockPush.__serverRespond('timeout');
     });
 });
 
-describe('load inbox info', () => {
-    let joinRes = roomChannelFactory.createHubJoin(0);
+describe('get archive status', () => {
+    const joinRes = roomChannelFactory.createHubJoin(0);
+
     let room = null;
 
     beforeEach(() => {
@@ -385,53 +392,28 @@ describe('load inbox info', () => {
         MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('push params', () => {
-        room.loadInboxInfo();
+    test('throws an error if called before ready', () => {
+        room = initRoom(MockSocket, 0, true);
+        room.connect();
 
-        expect(MockChannel.push).toHaveBeenCalledTimes(1);
-        expect(MockChannel.push).toHaveBeenCalledWith('get_inbox_info', {});
+        expect(room.isArchived).toThrow(Error);
     });
 
-    test('server responds with ok', () => {
-        expect.assertions(4);
+    test('throws an error if not on the hub side', () => {
+        room = initRoom(MockSocket, 0, false);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
 
-        let info = roomChannelFactory.createHubRoom();
-
-        room.loadInboxInfo().then((res) => {
-            expect(res.archived).toBe(info.archived);
-            expect(res.assignedTo).toEqual(info.hub_user);
-            expect(res.attributes).toEqual(info.attributes);
-            expect(res.id).toBe(info.id);
-        });
-
-        MockPush.__serverRespond('ok', info);
+        expect(room.isArchived).toThrow(Error);
     });
 
-    test('server responds with error', () => {
-        expect.assertions(2);
-
-        room.loadInboxInfo().catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(PUSH_REJECTED);
-        });
-
-        MockPush.__serverRespond('error');
-    });
-
-    test('server times out', () => {
-        expect.assertions(2);
-
-        room.loadInboxInfo().catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(TIMEOUT);
-        });
-
-        MockPush.__serverRespond('timeout');
+    test('returns the archive status otherwise', () => {
+        expect(room.isArchived()).toEqual(false);
     });
 });
 
-describe('assign room to hub user', () => {
-    let joinRes = roomChannelFactory.createHubJoin(0);
+describe('update archive status, archive', () => {
+    const joinRes = roomChannelFactory.createHubJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -440,47 +422,232 @@ describe('assign room to hub user', () => {
         MockPush.__serverRespond('ok', joinRes);
     });
 
+    test('throws an error if not on the hub side', () => {
+        room = initRoom(MockSocket, 0, false);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+
+        expect(room.archive).toThrow(Error);
+    });
+
     test('push params', () => {
-        room.assignTo(null);
+        room.archive();
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
-        expect(MockChannel.push).toHaveBeenCalledWith('assign', {
-            hub_user: null,
+        expect(MockChannel.push).toHaveBeenCalledWith('set_inbox_info', {
+            archive: true,
+            until: null,
         });
     });
 
     test('server responds with ok', () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
-        let info = roomChannelFactory.createHubRoom();
+        let response = roomChannelFactory.createHubRoom({ archived: true });
 
-        room.assignTo(null).then((res) => {
-            expect(res.archived).toBe(info.archived);
-            expect(res.assignedTo).toEqual(info.hub_user);
-            expect(res.attributes).toEqual(info.attributes);
-            expect(res.id).toBe(info.id);
+        room.archive().then((info) => {
+            expect(info.archived).toBe(true);
+            expect(info.id).toBe(response.id);
+
+            expect(room.isArchived()).toBe(true);
         });
 
-        MockPush.__serverRespond('ok', info);
+        MockPush.__serverRespond('ok', response);
     });
 
     test('server responds with error', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        room.assignTo(null).catch((error) => {
+        room.archive().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
+
+            expect(room.isArchived()).toBe(false);
         });
 
         MockPush.__serverRespond('error');
     });
 
     test('server times out', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        room.assignTo(null).catch((error) => {
+        room.archive().catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
+
+            expect(room.isArchived()).toBe(false);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('update archive status, unarchive', () => {
+    const joinRes = roomChannelFactory.createHubJoin(0, { archived: true });
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0, true);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('throws an error if not on the hub side', () => {
+        room = initRoom(MockSocket, 0, false);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+
+        expect(room.unarchive).toThrow(Error);
+    });
+
+    test('push params', () => {
+        room.unarchive();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('set_inbox_info', {
+            archive: false,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(3);
+
+        let response = roomChannelFactory.createHubRoom({ archived: false });
+
+        room.unarchive().then((info) => {
+            expect(info.archived).toBe(response.archived);
+            expect(info.id).toBe(response.id);
+
+            expect(room.isArchived()).toBe(false);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(3);
+
+        room.unarchive().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+
+            expect(room.isArchived()).toBe(true);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(3);
+
+        room.unarchive().catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+
+            expect(room.isArchived()).toBe(true);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('get hub user', () => {
+    const hubUser = { id: 1, name: 'Batou', key: 'batou' };
+    const joinRes = roomChannelFactory.createHubJoin(0, { hub_user: hubUser });
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0, true);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('throws an error if called before ready', () => {
+        room = initRoom(MockSocket, 0, true);
+        room.connect();
+
+        expect(room.getHubUser).toThrow(Error);
+    });
+
+    test('throws an error if not on the hub side', () => {
+        room = initRoom(MockSocket, 0, false);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+
+        expect(room.getHubUser).toThrow(Error);
+    });
+
+    test('returns the hub user otherwise', () => {
+        expect(room.getHubUser()).toEqual(hubUser);
+    });
+});
+
+describe('update hub user', () => {
+    const hubUser = { id: 42, name: 'Batou', key: 'batou' };
+    const joinRes = roomChannelFactory.createHubJoin(0);
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, 0, true);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('throws an error if not on the hub side', () => {
+        room = initRoom(MockSocket, 0, false);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+
+        expect(() => room.updateHubUser(null)).toThrow(Error);
+    });
+
+    test('push params', () => {
+        room.updateHubUser(42);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('set_inbox_info', {
+            hub_user: 42,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(3);
+
+        let response = roomChannelFactory.createHubRoom({ hub_user: hubUser });
+
+        room.updateHubUser(42).then((info) => {
+            expect(info.hubUser).toEqual(response.hub_user);
+            expect(info.id).toBe(response.id);
+
+            expect(room.getHubUser()).toEqual(hubUser);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(3);
+
+        room.updateHubUser(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+
+            expect(room.getHubUser()).toBe(null);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(3);
+
+        room.updateHubUser(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+
+            expect(room.getHubUser()).toBe(null);
         });
 
         MockPush.__serverRespond('timeout');

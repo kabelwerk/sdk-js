@@ -131,6 +131,41 @@ const initRoom = function (socket, roomId, isHubSide = false) {
     };
 
     return {
+        // Update the room's inbox status to archived. Return a promise
+        // resolving into an inbox info object.
+        //
+        // If until is set to a future Date object, the room will be
+        // automatically un-archived at that point in time; by default the room
+        // will not move out of the archive on its own.
+        //
+        // This method only works for hub users.
+        //
+        archive: function (until = null) {
+            ensureHubSide();
+
+            return new Promise(function (resolve, reject) {
+                let push = channel.push('set_inbox_info', {
+                    archive: true,
+                    until: until,
+                });
+
+                push.receive('ok', function (payload) {
+                    payload = parseHubRoom(payload);
+                    updateRoom(payload);
+                    resolve(payload);
+                });
+
+                push.receive('error', function (error) {
+                    logger.error('Failed to archive the room.', error);
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function () {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
         connect: function () {
             if (channel) {
                 throw initError(
@@ -153,6 +188,36 @@ const initRoom = function (socket, roomId, isHubSide = false) {
             firstMessageId = null;
             lastMessageId = null;
             ready = false;
+        },
+
+        // Return the room's attributes.
+        //
+        getAttributes: function () {
+            ensureReady();
+            return attributes;
+        },
+
+        // Return the room's assigned hub user.
+        //
+        getHubUser: function () {
+            ensureReady();
+            ensureHubSide();
+            return hubUser;
+        },
+
+        // Return the room's user.
+        //
+        getUser: function () {
+            ensureReady();
+            return user;
+        },
+
+        // Return a boolean indicating whether the room is marked as archived.
+        //
+        isArchived: function () {
+            ensureReady();
+            ensureHubSide();
+            return archived;
         },
 
         // Load more messages, from earlier in the history. Return a promise
@@ -189,6 +254,10 @@ const initRoom = function (socket, roomId, isHubSide = false) {
             });
         },
 
+        off: dispatcher.off,
+        on: dispatcher.on,
+        once: dispatcher.once,
+
         // Create a new chat message. Return a promise resolving into the newly
         // created message.
         //
@@ -217,18 +286,32 @@ const initRoom = function (socket, roomId, isHubSide = false) {
             });
         },
 
-        // Return the room's user.
+        // Update the room's inbox status to not archived. Return a promise
+        // resolving into an inbox info object.
         //
-        getUser: function () {
-            ensureReady();
-            return user;
-        },
+        // This method only works for hub users.
+        //
+        unarchive: function () {
+            ensureHubSide();
 
-        // Return the room's attributes.
-        //
-        getAttributes: function () {
-            ensureReady();
-            return attributes;
+            return new Promise(function (resolve, reject) {
+                let push = channel.push('set_inbox_info', { archive: false });
+
+                push.receive('ok', function (payload) {
+                    payload = parseHubRoom(payload);
+                    updateRoom(payload);
+                    resolve(payload);
+                });
+
+                push.receive('error', function (error) {
+                    logger.error('Failed to unarchive the room.', error);
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function () {
+                    reject(initError(TIMEOUT));
+                });
+            });
         },
 
         // Update the room's attributes. Return a promise resolving into the
@@ -258,24 +341,28 @@ const initRoom = function (socket, roomId, isHubSide = false) {
             });
         },
 
-        // Retrieve the room's inbox info (attributes, archive status, assigned
-        // hub user). Return a promise resolving into this inbox info.
+        // Update the room's assigned hub user. Return a promise resolving into
+        // an inbox info object.
         //
         // This method only works for hub users.
         //
-        loadInboxInfo: function () {
+        updateHubUser: function (hubUserId) {
             ensureHubSide();
 
             return new Promise(function (resolve, reject) {
-                let push = channel.push('get_inbox_info', {});
+                let push = channel.push('set_inbox_info', {
+                    hub_user: hubUserId,
+                });
 
                 push.receive('ok', function (payload) {
-                    resolve(parseHubRoom(payload));
+                    payload = parseHubRoom(payload);
+                    updateRoom(payload);
+                    resolve(payload);
                 });
 
                 push.receive('error', function (error) {
                     logger.error(
-                        "Failed to load the room's inbox info.",
+                        "Failed to update the room's assigned hub user.",
                         error
                     );
                     reject(initError(PUSH_REJECTED));
@@ -286,36 +373,6 @@ const initRoom = function (socket, roomId, isHubSide = false) {
                 });
             });
         },
-
-        // Update the room's assigned hub user. Return a promise resolving into
-        // an inbox info object.
-        //
-        // This method only works for hub users.
-        //
-        assignTo: function (hubUser) {
-            ensureHubSide();
-
-            return new Promise(function (resolve, reject) {
-                let push = channel.push('assign', { hub_user: hubUser });
-
-                push.receive('ok', function (payload) {
-                    resolve(parseHubRoom(payload));
-                });
-
-                push.receive('error', function (error) {
-                    logger.error('Failed to assign the room.', error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
-            });
-        },
-
-        on: dispatcher.on,
-        off: dispatcher.off,
-        once: dispatcher.once,
     };
 };
 

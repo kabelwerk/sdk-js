@@ -96,7 +96,7 @@ export const parseRoom = function (payload) {
 export const parseHubRoom = function (payload) {
     return Object.assign(parseRoom(payload), {
         archived: payload.archived,
-        assignedTo: payload.hub_user ? parseUser(payload.hub_user) : null,
+        hubUser: payload.hub_user ? parseUser(payload.hub_user) : null,
     });
 };
 
