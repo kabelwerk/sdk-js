@@ -3,6 +3,7 @@ import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import logger from './logger.js';
 import {
     parseHubRoom,
+    parseHubRoomJoin,
     parseMessage,
     parseMessages,
     parseRoom,
@@ -13,7 +14,7 @@ import {
 //
 // A room object joins and maintains connection to a room channel.
 //
-const initRoom = function (socket, roomId) {
+const initRoom = function (socket, roomId, isHubSide = false) {
     let dispatcher = initDispatcher(['error', 'ready', 'message_posted']);
 
     // internal state
@@ -21,6 +22,8 @@ const initRoom = function (socket, roomId) {
     let lastMessageId = null;
     let attributes = null;
     let user = null;
+    let hubUser = null;
+    let archived = null;
     let ready = false;
 
     // helper functions
@@ -35,6 +38,35 @@ const initRoom = function (socket, roomId) {
             if (!firstMessageId || messages[0].id < firstMessageId) {
                 firstMessageId = messages[0].id;
             }
+        }
+    };
+
+    const updateRoom = function (payload) {
+        user = payload.user;
+        attributes = payload.attributes;
+
+        if (isHubSide) {
+            if ('archived' in payload) {
+                archived = payload.archived;
+            }
+            if ('hubUser' in payload) {
+                hubUser = payload.hubUser;
+            }
+        }
+    };
+
+    const ensureReady = function () {
+        if (!ready) {
+            throw initError(USAGE_ERROR, 'The room object is not ready yet.');
+        }
+    };
+
+    const ensureHubSide = function () {
+        if (!isHubSide) {
+            throw initError(
+                USAGE_ERROR,
+                'This method is only available for hub users.'
+            );
         }
     };
 
@@ -67,10 +99,12 @@ const initRoom = function (socket, roomId) {
             .receive('ok', function (payload) {
                 logger.info(`Joined the ${channel.topic} channel.`);
 
-                payload = parseRoomJoin(payload);
+                const parse = isHubSide ? parseHubRoomJoin : parseRoomJoin;
 
-                user = payload.user;
-                attributes = payload.attributes;
+                payload = parse(payload);
+
+                updateRoom(payload);
+                updateFirstLastIds(payload.messages);
 
                 if (ready) {
                     // channel was rejoined
@@ -83,8 +117,6 @@ const initRoom = function (socket, roomId) {
                         messages: payload.messages,
                     });
                 }
-
-                updateFirstLastIds(payload.messages);
             })
             .receive('error', function (error) {
                 logger.error(
@@ -188,26 +220,14 @@ const initRoom = function (socket, roomId) {
         // Return the room's user.
         //
         getUser: function () {
-            if (!ready) {
-                throw initError(
-                    USAGE_ERROR,
-                    'The room object is not ready yet.'
-                );
-            }
-
+            ensureReady();
             return user;
         },
 
         // Return the room's attributes.
         //
         getAttributes: function () {
-            if (!ready) {
-                throw initError(
-                    USAGE_ERROR,
-                    'The room object is not ready yet.'
-                );
-            }
-
+            ensureReady();
             return attributes;
         },
 
@@ -219,7 +239,9 @@ const initRoom = function (socket, roomId) {
                 let push = channel.push('set_attributes', { attributes });
 
                 push.receive('ok', function (payload) {
-                    resolve(parseRoom(payload).attributes);
+                    payload = parseRoom(payload);
+                    updateRoom(payload);
+                    resolve(payload.attributes);
                 });
 
                 push.receive('error', function (error) {
@@ -242,6 +264,8 @@ const initRoom = function (socket, roomId) {
         // This method only works for hub users.
         //
         loadInboxInfo: function () {
+            ensureHubSide();
+
             return new Promise(function (resolve, reject) {
                 let push = channel.push('get_inbox_info', {});
 
@@ -269,6 +293,8 @@ const initRoom = function (socket, roomId) {
         // This method only works for hub users.
         //
         assignTo: function (hubUser) {
+            ensureHubSide();
+
             return new Promise(function (resolve, reject) {
                 let push = channel.push('assign', { hub_user: hubUser });
 

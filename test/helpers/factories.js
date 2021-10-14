@@ -157,7 +157,15 @@ export const roomChannelFactory = (function () {
         );
     };
 
+    const createHubJoin = function (number, params = {}) {
+        return Object.assign(
+            createHubRoom(params),
+            createMessages(number, params)
+        );
+    };
+
     return {
+        createHubJoin,
         createHubRoom,
         createJoin,
         createMessage,

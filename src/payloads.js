@@ -121,10 +121,16 @@ export const parseMessages = function (payload) {
     };
 };
 
-// Parse a successful join response.
+// Parse the payload of a join response (end side).
 //
 export const parseRoomJoin = function (payload) {
     return Object.assign(parseRoom(payload), parseMessages(payload));
+};
+
+// Parse the payload of a join response (hub side).
+//
+export const parseHubRoomJoin = function (payload) {
+    return Object.assign(parseHubRoom(payload), parseMessages(payload));
 };
 
 //

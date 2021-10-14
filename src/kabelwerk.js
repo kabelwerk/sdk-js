@@ -254,7 +254,7 @@ const initKabelwerk = function () {
         //
         openRoom: function (roomId) {
             ensureReady();
-            return initRoom(socket, roomId);
+            return initRoom(socket, roomId, Boolean(user.hubId));
         },
 
         // Retrieve info about the user's hub (name, list of fellow hub users).

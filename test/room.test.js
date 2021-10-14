@@ -376,13 +376,13 @@ describe('update room attributes', () => {
 });
 
 describe('load inbox info', () => {
-    let initialResponse = roomChannelFactory.createJoin(0);
+    let joinRes = roomChannelFactory.createHubJoin(0);
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, 0, true);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('push params', () => {
@@ -431,13 +431,13 @@ describe('load inbox info', () => {
 });
 
 describe('assign room to hub user', () => {
-    let initialResponse = roomChannelFactory.createJoin(0);
+    let joinRes = roomChannelFactory.createHubJoin(0);
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, 0, true);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('push params', () => {

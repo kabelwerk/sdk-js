@@ -119,7 +119,7 @@ room.updateHubUser(Kabelwerk.getUser().id).then(() => {
 
 ## List of methods
 
-- **`room.archive(until)`** → Marks the room as archived. If the optional parameter `until` is specified (it should be a Date object), the room to be automatically un-archived at that point in time; the default value is `null`, meaning that the room will not automatically move out of the archive. Returns a Promise. This method is only available on the hub side.
+- **`room.archive(until)`** → Marks the room as archived. If the optional parameter `until` is specified (it should be a Date object), the room will be automatically un-archived at that point in time; the default value is `null`, meaning that the room will not automatically move out of the archive. Returns a Promise. This method is only available on the hub side.
 - **`room.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 - **`room.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
 - **`room.getAttributes()`** → Returns the room's custom attributes.
