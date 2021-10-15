@@ -195,11 +195,12 @@ const initKabelwerk = function () {
         },
 
         disconnect: function () {
-            if (socket) {
-                socket.disconnect();
-            }
+            dispatcher.off();
 
+            if (privateChannel) privateChannel.leave();
             privateChannel = null;
+
+            if (socket) socket.disconnect();
             socket = null;
 
             user = null;

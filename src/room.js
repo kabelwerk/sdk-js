@@ -180,11 +180,9 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         disconnect: function () {
             dispatcher.off();
 
-            if (channel) {
-                channel.leave();
-            }
-
+            if (channel) channel.leave();
             channel = null;
+
             firstMessageId = null;
             lastMessageId = null;
             ready = false;

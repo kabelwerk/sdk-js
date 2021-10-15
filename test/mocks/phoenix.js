@@ -70,13 +70,15 @@ const MockSocket = (function () {
     const onError = jest.fn();
     const connect = jest.fn();
 
-    const constructor = jest.fn().mockImplementation(() => {
+    const __constructor = jest.fn().mockImplementation(() => {
         return MockSocket;
     });
 
     const channel = jest.fn().mockImplementation(() => {
         return MockChannel;
     });
+
+    const disconnect = jest.fn();
 
     // fake the server accepting the connection
     const __open = function () {
@@ -85,10 +87,19 @@ const MockSocket = (function () {
         }
     };
 
-    return { constructor, onOpen, onClose, onError, connect, channel, __open };
+    return {
+        __constructor,
+        __open,
+        connect,
+        channel,
+        disconnect,
+        onClose,
+        onError,
+        onOpen,
+    };
 })();
 
 // this is what is imported by src/kabel.js when running the tests
-const Socket = MockSocket.constructor;
+const Socket = MockSocket.__constructor;
 
 export { MockPush, MockChannel, MockSocket, Socket };

@@ -180,11 +180,9 @@ const initInbox = function (socket, topic, params = {}) {
         disconnect: function () {
             dispatcher.off();
 
-            if (channel) {
-                channel.leave();
-            }
-
+            if (channel) channel.leave();
             channel = null;
+
             rooms = new Map();
             ready = false;
         },

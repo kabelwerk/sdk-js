@@ -15,7 +15,7 @@ describe('socket connect', () => {
     test('socket params', () => {
         kabelwerk.connect();
 
-        expect(MockSocket.constructor).toHaveBeenCalledTimes(1);
+        expect(MockSocket.__constructor).toHaveBeenCalledTimes(1);
         expect(MockSocket.onOpen).toHaveBeenCalledTimes(1);
         expect(MockSocket.onClose).toHaveBeenCalledTimes(1);
         expect(MockSocket.onError).toHaveBeenCalledTimes(1);
@@ -338,5 +338,36 @@ describe('load hub info', () => {
         });
 
         MockPush.__serverRespond('timeout');
+    });
+});
+
+describe('disconnect', () => {
+    let user = privateChannelFactory.createOwnUser();
+    let kabelwerk = null;
+
+    beforeEach(() => {
+        kabelwerk = initKabelwerk();
+        kabelwerk.connect();
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user, 'clear-initial');
+    });
+
+    test('leaves the private channel and disconnects the socket', () => {
+        kabelwerk.disconnect();
+
+        expect(MockChannel.leave).toHaveBeenCalledTimes(1);
+        expect(MockSocket.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    test('removes the event listeners', () => {
+        expect.assertions(0);
+
+        kabelwerk.on('user_updated', (data) => {
+            expect(data.id).toBe(user.id);
+        });
+
+        kabelwerk.disconnect();
+
+        MockChannel.__serverPush('user_updated', user);
     });
 });
