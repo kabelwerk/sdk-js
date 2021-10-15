@@ -47,7 +47,10 @@ const initKabelwerk = function () {
     const setupSocket = function () {
         socket = new Socket(config.url, {
             params: function () {
-                return { token: config.token };
+                return {
+                    token: config.token,
+                    agent: `sdk-js/${VERSION}`,
+                };
             },
             logger: function (kind, msg, data) {
                 logger.debug(`${kind}: ${msg}`, data);
