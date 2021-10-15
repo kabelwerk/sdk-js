@@ -1,0 +1,4 @@
+/.git/*
+/demo/index.html
+/demo/kabelwerk.sdk.js
+/node_modules/*

@@ -2,7 +2,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import serve from 'rollup-plugin-serve';
 
-
 export default {
     input: 'src/index.js',
     output: {
@@ -15,10 +14,10 @@ export default {
         commonjs(),
         serve({
             contentBase: 'demo',
-            port: 8080
+            port: 8080,
         }),
     ],
     watch: {
         clearScreen: false,
-    }
+    },
 };

@@ -10,7 +10,6 @@ export const PUSH_REJECTED = 'PushRejected';
 // when a websocket frame sent upstream does not get an answer back
 export const TIMEOUT = 'Timeout';
 
-
 // Init an Error instance.
 //
 // Store the type of error in Error.prototype.name, as extending the built-in
@@ -20,7 +19,7 @@ export const TIMEOUT = 'Timeout';
 //
 // [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
 //
-export const initError = function(type, message) {
+export const initError = function (type, message) {
     if (!message) {
         if (type == USAGE_ERROR) {
             message = 'Unexpected usage.';

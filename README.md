@@ -2,13 +2,11 @@
 
 This is Kabelwerk's base (low-level) SDK for JavaScript.
 
-
 ## Installation
 
 ```sh
 npm install kabelwerk
 ```
-
 
 ## Usage
 
@@ -38,7 +36,6 @@ The `Kabelwerk` object takes care of automatically re-connecting when the connec
 
 Read more about [the Kabelwerk object](./docs/kabelwerk.md) in the docs.
 
-
 ### Inboxes
 
 An inbox is a view on the rooms the user has access to; it maintains a list of rooms ordered by recency of their latest message.
@@ -60,7 +57,6 @@ inbox.connect();
 
 Read more about [inboxes](./docs/inboxes.md) in the docs.
 
-
 ### Rooms
 
 A room object handles posting and retrieving messages in a chat room.
@@ -78,29 +74,31 @@ room.on('message_posted', (message) => {
 
 room.connect();
 
-room.postMessage({ text }).then((message) => {
-    // you will also get the same message via the `message_posted` event
-}).catch((error) => {
-    // e.g. when the server rejects the message
-});
+room.postMessage({ text })
+    .then((message) => {
+        // you will also get the same message via the `message_posted` event
+    })
+    .catch((error) => {
+        // e.g. when the server rejects the message
+    });
 
-room.loadEarlier().then(({ messages }) => {
-    // resolves into the list of messages which come right before the earliest
-    // message seen by the room object
-}).catch((error) => {
-    // if there are no more messages, you will get an empty list, not an error
-});
+room.loadEarlier()
+    .then(({ messages }) => {
+        // resolves into the list of messages which come right before the earliest
+        // message seen by the room object
+    })
+    .catch((error) => {
+        // if there are no more messages, you will get an empty list, not an error
+    });
 ```
 
 You can open as many rooms as you need. However, if you just want to listen for newly posted messages, then it is simpler to leverage the `inbox.on('updated')` event.
 
 Read more about [rooms](./docs/rooms.md) in the docs.
 
-
 ## Contributing
 
 Please refer to [CONTRIBUTING.md](https://github.com/kabelwerk/sdk-js/blob/master/CONTRIBUTING.md) if you have found a bug or if you want to setup the project locally.
-
 
 ## Licence
 
