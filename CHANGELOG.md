@@ -1,9 +1,14 @@
 # Changelog
 
-## 0.1.5 (TBA)
+## 0.1.5 (2021-10-15)
 
--   New event emitted by the `Kabelwerk` object: `reconnected`.
--   Changed the room objects' API.
+-   New event emitted by the `Kabelwerk` object: `reconnected` ([docs](./docs/kabelwerk.md)).
+-   All `.disconnect()` methods now implicitly call `.off()`.
+-   Rooms: `loadAttributes()` → `getAttributes()` ([docs](./docs/rooms.md#custom-attributes)).
+-   Rooms: new method `getUser()` for retrieving the room's user.
+-   Rooms: implemented methods for checking and updating the room's archive status ([docs](./docs/rooms.md#on-the-hub-side)).
+-   Rooms: changed the methods for retrieving and updating the hub user assigned to the room ([docs](./docs/rooms.md#on-the-hub-side)).
+-   Upgraded Phoenix to [1.5.12](https://hexdocs.pm/phoenix/1.5.12/js/).
 
 ## 0.1.4 (2021-07-30)
 

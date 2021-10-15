@@ -98,8 +98,8 @@ Read more about [rooms](./docs/rooms.md) in the docs.
 
 ## Contributing
 
-Please refer to [CONTRIBUTING.md](https://github.com/kabelwerk/sdk-js/blob/master/CONTRIBUTING.md) if you have found a bug or if you want to setup the project locally.
+Please refer to [CONTRIBUTING.md](./CONTRIBUTING.md) if you have found a bug or if you want to setup the project locally.
 
 ## Licence
 
-Licensed under the [MIT](https://github.com/kabelwerk/sdk-js/blob/master/LICENSE) licence.
+Licensed under the [MIT](./LICENSE) licence.
