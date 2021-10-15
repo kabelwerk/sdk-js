@@ -35,6 +35,7 @@
     "rollup-plugin-serve": "^1.1.0"
   },
   "scripts": {
+    "prepack": "[[ $(grep -o -m 1 '[0-9].[0-9].[0-9]' package.json) == $(grep -o '[0-9].[0-9].[0-9]' src/version.js) ]]",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --config test/jest.config.js",
     "demo": "rollup --config demo/rollup.config.js --watch",
     "format": "prettier --single-quote --write src/ test/"

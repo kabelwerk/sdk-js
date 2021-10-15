@@ -100,7 +100,7 @@ Kabelwerk.loadHubInfo().then(() => {
 
 - **`Kabelwerk.config(opts)`** → Sets the [configuration](#config). This method should be called at least once before invoking `Kabelwerk.connect()` in order to set an authentication token.
 - **`Kabelwerk.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
-- **`Kabelwerk.createRoom(hubId)`** → Creates a chat room for the connected user and a hub. Returns a Promise resolving into an `{id}` object holding the ID of the newly created room. This method is intended to be used on the end side.
+- **`Kabelwerk.createRoom(hubId)`** → Creates a chat room between the connected user and a hub. Returns a Promise resolving into an `{id}` object holding the ID of the newly created room. This method is intended to be used on the end side.
 - **`Kabelwerk.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 - **`Kabelwerk.getUser()`** → Returns the connected user, as an `{id, key, name}` object.
 - **`Kabelwerk.isConnected()`** → Returns a boolean indicating whether the SDK is currently connected to the server.
@@ -109,8 +109,9 @@ Kabelwerk.loadHubInfo().then(() => {
 - **`Kabelwerk.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `Kabelwerk.off(event, ref)` method.
 - **`Kabelwerk.once(event, listener)`** → The same as the `Kabelwerk.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
 - **`Kabelwerk.openInbox(params)`** → Initialises and returns an [inbox object](./inboxes.md) with the given parameters.
-- **`Kabelwerk.openRoom(roomId)`** → Initialises and returns a [room object](./room.md) for the chat room with the given ID.
+- **`Kabelwerk.openRoom(roomId)`** → Initialises and returns a [room object](./rooms.md) for the chat room with the given ID.
 - **`Kabelwerk.updateUser(attributes)`** → Updates the connected user's name. Expects a `{name}` object and returns a Promise.
+- **`Kabelwerk.VERSION`** → The SDK's version, as a `major.minor.patch` string.
 
 
 ## List of events

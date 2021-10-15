@@ -12,6 +12,7 @@ import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
+import { VERSION } from './version.js';
 
 // Init a Kabelwerk object.
 //
@@ -166,66 +167,6 @@ const initKabelwerk = function () {
             socket.connect();
         },
 
-        disconnect: function () {
-            if (socket) {
-                socket.disconnect();
-            }
-
-            privateChannel = null;
-            socket = null;
-
-            user = null;
-            ready = false;
-        },
-
-        isConnected: function () {
-            return Boolean(socket && socket.isConnected());
-        },
-
-        // Return the connected user's info.
-        //
-        getUser: function () {
-            ensureReady();
-            return user;
-        },
-
-        // Update the connected user's info. Return a promise resolving into
-        // the (updated) user info.
-        //
-        updateUser: function (params) {
-            ensureReady();
-
-            return new Promise(function (resolve, reject) {
-                let push = privateChannel.push('update_user', params);
-
-                push.receive('ok', function (payload) {
-                    user = parseOwnUser(payload);
-                    resolve(user);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error("Failed to update the user's info.", error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
-            });
-        },
-
-        // Init and return an inbox object.
-        //
-        openInbox: function (params) {
-            ensureReady();
-
-            let topic = user.hubId
-                ? `hub_inbox:${user.hubId}`
-                : `user_inbox:${user.id}`;
-
-            return initInbox(socket, topic, params);
-        },
-
         // Create a room for the connected user. Return a promise resolving
         // into an object with the newly created room's ID.
         //
@@ -250,11 +191,27 @@ const initKabelwerk = function () {
             });
         },
 
-        // Init and return a room object.
+        disconnect: function () {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            privateChannel = null;
+            socket = null;
+
+            user = null;
+            ready = false;
+        },
+
+        // Return the connected user's info.
         //
-        openRoom: function (roomId) {
+        getUser: function () {
             ensureReady();
-            return initRoom(socket, roomId, Boolean(user.hubId));
+            return user;
+        },
+
+        isConnected: function () {
+            return Boolean(socket && socket.isConnected());
         },
 
         // Retrieve info about the user's hub (name, list of fellow hub users).
@@ -283,9 +240,55 @@ const initKabelwerk = function () {
             });
         },
 
-        on: dispatcher.on,
         off: dispatcher.off,
+        on: dispatcher.on,
         once: dispatcher.once,
+
+        // Init and return an inbox object.
+        //
+        openInbox: function (params) {
+            ensureReady();
+
+            let topic = user.hubId
+                ? `hub_inbox:${user.hubId}`
+                : `user_inbox:${user.id}`;
+
+            return initInbox(socket, topic, params);
+        },
+
+        // Init and return a room object.
+        //
+        openRoom: function (roomId) {
+            ensureReady();
+            return initRoom(socket, roomId, Boolean(user.hubId));
+        },
+
+        // Update the connected user's info. Return a promise resolving into
+        // the (updated) user info.
+        //
+        updateUser: function (params) {
+            ensureReady();
+
+            return new Promise(function (resolve, reject) {
+                let push = privateChannel.push('update_user', params);
+
+                push.receive('ok', function (payload) {
+                    user = parseOwnUser(payload);
+                    resolve(user);
+                });
+
+                push.receive('error', function (error) {
+                    logger.error("Failed to update the user's info.", error);
+                    reject(initError(PUSH_REJECTED));
+                });
+
+                push.receive('timeout', function () {
+                    reject(initError(TIMEOUT));
+                });
+            });
+        },
+
+        VERSION: VERSION,
     };
 };
 
