@@ -138,7 +138,7 @@ room.updateHubUser(Kabelwerk.getUser().id).then(() => {
 
 ## List of events
 
-- `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout).
+- `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 - `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing a list of the chat room's most recent messages.
 - `message_posted` → Fired when there is a new message posted in the room. The attached listeners are called with the newly added message.
 

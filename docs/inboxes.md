@@ -85,7 +85,7 @@ inbox.connect();
 
 ## List of events
 
-- `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout).
+- `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 - `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing the list of initially loaded rooms.
 - `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including those not yet loaded. The attached listeners are called with the updated list of rooms.
 
