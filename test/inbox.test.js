@@ -336,7 +336,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         let update = hubInboxChannelFactory.createInboxRoom();
 
@@ -354,7 +354,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic, { archived: true });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
@@ -376,7 +376,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic, { archived: false });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
@@ -398,7 +398,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic, { attributes: { country: 'DE' } });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
@@ -424,7 +424,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic, { assignedTo: 2 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
@@ -446,7 +446,7 @@ describe('hub inbox updated event', () => {
         inbox = initInbox(MockSocket, topic, { assignedTo: null });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', emptyResponse); // push response
+        MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
         inbox.on('updated', ({ rooms }) => {
             expect(rooms.length).toBe(1);
@@ -459,6 +459,59 @@ describe('hub inbox updated event', () => {
         MockChannel.__serverPush(
             'inbox_updated',
             hubInboxChannelFactory.createInboxRoom({ hub_user_id: 2 })
+        );
+    });
+
+    test('non-archive inbox, room is archived', () => {
+        expect.assertions(3);
+
+        const response = hubInboxChannelFactory.createInbox(1);
+        const roomId = response.rooms[0].id;
+
+        inbox = initInbox(MockSocket, topic, { archived: false });
+        inbox.connect();
+        MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
+        MockPush.__serverRespond('ok', response); // first rooms response
+
+        inbox.on('updated', ({ rooms }) => {
+            expect(rooms.length).toBe(0);
+            expect(inbox.listRooms().length).toBe(0);
+        });
+
+        expect(inbox.listRooms().length).toBe(1);
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({
+                id: roomId,
+                archived: true,
+            })
+        );
+    });
+
+    test('personal inbox, room is unassigned', () => {
+        expect.assertions(3);
+
+        const response = hubInboxChannelFactory.createInbox(1);
+        const roomId = response.rooms[0].id;
+
+        inbox = initInbox(MockSocket, topic, { assignedTo: 1 });
+        inbox.connect();
+        MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
+        MockPush.__serverRespond('ok', response); // first rooms response
+
+        inbox.on('updated', ({ rooms }) => {
+            expect(rooms.length).toBe(0);
+            expect(inbox.listRooms().length).toBe(0);
+        });
+
+        expect(inbox.listRooms().length).toBe(1);
+
+        MockChannel.__serverPush(
+            'inbox_updated',
+            hubInboxChannelFactory.createInboxRoom({
+                id: roomId,
+            })
         );
     });
 });

@@ -67,6 +67,34 @@ const initInbox = function (socket, topic, params = {}) {
         return pushParams;
     };
 
+    const matchesParams = function (room) {
+        if (!isHubInbox) {
+            return true;
+        }
+
+        if ('archived' in params) {
+            if (room.archived !== params.archived) {
+                return false;
+            }
+        }
+
+        if ('assignedTo' in params) {
+            if (room.assignedTo !== params.assignedTo) {
+                return false;
+            }
+        }
+
+        if ('attributes' in params) {
+            for (let key of Object.keys(params.attributes)) {
+                if (room.attributes[key] !== params.attributes[key]) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    };
+
     const listRooms = function () {
         let list = Array.from(rooms.values());
 
@@ -93,29 +121,13 @@ const initInbox = function (socket, topic, params = {}) {
         channel.on('inbox_updated', function (payload) {
             let room = parseInboxRoom(payload);
 
-            if (isHubInbox) {
-                if ('archived' in params) {
-                    if (room.archived !== params.archived) {
-                        return;
-                    }
-                }
-
-                if ('assignedTo' in params) {
-                    if (room.assignedTo !== params.assignedTo) {
-                        return;
-                    }
-                }
-
-                if ('attributes' in params) {
-                    for (let key of Object.keys(params.attributes)) {
-                        if (room.attributes[key] !== params.attributes[key]) {
-                            return;
-                        }
-                    }
-                }
+            if (matchesParams(room)) {
+                rooms.set(room.id, room);
+            } else if (rooms.has(room.id)) {
+                rooms.delete(room.id);
+            } else {
+                return; // no change in the rooms list
             }
-
-            rooms.set(room.id, room);
 
             dispatcher.send('updated', {
                 rooms: listRooms(),
