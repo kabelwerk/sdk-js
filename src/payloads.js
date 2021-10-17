@@ -108,6 +108,7 @@ export const parseMessage = function (payload) {
         insertedAt: new Date(payload.inserted_at),
         roomId: payload.room_id,
         text: payload.text,
+        type: payload.type,
         updatedAt: new Date(payload.updated_at),
         user: payload.user ? parseUser(payload.user) : null,
     };

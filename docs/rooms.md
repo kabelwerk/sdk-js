@@ -61,6 +61,7 @@ A message object has the following fields:
 -   `insertedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the message was created in the database;
 -   `roomId`: the ID of the room to which the message belongs;
 -   `text`: the content of the message;
+-   `type`: the type of the message — either `text` or `room_move`, with the latter only available on the hub side.
 -   `updatedAt`: for the time being the same as `insertedAt`;
 -   `user`: the user who posted the message, as an `{ id, key, name }` object.
 

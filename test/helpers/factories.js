@@ -135,6 +135,7 @@ export const roomChannelFactory = (function () {
             inserted_at: dt.toJSON(),
             room_id: 'room_id' in params ? params.room_id : 0,
             text: `message ${id}`,
+            type: 'text',
             updated_at: dt.toJSON(),
             user: null,
         };

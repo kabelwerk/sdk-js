@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 (TBD)
+
+-   Chat message objects have a new `type` field, for now only relevant on the hub side ([docs](./docs/rooms.md#messaging)).
+
 ## 0.1.5 (2021-10-15)
 
 -   New event emitted by the `Kabelwerk` object: `reconnected` ([docs](./docs/kabelwerk.md)).
