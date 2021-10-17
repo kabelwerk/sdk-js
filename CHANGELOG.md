@@ -4,6 +4,7 @@
 
 -   Chat message objects have a new `type` field, for now only relevant on the hub side ([docs](./docs/rooms.md#messaging)).
 -   Inboxes: rooms are automatically removed when they cease to match the filters (only relevant on the hub side).
+-   Upgraded Phoenix to [1.5.13](https://hexdocs.pm/phoenix/1.5.13/js/).
 
 ## 0.1.5 (2021-10-15)
 
