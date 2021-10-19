@@ -38,14 +38,11 @@ const initInbox = function (socket, topic, params = {}) {
     let rooms = new Map(); // room id: room
     let ready = false;
 
-    // helper functions
-    const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
-    const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
-
-    const inferPushParams = function () {
+    // the base params for the list_rooms pushes
+    const loadRoomsParams = (function () {
         let pushParams = {
             limit: 'limit' in params ? params.limit : 10,
-            offset: rooms.size,
+            offset: 0,
         };
 
         if (!isHubInbox) {
@@ -65,7 +62,11 @@ const initInbox = function (socket, topic, params = {}) {
         }
 
         return pushParams;
-    };
+    })();
+
+    // helper functions
+    const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
+    const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
 
     const matchesParams = function (room) {
         if (!isHubInbox) {
@@ -138,7 +139,7 @@ const initInbox = function (socket, topic, params = {}) {
             .join()
             .receive('ok', function () {
                 logger.info(`Joined the ${channel.topic} channel.`);
-                loadFirstRooms();
+                loadRoomsOnJoin();
             })
             .receive('error', function (error) {
                 logger.error(
@@ -152,9 +153,15 @@ const initInbox = function (socket, topic, params = {}) {
             });
     };
 
-    const loadFirstRooms = function () {
+    const loadRoomsOnJoin = function () {
+        let pushParams = Object.assign(loadRoomsParams, { offset: 0 });
+
+        if (rooms.size > pushParams.limit) {
+            pushParams.limit = rooms.size;
+        }
+
         channel
-            .push('list_rooms', inferPushParams())
+            .push('list_rooms', pushParams)
             .receive('ok', function (payload) {
                 for (let room of parseInbox(payload).rooms) {
                     rooms.set(room.id, room);
@@ -164,6 +171,10 @@ const initInbox = function (socket, topic, params = {}) {
                     ready = true;
 
                     dispatcher.send('ready', {
+                        rooms: listRooms(),
+                    });
+                } else {
+                    dispatcher.send('updated', {
                         rooms: listRooms(),
                     });
                 }
@@ -210,26 +221,28 @@ const initInbox = function (socket, topic, params = {}) {
         //
         loadMore: function () {
             return new Promise(function (resolve, reject) {
-                let push = channel.push('list_rooms', inferPushParams());
+                let pushParams = Object.assign(loadRoomsParams, {
+                    offset: rooms.size,
+                });
 
-                push.receive('ok', function (payload) {
-                    for (let room of parseInbox(payload).rooms) {
-                        rooms.set(room.id, room);
-                    }
+                channel
+                    .push('list_rooms', pushParams)
+                    .receive('ok', function (payload) {
+                        for (let room of parseInbox(payload).rooms) {
+                            rooms.set(room.id, room);
+                        }
 
-                    resolve({
-                        rooms: listRooms(),
+                        resolve({
+                            rooms: listRooms(),
+                        });
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to load more inbox rooms.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
                     });
-                });
-
-                push.receive('error', function (error) {
-                    logger.error('Failed to load more inbox rooms.', error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
             });
         },
 

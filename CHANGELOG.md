@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 (TBD)
+
+-   Inboxes: updates missed while disconnected are emitted when reconnected.
+
 ## 0.1.6 (2021-10-17)
 
 -   Chat message objects have a new `type` field, for now only relevant on the hub side ([docs](./docs/rooms.md#messaging)).

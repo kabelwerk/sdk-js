@@ -149,6 +149,67 @@ describe('user inbox connect', () => {
         expect(left.lastMessage.id).toBe(right.last_message.id);
         expect(left.lastMessage.text).toBe(right.last_message.text);
     });
+
+    test('rejoin push params, default', () => {
+        let inbox = initInbox(MockSocket, topic);
+        inbox.connect();
+
+        let joinCallback = MockPush.receive.mock.calls.find(
+            (call) => call[0] == 'ok'
+        )[1];
+
+        MockPush.__serverRespond('ok', {}, false); // join response
+        joinCallback({}); // rejoin response
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2); // 2 list_rooms pushes
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            limit: 10,
+            offset: 0,
+        });
+    });
+
+    test('rejoin push params, custom limit', () => {
+        let inbox = initInbox(MockSocket, topic, { limit: 50 });
+        inbox.connect();
+
+        let joinCallback = MockPush.receive.mock.calls.find(
+            (call) => call[0] == 'ok'
+        )[1];
+
+        MockPush.__serverRespond('ok', {}, false); // join response
+        joinCallback({}); // rejoin response
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2); // 2 list_rooms pushes
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            limit: 50,
+            offset: 0,
+        });
+    });
+
+    test('updates betweeen rejoins are emitted', () => {
+        expect.assertions(1);
+
+        const firstRoomList = userInboxChannelFactory.createInbox(0);
+        const secondRoomList = userInboxChannelFactory.createInbox(1);
+
+        let inbox = initInbox(MockSocket, topic);
+        inbox.on('updated', ({ rooms }) => {
+            expect(rooms.length).toBe(1);
+        });
+        inbox.connect();
+
+        MockPush.__serverRespond('ok', {}, false); // join response
+
+        const okCalls = MockPush.receive.mock.calls.filter(
+            (call) => call[0] == 'ok'
+        );
+        const joinCallback = okCalls[0][1];
+        const pushCallback = okCalls[1][1];
+
+        pushCallback(firstRoomList); // first list_rooms response
+        joinCallback({}); // rejoin response
+        pushCallback(secondRoomList); // second list_rooms response
+    });
 });
 
 describe('hub inbox connect', () => {
@@ -188,23 +249,30 @@ describe('hub inbox connect', () => {
         });
     });
 
-    test('push ok → ready event, empty inbox', () => {
-        expect.assertions(2);
-
-        let inbox = initInbox(MockSocket, topic);
-
-        inbox.on('ready', (res) => {
-            expect(res.rooms.length).toBe(0);
+    test('rejoin push params, custom params', () => {
+        let inbox = initInbox(MockSocket, topic, {
+            limit: 50,
+            archived: true,
+            assignedTo: 1,
+            attributes: { country: 'DE' },
         });
-
         inbox.connect();
-        MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
 
-        let response = hubInboxChannelFactory.createInbox(0);
-        MockPush.__serverRespond('ok', response); // push response
+        let joinCallback = MockPush.receive.mock.calls.find(
+            (call) => call[0] == 'ok'
+        )[1];
 
-        let list = inbox.listRooms();
-        expect(list.length).toBe(0);
+        MockPush.__serverRespond('ok', {}, false); // join response
+        joinCallback({}); // rejoin response
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2); // 2 list_rooms pushes
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            limit: 50,
+            offset: 0,
+            archived: true,
+            hub_user: 1,
+            attributes: { country: 'DE' },
+        });
     });
 
     test('push ok → ready event, inbox of one room', () => {
