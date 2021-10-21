@@ -12,6 +12,7 @@ import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
+import { validateParams } from './validators.js';
 import { VERSION } from './version.js';
 
 // Init a Kabelwerk object.
@@ -146,11 +147,20 @@ const initKabelwerk = function () {
     };
 
     return {
-        config: function (newConfig) {
-            for (let key of Object.keys(newConfig)) {
-                if (config.hasOwnProperty(key)) {
-                    config[key] = newConfig[key];
-                }
+        config: function (params) {
+            params = validateParams(params, {
+                url: { type: 'string', optional: true },
+                token: { type: 'string', optional: true },
+                refreshToken: {
+                    type: 'function',
+                    nullable: true,
+                    optional: true,
+                },
+                logging: { type: 'string', optional: true },
+            });
+
+            for (let [key, value] of params.entries()) {
+                config[key] = value;
             }
 
             logger.setLevel(config.logging);

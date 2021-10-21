@@ -6,7 +6,7 @@ describe('validate', () => {
             expect(validate(value, { type: 'boolean' })).toBe(value);
         }
 
-        for (let value of [null, 42, '', {}]) {
+        for (let value of [null, 42, '', {}, () => {}]) {
             expect(() => validate(value, { type: 'boolean' })).toThrow(Error);
         }
     });
@@ -16,8 +16,18 @@ describe('validate', () => {
             expect(validate(value, { type: 'integer' })).toBe(value);
         }
 
-        for (let value of [null, true, '', {}]) {
+        for (let value of [null, true, '', {}, () => {}]) {
             expect(() => validate(value, { type: 'integer' })).toThrow(Error);
+        }
+    });
+
+    test('strings', () => {
+        for (let value of ['', 'a string']) {
+            expect(validate(value, { type: 'string' })).toBe(value);
+        }
+
+        for (let value of [null, true, 42, {}, () => {}]) {
+            expect(() => validate(value, { type: 'string' })).toThrow(Error);
         }
     });
 
@@ -27,13 +37,23 @@ describe('validate', () => {
             new Map([['b', 2]])
         );
 
-        for (let value of [null, false, 42, '']) {
+        for (let value of [null, false, 42, '', () => {}]) {
             expect(() => validate(value, { type: 'map' })).toThrow(Error);
         }
     });
 
+    test('functions', () => {
+        const f = () => {};
+
+        expect(validate(f, { type: 'function' })).toBe(f);
+
+        for (let value of [null, false, 42, '', {}]) {
+            expect(() => validate(value, { type: 'function' })).toThrow(Error);
+        }
+    });
+
     test('nullables', () => {
-        for (let type of ['boolean', 'integer', 'map']) {
+        for (let type of ['boolean', 'integer', 'string', 'map', 'function']) {
             expect(validate(null, { type, nullable: true })).toBe(null);
         }
     });
@@ -43,12 +63,13 @@ describe('validate params', () => {
     test('works', () => {
         expect(
             validateParams(
-                { b: true, i: 42, m: { s: '' }, n: null },
+                { b: true, i: 42, m: { s: '' }, n: null, s: '' },
                 {
                     b: { type: 'boolean' },
                     i: { type: 'integer' },
                     m: { type: 'map' },
                     n: { type: 'integer', nullable: true },
+                    s: { type: 'string' },
                 }
             )
         ).toEqual(
@@ -57,6 +78,7 @@ describe('validate params', () => {
                 ['i', 42],
                 ['m', new Map([['s', '']])],
                 ['n', null],
+                ['s', ''],
             ])
         );
     });

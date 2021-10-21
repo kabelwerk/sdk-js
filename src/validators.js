@@ -30,12 +30,26 @@ const validate = function (value, spec) {
 
             return value;
 
+        case 'string':
+            if (typeof value != 'string') {
+                throw initError(USAGE_ERROR, `${value} is not a string.`);
+            }
+
+            return value;
+
         case 'map':
             if (typeof value != 'object') {
                 throw initError(USAGE_ERROR, `${value} is not an object.`);
             }
 
             return new Map(Object.entries(value));
+
+        case 'function':
+            if (typeof value != 'function') {
+                throw initError(USAGE_ERROR, `${value} is not a function.`);
+            }
+
+            return value;
     }
 };
 
