@@ -12,7 +12,7 @@ import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
-import { validateParams } from './validators.js';
+import { validate, validateParams } from './validators.js';
 import { VERSION } from './version.js';
 
 // Init a Kabelwerk object.
@@ -186,21 +186,25 @@ const initKabelwerk = function () {
         createRoom: function (hubId) {
             ensureReady();
 
+            try {
+                validate(hubId, { type: 'integer' });
+            } catch (error) {
+                throw initError(USAGE_ERROR, 'The hub ID must be an integer.');
+            }
+
             return new Promise(function (resolve, reject) {
-                let push = privateChannel.push('create_room', { hub: hubId });
-
-                push.receive('ok', function (payload) {
-                    resolve({ id: payload.id });
-                });
-
-                push.receive('error', function (error) {
-                    logger.error('Failed to create a new room.', error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                privateChannel
+                    .push('create_room', { hub: hubId })
+                    .receive('ok', function (payload) {
+                        resolve({ id: payload.id });
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to create a new room.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 
@@ -260,6 +264,8 @@ const initKabelwerk = function () {
 
         // Init and return an inbox object.
         //
+        // The params are validated by the inbox object.
+        //
         openInbox: function (params) {
             ensureReady();
 
@@ -274,6 +280,13 @@ const initKabelwerk = function () {
         //
         openRoom: function (roomId) {
             ensureReady();
+
+            try {
+                validate(roomId, { type: 'integer' });
+            } catch (error) {
+                throw initError(USAGE_ERROR, 'The room ID must be an integer.');
+            }
+
             return initRoom(socket, roomId, Boolean(user.hubId));
         },
 
@@ -283,22 +296,27 @@ const initKabelwerk = function () {
         updateUser: function (params) {
             ensureReady();
 
+            params = validateParams(params, {
+                name: { type: 'string', optional: true },
+            });
+
             return new Promise(function (resolve, reject) {
-                let push = privateChannel.push('update_user', params);
-
-                push.receive('ok', function (payload) {
-                    user = parseOwnUser(payload);
-                    resolve(user);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error("Failed to update the user's info.", error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                privateChannel
+                    .push('update_user', Object.fromEntries(params))
+                    .receive('ok', function (payload) {
+                        user = parseOwnUser(payload);
+                        resolve(user);
+                    })
+                    .receive('error', function (error) {
+                        logger.error(
+                            "Failed to update the user's info.",
+                            error
+                        );
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 

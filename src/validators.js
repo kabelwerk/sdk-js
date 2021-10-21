@@ -50,6 +50,21 @@ const validate = function (value, spec) {
             }
 
             return value;
+
+        case 'datetime':
+            if (!(value instanceof Date)) {
+                throw initError(USAGE_ERROR, `${value} is not a Date object.`);
+            }
+
+            // yeah.. this is a magical string check
+            if (value.toString() == 'Invalid Date') {
+                throw initError(
+                    USAGE_ERROR,
+                    `${value} is not a valid datetime.`
+                );
+            }
+
+            return value;
     }
 };
 
@@ -79,7 +94,7 @@ const validateParams = function (params, spec) {
         } catch (error) {
             throw initError(
                 USAGE_ERROR,
-                `Invalid value passed to the parameter '${key}': ${error.message}`
+                `Invalid value passed for the parameter '${key}': ${error.message}`
             );
         }
 

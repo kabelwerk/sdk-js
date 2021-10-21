@@ -198,7 +198,7 @@ describe('post message in room', () => {
 
         let message = roomChannelFactory.createMessage({ room_id: 0 });
 
-        room.postMessage({}).then((res) => {
+        room.postMessage({ text: 'hello server!' }).then((res) => {
             expect(res.id).toBe(message.id);
             expect(res.text).toBe(message.text);
         });
@@ -209,7 +209,7 @@ describe('post message in room', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        room.postMessage({}).catch((error) => {
+        room.postMessage({ text: 'hello server!' }).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -220,7 +220,7 @@ describe('post message in room', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        room.postMessage({}).catch((error) => {
+        room.postMessage({ text: 'hello server!' }).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });

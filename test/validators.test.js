@@ -47,13 +47,30 @@ describe('validate', () => {
 
         expect(validate(f, { type: 'function' })).toBe(f);
 
-        for (let value of [null, false, 42, '', {}]) {
+        for (let value of [null, false, 42, '', {}, new Date()]) {
             expect(() => validate(value, { type: 'function' })).toThrow(Error);
         }
     });
 
+    test('datetimes', () => {
+        const d = new Date();
+
+        expect(validate(d, { type: 'datetime' })).toEqual(d);
+
+        for (let value of [null, false, 42, '', {}, () => {}]) {
+            expect(() => validate(value, { type: 'datetime' })).toThrow(Error);
+        }
+    });
+
     test('nullables', () => {
-        for (let type of ['boolean', 'integer', 'string', 'map', 'function']) {
+        for (let type of [
+            'boolean',
+            'integer',
+            'string',
+            'map',
+            'function',
+            'datetime',
+        ]) {
             expect(validate(null, { type, nullable: true })).toBe(null);
         }
     });

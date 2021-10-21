@@ -9,6 +9,7 @@ import {
     parseRoom,
     parseRoomJoin,
 } from './payloads.js';
+import { validate, validateParams } from './validators.js';
 
 // Init a room object.
 //
@@ -143,26 +144,30 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         archive: function (until = null) {
             ensureHubSide();
 
+            try {
+                validate(until, { type: 'datetime', nullable: true });
+            } catch (error) {
+                throw initError(
+                    USAGE_ERROR,
+                    "The parameter 'until' must be either a valid datetime or null."
+                );
+            }
+
             return new Promise(function (resolve, reject) {
-                let push = channel.push('set_inbox_info', {
-                    archive: true,
-                    until: until,
-                });
-
-                push.receive('ok', function (payload) {
-                    payload = parseHubRoom(payload);
-                    updateRoom(payload);
-                    resolve(payload);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error('Failed to archive the room.', error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                channel
+                    .push('set_inbox_info', { archive: true, until: until })
+                    .receive('ok', function (payload) {
+                        payload = parseHubRoom(payload);
+                        updateRoom(payload);
+                        resolve(payload);
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to archive the room.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 
@@ -260,27 +265,29 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         // created message.
         //
         postMessage: function (params) {
+            params = validateParams(params, {
+                text: { type: 'string' },
+            });
+
             return new Promise(function (resolve, reject) {
-                let push = channel.push('post_message', params);
+                channel
+                    .push('post_message', Object.fromEntries(params))
+                    .receive('ok', function (payload) {
+                        let message = parseMessage(payload);
 
-                push.receive('ok', function (payload) {
-                    let message = parseMessage(payload);
+                        if (message.id > lastMessageId) {
+                            lastMessageId = message.id;
+                        }
 
-                    if (message.id > lastMessageId) {
-                        lastMessageId = message.id;
-                    }
-
-                    resolve(message);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error('Failed to post the new message.', error);
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                        resolve(message);
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to post the new message.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 
@@ -316,26 +323,35 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         // (updated) attributes object.
         //
         updateAttributes: function (attributes) {
+            try {
+                attributes = validate(attributes, { type: 'map' });
+            } catch (error) {
+                throw initError(
+                    USAGE_ERROR,
+                    'The room attributes must be an object.'
+                );
+            }
+
             return new Promise(function (resolve, reject) {
-                let push = channel.push('set_attributes', { attributes });
-
-                push.receive('ok', function (payload) {
-                    payload = parseRoom(payload);
-                    updateRoom(payload);
-                    resolve(payload.attributes);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error(
-                        "Failed to update the room's attributes.",
-                        error
-                    );
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                channel
+                    .push('set_attributes', {
+                        attributes: Object.fromEntries(attributes),
+                    })
+                    .receive('ok', function (payload) {
+                        payload = parseRoom(payload);
+                        updateRoom(payload);
+                        resolve(payload.attributes);
+                    })
+                    .receive('error', function (error) {
+                        logger.error(
+                            "Failed to update the room's attributes.",
+                            error
+                        );
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 
@@ -347,28 +363,33 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         updateHubUser: function (hubUserId) {
             ensureHubSide();
 
+            try {
+                validate(hubUserId, { type: 'integer' });
+            } catch (error) {
+                throw initError(
+                    USAGE_ERROR,
+                    'The hub user ID must be an integer.'
+                );
+            }
+
             return new Promise(function (resolve, reject) {
-                let push = channel.push('set_inbox_info', {
-                    hub_user: hubUserId,
-                });
-
-                push.receive('ok', function (payload) {
-                    payload = parseHubRoom(payload);
-                    updateRoom(payload);
-                    resolve(payload);
-                });
-
-                push.receive('error', function (error) {
-                    logger.error(
-                        "Failed to update the room's assigned hub user.",
-                        error
-                    );
-                    reject(initError(PUSH_REJECTED));
-                });
-
-                push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
-                });
+                channel
+                    .push('set_inbox_info', { hub_user: hubUserId })
+                    .receive('ok', function (payload) {
+                        payload = parseHubRoom(payload);
+                        updateRoom(payload);
+                        resolve(payload);
+                    })
+                    .receive('error', function (error) {
+                        logger.error(
+                            "Failed to update the room's assigned hub user.",
+                            error
+                        );
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
     };

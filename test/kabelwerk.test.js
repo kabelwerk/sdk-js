@@ -162,6 +162,15 @@ describe('user info', () => {
         expect(res.name).toBe(user.name);
     });
 
+    test('update user, push params', () => {
+        kabelwerk.updateUser({ name: 'anonymous' });
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('update_user', {
+            name: 'anonymous',
+        });
+    });
+
     test('update user, server responds with ok', () => {
         let newUser = privateChannelFactory.createOwnUser();
 
@@ -244,7 +253,7 @@ describe('create room', () => {
     test('server responds with ok', () => {
         let response = { id: 42 };
 
-        kabelwerk.createRoom().then((res) => {
+        kabelwerk.createRoom(42).then((res) => {
             expect(res.id).toBe(response.id);
         });
 
@@ -254,7 +263,7 @@ describe('create room', () => {
     test('server responds with error', () => {
         expect.assertions(2);
 
-        kabelwerk.createRoom().catch((error) => {
+        kabelwerk.createRoom(42).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
         });
@@ -265,7 +274,7 @@ describe('create room', () => {
     test('server times out', () => {
         expect.assertions(2);
 
-        kabelwerk.createRoom().catch((error) => {
+        kabelwerk.createRoom(42).catch((error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
         });
