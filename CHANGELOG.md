@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.1.7 (TBD)
+## 0.1.7 (2021-10-21)
 
 -   Inboxes: updates missed while disconnected are emitted when reconnected.
+-   Parameter validation for most SDK methods.
 
 ## 0.1.6 (2021-10-17)
 
