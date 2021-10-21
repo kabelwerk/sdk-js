@@ -7,6 +7,7 @@ import {
     parseUserInbox,
     parseUserInboxRoom,
 } from './payloads.js';
+import { validateParams } from './validators.js';
 
 // Init an inbox object.
 //
@@ -30,6 +31,13 @@ import {
 //  inbox.loadMore().then((rooms) => {});
 //
 const initInbox = function (socket, topic, params = {}) {
+    params = validateParams(params, {
+        archived: { type: 'boolean', optional: true },
+        assignedTo: { type: 'integer', nullable: true, optional: true },
+        attributes: { type: 'map', optional: true },
+        limit: { type: 'integer', optional: true },
+    });
+
     const isHubInbox = topic.startsWith('hub');
 
     let dispatcher = initDispatcher(['error', 'ready', 'updated']);
@@ -38,27 +46,30 @@ const initInbox = function (socket, topic, params = {}) {
     let rooms = new Map(); // room id: room
     let ready = false;
 
-    // the base params for the list_rooms pushes
+    // the base params (as a map) for the list_rooms pushes
     const loadRoomsParams = (function () {
-        let pushParams = {
-            limit: 'limit' in params ? params.limit : 10,
-            offset: 0,
-        };
+        let pushParams = new Map();
+
+        pushParams.set('limit', params.has('limit') ? params.get('limit') : 10);
+        pushParams.set('offset', 0);
 
         if (!isHubInbox) {
             return pushParams;
         }
 
-        if ('archived' in params) {
-            pushParams.archived = params.archived;
+        if (params.has('archived')) {
+            pushParams.set('archived', params.get('archived'));
         }
 
-        if ('assignedTo' in params) {
-            pushParams.hub_user = params.assignedTo;
+        if (params.has('assignedTo')) {
+            pushParams.set('hub_user', params.get('assignedTo'));
         }
 
-        if ('attributes' in params) {
-            pushParams.attributes = params.attributes;
+        if (params.has('attributes')) {
+            pushParams.set(
+                'attributes',
+                Object.fromEntries(params.get('attributes'))
+            );
         }
 
         return pushParams;
@@ -73,21 +84,21 @@ const initInbox = function (socket, topic, params = {}) {
             return true;
         }
 
-        if ('archived' in params) {
-            if (room.archived !== params.archived) {
+        if (params.has('archived')) {
+            if (room.archived !== params.get('archived')) {
                 return false;
             }
         }
 
-        if ('assignedTo' in params) {
-            if (room.assignedTo !== params.assignedTo) {
+        if (params.has('assignedTo')) {
+            if (room.assignedTo !== params.get('assignedTo')) {
                 return false;
             }
         }
 
-        if ('attributes' in params) {
-            for (let key of Object.keys(params.attributes)) {
-                if (room.attributes[key] !== params.attributes[key]) {
+        if (params.has('attributes')) {
+            for (let [key, value] of params.get('attributes').entries()) {
+                if (room.attributes[key] !== value) {
                     return false;
                 }
             }
@@ -154,14 +165,16 @@ const initInbox = function (socket, topic, params = {}) {
     };
 
     const loadRoomsOnJoin = function () {
-        let pushParams = Object.assign(loadRoomsParams, { offset: 0 });
+        let pushParams = new Map(loadRoomsParams);
 
-        if (rooms.size > pushParams.limit) {
-            pushParams.limit = rooms.size;
+        pushParams.set('offset', 0);
+
+        if (rooms.size > pushParams.get('limit')) {
+            pushParams.set('limit', rooms.size);
         }
 
         channel
-            .push('list_rooms', pushParams)
+            .push('list_rooms', Object.fromEntries(pushParams))
             .receive('ok', function (payload) {
                 for (let room of parseInbox(payload).rooms) {
                     rooms.set(room.id, room);
@@ -221,12 +234,12 @@ const initInbox = function (socket, topic, params = {}) {
         //
         loadMore: function () {
             return new Promise(function (resolve, reject) {
-                let pushParams = Object.assign(loadRoomsParams, {
-                    offset: rooms.size,
-                });
+                let pushParams = new Map(loadRoomsParams);
+
+                pushParams.set('offset', rooms.size);
 
                 channel
-                    .push('list_rooms', pushParams)
+                    .push('list_rooms', Object.fromEntries(pushParams))
                     .receive('ok', function (payload) {
                         for (let room of parseInbox(payload).rooms) {
                             rooms.set(room.id, room);
