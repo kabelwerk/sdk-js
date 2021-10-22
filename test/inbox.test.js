@@ -772,6 +772,76 @@ describe('hub inbox loading more rooms', () => {
     });
 });
 
+describe('hub inbox searching rooms', () => {
+    const topic = 'hub_inbox:0';
+    const initialResponse = hubInboxChannelFactory.createInbox(0);
+    let inbox = null;
+
+    beforeEach(() => {
+        inbox = initInbox(MockSocket, topic);
+        inbox.connect();
+        MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
+        MockPush.__serverRespond('ok', initialResponse); // push response
+    });
+
+    test('default params', () => {
+        inbox.search({ query: 'x' });
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            search_query: 'x',
+            limit: 10,
+            offset: 0,
+        });
+    });
+
+    test('custom limit and offset', () => {
+        inbox.search({ query: 'x', limit: 2, offset: 4 });
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(2);
+        expect(MockChannel.push).toHaveBeenLastCalledWith('list_rooms', {
+            search_query: 'x',
+            limit: 2,
+            offset: 4,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(2);
+
+        let response = hubInboxChannelFactory.createInbox(1);
+
+        inbox.search({ query: 'x' }).then(({ rooms }) => {
+            expect(rooms.length).toBe(1);
+            expect(rooms[0].id).toBe(response.rooms[0].id);
+        });
+
+        MockPush.__serverRespond('ok', response);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        inbox.search({ query: 'x' }).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        inbox.search({ query: 'x' }).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
 describe('disconnect', () => {
     let inbox = null;
 

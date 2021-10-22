@@ -38,7 +38,7 @@ const initInbox = function (socket, topic, params = {}) {
         limit: { type: 'integer', optional: true },
     });
 
-    const isHubInbox = topic.startsWith('hub');
+    const isHubSide = topic.startsWith('hub');
 
     let dispatcher = initDispatcher(['error', 'ready', 'updated']);
 
@@ -53,7 +53,7 @@ const initInbox = function (socket, topic, params = {}) {
         pushParams.set('limit', params.has('limit') ? params.get('limit') : 10);
         pushParams.set('offset', 0);
 
-        if (!isHubInbox) {
+        if (!isHubSide) {
             return pushParams;
         }
 
@@ -76,11 +76,11 @@ const initInbox = function (socket, topic, params = {}) {
     })();
 
     // helper functions
-    const parseInbox = isHubInbox ? parseHubInbox : parseUserInbox;
-    const parseInboxRoom = isHubInbox ? parseHubInboxRoom : parseUserInboxRoom;
+    const parseInbox = isHubSide ? parseHubInbox : parseUserInbox;
+    const parseInboxRoom = isHubSide ? parseHubInboxRoom : parseUserInboxRoom;
 
     const matchesParams = function (room) {
-        if (!isHubInbox) {
+        if (!isHubSide) {
             return true;
         }
 
@@ -201,6 +201,15 @@ const initInbox = function (socket, topic, params = {}) {
             });
     };
 
+    const ensureHubSide = function () {
+        if (!isHubSide) {
+            throw initError(
+                USAGE_ERROR,
+                'This method is only available for hub users.'
+            );
+        }
+    };
+
     return {
         connect: function () {
             if (channel) {
@@ -230,7 +239,7 @@ const initInbox = function (socket, topic, params = {}) {
         // Load more rooms.
         //
         // Return a promise that either resolves into the list of rooms or
-        // rejects into an error.
+        // rejects with an error.
         //
         loadMore: function () {
             return new Promise(function (resolve, reject) {
@@ -262,6 +271,52 @@ const initInbox = function (socket, topic, params = {}) {
         on: dispatcher.on,
         off: dispatcher.off,
         once: dispatcher.once,
+
+        // Search for rooms by user key and/or name.
+        //
+        // Returns a promise that either resolves into a list of inbox rooms or
+        // rejects with an error.
+        //
+        search: function (params) {
+            ensureHubSide();
+
+            params = validateParams(params, {
+                query: { type: 'string' },
+                limit: { type: 'integer', optional: true },
+                offset: { type: 'integer', optional: true },
+            });
+
+            let pushParams = new Map(loadRoomsParams);
+
+            pushParams.set('search_query', params.get('query'));
+
+            pushParams.set(
+                'limit',
+                params.has('limit') ? params.get('limit') : 10
+            );
+
+            pushParams.set(
+                'offset',
+                params.has('offset') ? params.get('offset') : 0
+            );
+
+            return new Promise(function (resolve, reject) {
+                channel
+                    .push('list_rooms', Object.fromEntries(pushParams))
+                    .receive('ok', function (payload) {
+                        resolve({
+                            rooms: parseInbox(payload).rooms,
+                        });
+                    })
+                    .receive('error', function (error) {
+                        logger.error('The room search failed.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
+            });
+        },
     };
 };
 
