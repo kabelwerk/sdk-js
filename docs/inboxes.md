@@ -46,7 +46,7 @@ Inbox objects provide some additional functionality if the connected user is a h
 -   `attributes`: the room's custom attributes (set by `room.setAttributes`);
 -   `user`: the user to whom the room belongs, as an `{ id, key, name }` object.
 
-Also, when initing an inbox object, you can (optionally) specify a filter:
+The first three of these can be used to specify a filter when initing an inbox object:
 
 ```js
 const params = {
@@ -79,6 +79,32 @@ inbox.on('updated', ({ rooms }) => {
 inbox.connect();
 ```
 
+### Room search
+
+Inbox rooms can be searched for by the key and/or name of the room's user. This enables care team members to find the chat room of a particular end user:
+
+```js
+inbox
+    .search({
+        // the needle to search for in the haystack of user keys and names
+        query: 'lepricon gold',
+
+        // optional params if you want to implement results pagination
+        // these here are the default values
+        limit: 10,
+        offset: 0,
+    })
+    .then(({ rooms }) => {
+        // a list of inbox room objects
+        // the list will be empty if the search yielded no results
+    })
+    .catch((error) => {
+        // e.g. if the server times out
+    });
+```
+
+For the time being, the search functionality is not very sophisticated: the search is just a case-insensitive prefix search, there is no built-in throttling, and you have to take care of pagination by using the `limit` and `offset` params.
+
 ## List of methods
 
 -   **`inbox.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
@@ -88,6 +114,7 @@ inbox.connect();
 -   **`inbox.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the inbox object are removed.
 -   **`inbox.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `inbox.off(event, ref)` method.
 -   **`inbox.once(event, listener)`** → The same as the `inbox.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
+-   **`inbox.search(params)`** → Performs a server-side search by user key and/or name of the rooms in the inbox. Expects an object that contains at least a `query` string, and optionally a `limit` and an `offset` for results pagination. Returns a Promise which resolves into a `{rooms}` object containing a (possibly empty) list of inbox rooms that match the search query. This method is only available on the hub side.
 
 ## List of events
 
