@@ -111,7 +111,7 @@ describe('user inbox connect', () => {
         let inbox = initInbox(MockSocket, topic);
 
         inbox.on('ready', (res) => {
-            expect(res.rooms.length).toBe(0);
+            expect(res.items.length).toBe(0);
         });
 
         inbox.connect();
@@ -120,18 +120,18 @@ describe('user inbox connect', () => {
         let response = userInboxChannelFactory.createInbox(0);
         MockPush.__serverRespond('ok', response); // push response
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(0);
     });
 
-    test('push ok → ready event, inbox of one room', () => {
+    test('push ok → ready event, inbox of one item', () => {
         expect.assertions(6);
 
         let inbox = initInbox(MockSocket, topic);
 
         inbox.on('ready', (res) => {
-            expect(res.rooms.length).toBe(1);
-            expect(res.rooms).toEqual(inbox.listRooms());
+            expect(res.items.length).toBe(1);
+            expect(res.items).toEqual(inbox.listItems());
         });
 
         inbox.connect();
@@ -140,14 +140,14 @@ describe('user inbox connect', () => {
         let response = userInboxChannelFactory.createInbox(1);
         MockPush.__serverRespond('ok', response); // push response
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(1);
 
         let left = list[0],
-            right = response.rooms[0];
+            right = response.items[0];
         expect(left.id).toBe(right.id);
-        expect(left.lastMessage.id).toBe(right.last_message.id);
-        expect(left.lastMessage.text).toBe(right.last_message.text);
+        expect(left.message.id).toBe(right.message.id);
+        expect(left.message.text).toBe(right.message.text);
     });
 
     test('rejoin push params, default', () => {
@@ -189,12 +189,12 @@ describe('user inbox connect', () => {
     test('updates betweeen rejoins are emitted', () => {
         expect.assertions(1);
 
-        const firstRoomList = userInboxChannelFactory.createInbox(0);
-        const secondRoomList = userInboxChannelFactory.createInbox(1);
+        const firstInbox = userInboxChannelFactory.createInbox(0);
+        const secondInbox = userInboxChannelFactory.createInbox(1);
 
         let inbox = initInbox(MockSocket, topic);
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
         inbox.connect();
 
@@ -206,9 +206,9 @@ describe('user inbox connect', () => {
         const joinCallback = okCalls[0][1];
         const pushCallback = okCalls[1][1];
 
-        pushCallback(firstRoomList); // first list_rooms response
+        pushCallback(firstInbox); // first list_rooms response
         joinCallback({}); // rejoin response
-        pushCallback(secondRoomList); // second list_rooms response
+        pushCallback(secondInbox); // second list_rooms response
     });
 });
 
@@ -275,14 +275,14 @@ describe('hub inbox connect', () => {
         });
     });
 
-    test('push ok → ready event, inbox of one room', () => {
+    test('push ok → ready event, inbox of one item', () => {
         expect.assertions(7);
 
         let inbox = initInbox(MockSocket, topic);
 
         inbox.on('ready', (res) => {
-            expect(res.rooms.length).toBe(1);
-            expect(res.rooms).toEqual(inbox.listRooms());
+            expect(res.items.length).toBe(1);
+            expect(res.items).toEqual(inbox.listItems());
         });
 
         inbox.connect();
@@ -291,102 +291,108 @@ describe('hub inbox connect', () => {
         let response = hubInboxChannelFactory.createInbox(1);
         MockPush.__serverRespond('ok', response); // push response
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(1);
 
         let left = list[0],
-            right = response.rooms[0];
-        expect(left.id).toBe(right.id);
-        expect(left.lastMessage.id).toBe(right.last_message.id);
-        expect(left.lastMessage.text).toBe(right.last_message.text);
-        expect(left.user.id).toBe(right.user.id);
+            right = response.items[0];
+        expect(left.room.id).toBe(right.room.id);
+        expect(left.room.user.id).toBe(right.room.user.id);
+        expect(left.message.id).toBe(right.message.id);
+        expect(left.message.text).toBe(right.message.text);
     });
 });
 
-describe('user inbox rooms list re-ordering', () => {
-    let initialResponse = userInboxChannelFactory.createInbox(2);
-    let [roomA, roomB] = initialResponse.rooms;
+describe('user inbox items list re-ordering', () => {
+    const listResponse = userInboxChannelFactory.createInbox(2);
+    const [itemA, itemB] = listResponse.items;
+
     let inbox = null;
 
     beforeEach(() => {
         inbox = initInbox(MockSocket, 'user_inbox:0');
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
     });
 
     test('new message moves room to top', () => {
-        let update = userInboxChannelFactory.createInboxRoom({ id: roomB.id });
+        let update = userInboxChannelFactory.createInboxItem({
+            id: itemB.room.id,
+        });
         MockChannel.__serverPush('inbox_updated', update);
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(2);
 
-        expect(list[0].id).toBe(roomB.id);
-        expect(list[0].lastMessage.id).toBe(update.last_message.id);
-        expect(list[0].lastMessage.text).toBe(update.last_message.text);
+        expect(list[0].room.id).toBe(itemB.room.id);
+        expect(list[0].message.id).toBe(update.message.id);
+        expect(list[0].message.text).toBe(update.message.text);
 
-        expect(list[1].id).toBe(roomA.id);
-        expect(list[1].lastMessage.id).toBe(roomA.last_message.id);
-        expect(list[1].lastMessage.text).toBe(roomA.last_message.text);
+        expect(list[1].room.id).toBe(itemA.room.id);
+        expect(list[1].message.id).toBe(itemA.message.id);
+        expect(list[1].message.text).toBe(itemA.message.text);
     });
 
     test('new message pushes a new room', () => {
-        let update = userInboxChannelFactory.createInboxRoom();
+        let update = userInboxChannelFactory.createInboxItem();
         MockChannel.__serverPush('inbox_updated', update);
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(3);
 
-        expect(list[0].id).toBe(update.id);
-        expect(list[0].lastMessage.id).toBe(update.last_message.id);
-        expect(list[0].lastMessage.text).toBe(update.last_message.text);
+        expect(list[0].room.id).toBe(update.room.id);
+        expect(list[0].message.id).toBe(update.message.id);
+        expect(list[0].message.text).toBe(update.message.text);
 
-        expect(list[1].id).toBe(roomB.id);
-        expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
-        expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
+        expect(list[1].room.id).toBe(itemB.room.id);
+        expect(list[1].message.id).toBe(itemB.message.id);
+        expect(list[1].message.text).toBe(itemB.message.text);
 
-        expect(list[2].id).toBe(roomA.id);
-        expect(list[2].lastMessage.id).toBe(roomA.last_message.id);
-        expect(list[2].lastMessage.text).toBe(roomA.last_message.text);
+        expect(list[2].room.id).toBe(itemA.room.id);
+        expect(list[2].message.id).toBe(itemA.message.id);
+        expect(list[2].message.text).toBe(itemA.message.text);
     });
 
     test('new message without re-ordering', () => {
-        let update = userInboxChannelFactory.createInboxRoom({ id: roomA.id });
+        let update = userInboxChannelFactory.createInboxItem({
+            id: itemA.room.id,
+        });
         MockChannel.__serverPush('inbox_updated', update);
 
-        let list = inbox.listRooms();
+        let list = inbox.listItems();
         expect(list.length).toBe(2);
 
-        expect(list[0].id).toBe(roomA.id);
-        expect(list[0].lastMessage.id).toBe(update.last_message.id);
-        expect(list[0].lastMessage.text).toBe(update.last_message.text);
+        expect(list[0].room.id).toBe(itemA.room.id);
+        expect(list[0].message.id).toBe(update.message.id);
+        expect(list[0].message.text).toBe(update.message.text);
 
-        expect(list[1].id).toBe(roomB.id);
-        expect(list[1].lastMessage.id).toBe(roomB.last_message.id);
-        expect(list[1].lastMessage.text).toBe(roomB.last_message.text);
+        expect(list[1].room.id).toBe(itemB.room.id);
+        expect(list[1].message.id).toBe(itemB.message.id);
+        expect(list[1].message.text).toBe(itemB.message.text);
     });
 });
 
 describe('user inbox updated event', () => {
-    let initialResponse = userInboxChannelFactory.createInbox(0);
+    const listResponse = userInboxChannelFactory.createInbox(0);
+
     let inbox = null;
 
     beforeEach(() => {
         inbox = initInbox(MockSocket, 'user_inbox:0');
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
     });
 
     test('works', () => {
         expect.assertions(2);
 
-        let update = userInboxChannelFactory.createInboxRoom();
+        let update = userInboxChannelFactory.createInboxItem();
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
-            expect(rooms[0].id).toBe(update.id);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
+            expect(items[0].id).toBe(update.id);
         });
 
         MockChannel.__serverPush('inbox_updated', update);
@@ -395,7 +401,8 @@ describe('user inbox updated event', () => {
 
 describe('hub inbox updated event', () => {
     const topic = 'hub_inbox:0';
-    let emptyResponse = hubInboxChannelFactory.createInbox(0);
+    const emptyResponse = hubInboxChannelFactory.createInbox(0);
+
     let inbox = null;
 
     test('default params', () => {
@@ -406,11 +413,11 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        let update = hubInboxChannelFactory.createInboxRoom();
+        let update = hubInboxChannelFactory.createInboxItem();
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
-            expect(rooms[0].id).toBe(update.id);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
+            expect(items[0].room.id).toBe(update.room.id);
         });
 
         MockChannel.__serverPush('inbox_updated', update);
@@ -424,17 +431,17 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ archived: false })
+            hubInboxChannelFactory.createInboxItem({ archived: false })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ archived: true })
+            hubInboxChannelFactory.createInboxItem({ archived: true })
         );
     });
 
@@ -446,17 +453,17 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ archived: false })
+            hubInboxChannelFactory.createInboxItem({ archived: false })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ archived: true })
+            hubInboxChannelFactory.createInboxItem({ archived: true })
         );
     });
 
@@ -468,19 +475,19 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({
+            hubInboxChannelFactory.createInboxItem({
                 attributes: { country: 'JP', foo: 'bar' },
             })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({
+            hubInboxChannelFactory.createInboxItem({
                 attributes: { country: 'DE', foo: 'bar' },
             })
         );
@@ -494,17 +501,17 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ hub_user_id: null })
+            hubInboxChannelFactory.createInboxItem({ hub_user_id: null })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ hub_user_id: 2 })
+            hubInboxChannelFactory.createInboxItem({ hub_user_id: 2 })
         );
     });
 
@@ -516,17 +523,17 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ hub_user_id: null })
+            hubInboxChannelFactory.createInboxItem({ hub_user_id: null })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({ hub_user_id: 2 })
+            hubInboxChannelFactory.createInboxItem({ hub_user_id: 2 })
         );
     });
 
@@ -534,23 +541,23 @@ describe('hub inbox updated event', () => {
         expect.assertions(3);
 
         const response = hubInboxChannelFactory.createInbox(1);
-        const roomId = response.rooms[0].id;
+        const roomId = response.items[0].room.id;
 
         inbox = initInbox(MockSocket, topic, { archived: false });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', response); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(0);
-            expect(inbox.listRooms().length).toBe(0);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(0);
+            expect(inbox.listItems().length).toBe(0);
         });
 
-        expect(inbox.listRooms().length).toBe(1);
+        expect(inbox.listItems().length).toBe(1);
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({
+            hubInboxChannelFactory.createInboxItem({
                 id: roomId,
                 archived: true,
             })
@@ -561,23 +568,23 @@ describe('hub inbox updated event', () => {
         expect.assertions(3);
 
         const response = hubInboxChannelFactory.createInbox(1);
-        const roomId = response.rooms[0].id;
+        const roomId = response.items[0].room.id;
 
         inbox = initInbox(MockSocket, topic, { assignedTo: 1 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', response); // first rooms response
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(0);
-            expect(inbox.listRooms().length).toBe(0);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(0);
+            expect(inbox.listItems().length).toBe(0);
         });
 
-        expect(inbox.listRooms().length).toBe(1);
+        expect(inbox.listItems().length).toBe(1);
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxRoom({
+            hubInboxChannelFactory.createInboxItem({
                 id: roomId,
             })
         );
@@ -586,14 +593,15 @@ describe('hub inbox updated event', () => {
 
 describe('user inbox loading more rooms', () => {
     const topic = 'user_inbox:0';
-    let initialResponse = userInboxChannelFactory.createInbox(1);
+    const listResponse = userInboxChannelFactory.createInbox(1);
+
     let inbox = null;
 
     beforeEach(() => {
         inbox = initInbox(MockSocket, topic);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
     });
 
     test('default params', () => {
@@ -610,7 +618,7 @@ describe('user inbox loading more rooms', () => {
         let inbox = initInbox(MockSocket, topic, { limit: 20 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
 
         inbox.loadMore();
 
@@ -626,10 +634,10 @@ describe('user inbox loading more rooms', () => {
 
         let response = userInboxChannelFactory.createInbox(1);
 
-        inbox.loadMore().then(({ rooms }) => {
-            expect(rooms.length).toBe(2);
-            expect(rooms[0].id).toBe(response.rooms[0].id);
-            expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
+        inbox.loadMore().then(({ items }) => {
+            expect(items.length).toBe(2);
+            expect(items[0].room.id).toBe(response.items[0].room.id);
+            expect(items[1].room.id).toBe(listResponse.items[0].room.id);
         });
 
         MockPush.__serverRespond('ok', response);
@@ -661,13 +669,13 @@ describe('user inbox loading more rooms', () => {
         expect.assertions(3);
 
         let response = userInboxChannelFactory.createInbox(1, {
-            last_message: null,
+            message: null,
         });
 
-        inbox.loadMore().then(({ rooms }) => {
-            expect(rooms.length).toBe(2);
-            expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
-            expect(rooms[1].id).toBe(response.rooms[0].id);
+        inbox.loadMore().then(({ items }) => {
+            expect(items.length).toBe(2);
+            expect(items[0].room.id).toBe(listResponse.items[0].room.id);
+            expect(items[1].room.id).toBe(response.items[0].room.id);
         });
 
         MockPush.__serverRespond('ok', response);
@@ -676,14 +684,15 @@ describe('user inbox loading more rooms', () => {
 
 describe('hub inbox loading more rooms', () => {
     const topic = 'hub_inbox:0';
-    let initialResponse = hubInboxChannelFactory.createInbox(1);
+    const listResponse = hubInboxChannelFactory.createInbox(1);
+
     let inbox = null;
 
     beforeEach(() => {
         inbox = initInbox(MockSocket, topic);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
     });
 
     test('default params', () => {
@@ -705,7 +714,7 @@ describe('hub inbox loading more rooms', () => {
         });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
 
         inbox.loadMore();
 
@@ -724,10 +733,10 @@ describe('hub inbox loading more rooms', () => {
 
         let response = hubInboxChannelFactory.createInbox(1);
 
-        inbox.loadMore().then(({ rooms }) => {
-            expect(rooms.length).toBe(2);
-            expect(rooms[0].id).toBe(response.rooms[0].id);
-            expect(rooms[1].id).toBe(initialResponse.rooms[0].id);
+        inbox.loadMore().then(({ items }) => {
+            expect(items.length).toBe(2);
+            expect(items[0].room.id).toBe(response.items[0].room.id);
+            expect(items[1].room.id).toBe(listResponse.items[0].room.id);
         });
 
         MockPush.__serverRespond('ok', response);
@@ -759,13 +768,13 @@ describe('hub inbox loading more rooms', () => {
         expect.assertions(3);
 
         let response = hubInboxChannelFactory.createInbox(1, {
-            last_message: null,
+            message: null,
         });
 
-        inbox.loadMore().then(({ rooms }) => {
-            expect(rooms.length).toBe(2);
-            expect(rooms[0].id).toBe(initialResponse.rooms[0].id);
-            expect(rooms[1].id).toBe(response.rooms[0].id);
+        inbox.loadMore().then(({ items }) => {
+            expect(items.length).toBe(2);
+            expect(items[0].room.id).toBe(listResponse.items[0].room.id);
+            expect(items[1].room.id).toBe(response.items[0].room.id);
         });
 
         MockPush.__serverRespond('ok', response);
@@ -774,14 +783,15 @@ describe('hub inbox loading more rooms', () => {
 
 describe('hub inbox searching rooms', () => {
     const topic = 'hub_inbox:0';
-    const initialResponse = hubInboxChannelFactory.createInbox(0);
+    const listResponse = hubInboxChannelFactory.createInbox(0);
+
     let inbox = null;
 
     beforeEach(() => {
         inbox = initInbox(MockSocket, topic);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
-        MockPush.__serverRespond('ok', initialResponse); // push response
+        MockPush.__serverRespond('ok', listResponse); // push response
     });
 
     test('default params', () => {
@@ -811,9 +821,9 @@ describe('hub inbox searching rooms', () => {
 
         let response = hubInboxChannelFactory.createInbox(1);
 
-        inbox.search({ query: 'x' }).then(({ rooms }) => {
-            expect(rooms.length).toBe(1);
-            expect(rooms[0].id).toBe(response.rooms[0].id);
+        inbox.search({ query: 'x' }).then(({ items }) => {
+            expect(items.length).toBe(1);
+            expect(items[0].room.id).toBe(response.items[0].room.id);
         });
 
         MockPush.__serverRespond('ok', response);
@@ -859,10 +869,10 @@ describe('disconnect', () => {
     test('removes the event listeners', () => {
         expect.assertions(0);
 
-        let update = userInboxChannelFactory.createInboxRoom();
+        let update = userInboxChannelFactory.createInboxItem();
 
-        inbox.on('updated', ({ rooms }) => {
-            expect(rooms.length).toBe(1);
+        inbox.on('updated', ({ items }) => {
+            expect(items.length).toBe(1);
         });
 
         inbox.disconnect();

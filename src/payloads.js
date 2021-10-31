@@ -31,13 +31,14 @@ export const parseOwnHub = function (payload) {
 
 // Parse the payload of an inbox_updated event.
 //
-export const parseUserInboxRoom = function (payload) {
+export const parseUserInboxItem = function (payload) {
     return {
-        hubId: payload.hub_id,
-        id: payload.id,
-        lastMessage: payload.last_message
-            ? parseMessage(payload.last_message)
-            : null,
+        room: {
+            hubId: payload.room.hub_id,
+            id: payload.room.id,
+        },
+        message: payload.message ? parseMessage(payload.message) : null,
+        isNew: Boolean(payload.is_new),
     };
 };
 
@@ -45,7 +46,7 @@ export const parseUserInboxRoom = function (payload) {
 //
 export const parseUserInbox = function (payload) {
     return {
-        rooms: payload.rooms.map(parseUserInboxRoom),
+        items: payload.items.map(parseUserInboxItem),
     };
 };
 
@@ -55,17 +56,18 @@ export const parseUserInbox = function (payload) {
 
 // Parse the payload of an inbox_updated event.
 //
-export const parseHubInboxRoom = function (payload) {
+export const parseHubInboxItem = function (payload) {
     return {
-        archived: payload.archived,
-        assignedTo: payload.hub_user_id,
-        attributes: payload.attributes,
-        hubId: payload.hub_id,
-        id: payload.id,
-        lastMessage: payload.last_message
-            ? parseMessage(payload.last_message)
-            : null,
-        user: parseUser(payload.user),
+        room: {
+            archived: payload.room.archived,
+            assignedTo: payload.room.hub_user_id,
+            attributes: payload.room.attributes,
+            hubId: payload.room.hub_id,
+            id: payload.room.id,
+            user: parseUser(payload.room.user),
+        },
+        message: payload.message ? parseMessage(payload.message) : null,
+        isNew: Boolean(payload.is_new),
     };
 };
 
@@ -73,7 +75,7 @@ export const parseHubInboxRoom = function (payload) {
 //
 export const parseHubInbox = function (payload) {
     return {
-        rooms: payload.rooms.map(parseHubInboxRoom),
+        items: payload.items.map(parseHubInboxItem),
     };
 };
 

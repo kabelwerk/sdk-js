@@ -3,9 +3,9 @@ import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
 import logger from './logger.js';
 import {
     parseHubInbox,
-    parseHubInboxRoom,
+    parseHubInboxItem,
     parseUserInbox,
-    parseUserInboxRoom,
+    parseUserInboxItem,
 } from './payloads.js';
 import { validateParams } from './validators.js';
 
@@ -26,9 +26,9 @@ import { validateParams } from './validators.js';
 //
 //  let inbox = kabel.openInbox({attributes: {country: 'DE'}});
 //
-//  inbox.once('ready', (rooms) => {});
-//  inbox.on('updated', (rooms) => {});
-//  inbox.loadMore().then((rooms) => {});
+//  inbox.once('ready', (items) => {});
+//  inbox.on('updated', (items) => {});
+//  inbox.loadMore().then((items) => {});
 //
 const initInbox = function (socket, topic, params = {}) {
     params = validateParams(params, {
@@ -43,7 +43,7 @@ const initInbox = function (socket, topic, params = {}) {
     let dispatcher = initDispatcher(['error', 'ready', 'updated']);
 
     // internal state
-    let rooms = new Map(); // room id: room
+    let items = new Map(); // room id: inbox item
     let ready = false;
 
     // the base params (as a map) for the list_rooms pushes
@@ -77,28 +77,28 @@ const initInbox = function (socket, topic, params = {}) {
 
     // helper functions
     const parseInbox = isHubSide ? parseHubInbox : parseUserInbox;
-    const parseInboxRoom = isHubSide ? parseHubInboxRoom : parseUserInboxRoom;
+    const parseInboxItem = isHubSide ? parseHubInboxItem : parseUserInboxItem;
 
-    const matchesParams = function (room) {
+    const matchesParams = function (item) {
         if (!isHubSide) {
             return true;
         }
 
         if (params.has('archived')) {
-            if (room.archived !== params.get('archived')) {
+            if (item.room.archived !== params.get('archived')) {
                 return false;
             }
         }
 
         if (params.has('assignedTo')) {
-            if (room.assignedTo !== params.get('assignedTo')) {
+            if (item.room.assignedTo !== params.get('assignedTo')) {
                 return false;
             }
         }
 
         if (params.has('attributes')) {
             for (let [key, value] of params.get('attributes').entries()) {
-                if (room.attributes[key] !== value) {
+                if (item.room.attributes[key] !== value) {
                     return false;
                 }
             }
@@ -107,16 +107,12 @@ const initInbox = function (socket, topic, params = {}) {
         return true;
     };
 
-    const listRooms = function () {
-        let list = Array.from(rooms.values());
+    const listItems = function () {
+        let list = Array.from(items.values());
 
-        list.sort(function (roomA, roomB) {
-            let a = roomA.lastMessage
-                ? roomA.lastMessage.insertedAt.getTime()
-                : null;
-            let b = roomB.lastMessage
-                ? roomB.lastMessage.insertedAt.getTime()
-                : null;
+        list.sort(function (itemA, itemB) {
+            let a = itemA.message ? itemA.message.insertedAt.getTime() : null;
+            let b = itemB.message ? itemB.message.insertedAt.getTime() : null;
 
             return b - a;
         });
@@ -131,18 +127,18 @@ const initInbox = function (socket, topic, params = {}) {
         channel = socket.channel(topic);
 
         channel.on('inbox_updated', function (payload) {
-            let room = parseInboxRoom(payload);
+            let item = parseInboxItem(payload);
 
-            if (matchesParams(room)) {
-                rooms.set(room.id, room);
-            } else if (rooms.has(room.id)) {
-                rooms.delete(room.id);
+            if (matchesParams(item)) {
+                items.set(item.room.id, item);
+            } else if (items.has(item.room.id)) {
+                items.delete(item.room.id);
             } else {
-                return; // no change in the rooms list
+                return; // no change in the items list
             }
 
             dispatcher.send('updated', {
-                rooms: listRooms(),
+                items: listItems(),
             });
         });
 
@@ -150,7 +146,7 @@ const initInbox = function (socket, topic, params = {}) {
             .join()
             .receive('ok', function () {
                 logger.info(`Joined the ${channel.topic} channel.`);
-                loadRoomsOnJoin();
+                loadItemsOnJoin();
             })
             .receive('error', function (error) {
                 logger.error(
@@ -164,36 +160,36 @@ const initInbox = function (socket, topic, params = {}) {
             });
     };
 
-    const loadRoomsOnJoin = function () {
+    const loadItemsOnJoin = function () {
         let pushParams = new Map(loadRoomsParams);
 
         pushParams.set('offset', 0);
 
-        if (rooms.size > pushParams.get('limit')) {
-            pushParams.set('limit', rooms.size);
+        if (items.size > pushParams.get('limit')) {
+            pushParams.set('limit', items.size);
         }
 
         channel
             .push('list_rooms', Object.fromEntries(pushParams))
             .receive('ok', function (payload) {
-                for (let room of parseInbox(payload).rooms) {
-                    rooms.set(room.id, room);
+                for (let item of parseInbox(payload).items) {
+                    items.set(item.room.id, item);
                 }
 
                 if (!ready) {
                     ready = true;
 
                     dispatcher.send('ready', {
-                        rooms: listRooms(),
+                        items: listItems(),
                     });
                 } else {
                     dispatcher.send('updated', {
-                        rooms: listRooms(),
+                        items: listItems(),
                     });
                 }
             })
             .receive('error', function (error) {
-                logger.error("Failed to retrieve the inbox's rooms.", error);
+                logger.error('Failed to retrieve the inbox items.', error);
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
             .receive('timeout', function () {
@@ -228,38 +224,38 @@ const initInbox = function (socket, topic, params = {}) {
             if (channel) channel.leave();
             channel = null;
 
-            rooms = new Map();
+            items = new Map();
             ready = false;
         },
 
-        // Return the list of rooms stored locally.
+        // Return the list of inbox items stored locally.
         //
-        listRooms: listRooms,
+        listItems: listItems,
 
-        // Load more rooms.
+        // Load more inbox items.
         //
-        // Return a promise that either resolves into the list of rooms or
-        // rejects with an error.
+        // Return a promise that either resolves into the list of inbox items
+        // or rejects with an error.
         //
         loadMore: function () {
             return new Promise(function (resolve, reject) {
                 let pushParams = new Map(loadRoomsParams);
 
-                pushParams.set('offset', rooms.size);
+                pushParams.set('offset', items.size);
 
                 channel
                     .push('list_rooms', Object.fromEntries(pushParams))
                     .receive('ok', function (payload) {
-                        for (let room of parseInbox(payload).rooms) {
-                            rooms.set(room.id, room);
+                        for (let item of parseInbox(payload).items) {
+                            items.set(item.room.id, item);
                         }
 
                         resolve({
-                            rooms: listRooms(),
+                            items: listItems(),
                         });
                     })
                     .receive('error', function (error) {
-                        logger.error('Failed to load more inbox rooms.', error);
+                        logger.error('Failed to load more inbox items.', error);
                         reject(initError(PUSH_REJECTED));
                     })
                     .receive('timeout', function () {
@@ -272,9 +268,9 @@ const initInbox = function (socket, topic, params = {}) {
         off: dispatcher.off,
         once: dispatcher.once,
 
-        // Search for rooms by user key and/or name.
+        // Search for inbox items by user key and/or name.
         //
-        // Returns a promise that either resolves into a list of inbox rooms or
+        // Returns a promise that either resolves into a list of inbox items or
         // rejects with an error.
         //
         search: function (params) {
@@ -305,11 +301,11 @@ const initInbox = function (socket, topic, params = {}) {
                     .push('list_rooms', Object.fromEntries(pushParams))
                     .receive('ok', function (payload) {
                         resolve({
-                            rooms: parseInbox(payload).rooms,
+                            items: parseInbox(payload).items,
                         });
                     })
                     .receive('error', function (error) {
-                        logger.error('The room search failed.', error);
+                        logger.error('The search failed.', error);
                         reject(initError(PUSH_REJECTED));
                     })
                     .receive('timeout', function () {
