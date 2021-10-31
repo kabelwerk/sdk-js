@@ -43,12 +43,12 @@ An inbox is a view on the rooms the user has access to; it maintains a list of r
 ```js
 let inbox = Kabelwerk.openInbox();
 
-inbox.on('ready', ({ rooms }) => {
-    // this event is fired once when the initial list of rooms is loaded
+inbox.on('ready', ({ items }) => {
+    // this event is fired once when the initial list of inbox items is loaded
 });
 
-inbox.on('updated', ({ rooms }) => {
-    // whenever a new message is posted, the list of rooms is updated
+inbox.on('updated', ({ items }) => {
+    // whenever a new message is posted, the list of inbox items is updated
     // accordingly and this event is fired
 });
 
