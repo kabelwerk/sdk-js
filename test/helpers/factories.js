@@ -1,12 +1,17 @@
-// Factory for response payloads as they would come from a private channel.
+export const PayloadFactory = {};
+
 //
-export const privateChannelFactory = (function () {
+// private channels
+//
+
+PayloadFactory.user = (function () {
     let counter = 0;
     let timestamp = new Date().getTime();
 
-    const createOwnUser = function (params) {
+    return function (params) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
+
         return {
             hub_id: null,
             id: id,
@@ -16,16 +21,16 @@ export const privateChannelFactory = (function () {
             updated_at: dt.toJSON(),
         };
     };
-
-    return { createOwnUser };
 })();
 
-// Factory for response payloads as they would come from a user inbox channel.
 //
-export const userInboxChannelFactory = (function () {
+// inbox channels
+//
+
+PayloadFactory.inboxItem = (function () {
     let counter = 0;
 
-    const createInboxItem = function (params = {}) {
+    return function (params = {}) {
         let id = 'id' in params ? params.id : ++counter;
 
         return {
@@ -36,35 +41,30 @@ export const userInboxChannelFactory = (function () {
             message:
                 'message' in params
                     ? params.message
-                    : roomChannelFactory.createMessage({ room_id: id }),
+                    : PayloadFactory.message({ room_id: id }),
             isNew: 'is_new' in params ? params.is_new : true,
         };
     };
+})();
 
-    const createInbox = function (number, params = {}) {
+PayloadFactory.inbox = (function () {
+    return function (number, params = {}) {
         let items = [];
 
         for (let i = 0; i < number; i++) {
-            items.push(createInboxItem(params));
+            items.push(PayloadFactory.inboxItem(params));
         }
 
         return { items };
     };
-
-    return { createInboxItem, createInbox };
 })();
 
-// Factory for response payloads as they would come from a hub inbox channel.
-//
-export const hubInboxChannelFactory = (function () {
+PayloadFactory.hubInboxItem = (function () {
     let counter = 0;
 
-    const createInboxItem = function (params = {}) {
+    return function (params = {}) {
         let id = 'id' in params ? params.id : ++counter;
-        let user =
-            'user' in params
-                ? params.user
-                : privateChannelFactory.createOwnUser();
+        let user = 'user' in params ? params.user : PayloadFactory.user();
 
         return {
             room: {
@@ -83,35 +83,33 @@ export const hubInboxChannelFactory = (function () {
             message:
                 'message' in params
                     ? params.message
-                    : roomChannelFactory.createMessage({ room_id: id }),
+                    : PayloadFactory.message({ room_id: id }),
             isNew: 'is_new' in params ? params.is_new : true,
         };
     };
+})();
 
-    const createInbox = function (number, params = {}) {
+PayloadFactory.hubInbox = (function () {
+    return function (number, params = {}) {
         let items = [];
 
         for (let i = 0; i < number; i++) {
-            items.push(createInboxItem(params));
+            items.push(PayloadFactory.hubInboxItem(params));
         }
 
         return { items };
     };
-
-    return { createInboxItem, createInbox };
 })();
 
-// Factory for response paylods as they would come from a room channel.
 //
-export const roomChannelFactory = (function () {
-    let counter = 0;
-    let timestamp = new Date().getTime();
+// room channels
+//
 
-    const createRoom = function (params = {}) {
-        let user =
-            'user' in params
-                ? params.user
-                : privateChannelFactory.createOwnUser();
+PayloadFactory.room = (function () {
+    let counter = 0;
+
+    return function (params = {}) {
+        let user = 'user' in params ? params.user : PayloadFactory.user();
 
         return {
             attributes: 'attributes' in params ? params.attributes : {},
@@ -123,17 +121,24 @@ export const roomChannelFactory = (function () {
             },
         };
     };
+})();
 
-    const createHubRoom = function (params = {}) {
-        return Object.assign(createRoom(params), {
+PayloadFactory.hubRoom = (function () {
+    return function (params = {}) {
+        return Object.assign(PayloadFactory.room(params), {
             archived: 'archived' in params ? params.archived : false,
             archived_until:
                 'archived_until' in params ? params.archived_until : null,
             hub_user: 'hub_user' in params ? params.hub_user : null,
         });
     };
+})();
 
-    const createMessage = function (params = {}) {
+PayloadFactory.message = (function () {
+    let counter = 0;
+    let timestamp = new Date().getTime();
+
+    return function (params = {}) {
         let id = ++counter;
         let dt = new Date(timestamp + id * 1000);
 
@@ -147,37 +152,34 @@ export const roomChannelFactory = (function () {
             user: null,
         };
     };
+})();
 
-    const createMessages = function (number, params = {}) {
+PayloadFactory.messages = (function () {
+    return function (number, params = {}) {
         let messages = [];
 
         for (let i = 0; i < number; i++) {
-            messages.push(createMessage(params));
+            messages.push(PayloadFactory.message(params));
         }
 
         return { messages };
     };
+})();
 
-    const createJoin = function (number, params = {}) {
+PayloadFactory.roomJoin = (function () {
+    return function (number, params = {}) {
         return Object.assign(
-            createRoom(params),
-            createMessages(number, params)
+            PayloadFactory.room(params),
+            PayloadFactory.messages(number, params)
         );
     };
+})();
 
-    const createHubJoin = function (number, params = {}) {
+PayloadFactory.hubRoomJoin = (function () {
+    return function (number, params = {}) {
         return Object.assign(
-            createHubRoom(params),
-            createMessages(number, params)
+            PayloadFactory.hubRoom(params),
+            PayloadFactory.messages(number, params)
         );
-    };
-
-    return {
-        createHubJoin,
-        createHubRoom,
-        createJoin,
-        createMessage,
-        createMessages,
-        createRoom,
     };
 })();

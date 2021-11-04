@@ -1,4 +1,4 @@
-import { roomChannelFactory } from './helpers/factories.js';
+import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -46,7 +46,7 @@ describe('connect', () => {
     });
 
     test('ready event is emitted once', () => {
-        let joinRes = roomChannelFactory.createJoin(0);
+        let joinRes = PayloadFactory.roomJoin(0);
 
         expect.assertions(1);
 
@@ -74,8 +74,8 @@ describe('connect', () => {
     });
 
     test('messages posted between rejoins are emitted', () => {
-        let joinRes = roomChannelFactory.createJoin(0);
-        let message = roomChannelFactory.createMessage({ room_id: 0 });
+        let joinRes = PayloadFactory.roomJoin(0);
+        let message = PayloadFactory.message({ room_id: 0 });
 
         expect.assertions(1);
 
@@ -95,7 +95,7 @@ describe('connect', () => {
 });
 
 describe('message posted event', () => {
-    let initialResponse = roomChannelFactory.createJoin(1);
+    let initialResponse = PayloadFactory.roomJoin(1);
     let room = null;
 
     beforeEach(() => {
@@ -107,7 +107,7 @@ describe('message posted event', () => {
     test('new message', () => {
         expect.assertions(2);
 
-        let message = roomChannelFactory.createMessage();
+        let message = PayloadFactory.message();
 
         room.on('message_posted', (res) => {
             expect(res.id).toBe(message.id);
@@ -119,7 +119,7 @@ describe('message posted event', () => {
 });
 
 describe('load earlier messages', () => {
-    let initialResponse = roomChannelFactory.createJoin(1);
+    let initialResponse = PayloadFactory.roomJoin(1);
     let room = null;
 
     beforeEach(() => {
@@ -140,7 +140,7 @@ describe('load earlier messages', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = roomChannelFactory.createMessages(1);
+        let response = PayloadFactory.messages(1);
 
         room.loadEarlier().then(({ messages }) => {
             expect(messages.length).toBe(1);
@@ -175,7 +175,7 @@ describe('load earlier messages', () => {
 });
 
 describe('post message in room', () => {
-    let initialResponse = roomChannelFactory.createJoin(0);
+    let initialResponse = PayloadFactory.roomJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -196,7 +196,7 @@ describe('post message in room', () => {
     test('server responds with ok', () => {
         expect.assertions(2);
 
-        let message = roomChannelFactory.createMessage({ room_id: 0 });
+        let message = PayloadFactory.message({ room_id: 0 });
 
         room.postMessage({ text: 'hello server!' }).then((res) => {
             expect(res.id).toBe(message.id);
@@ -230,7 +230,7 @@ describe('post message in room', () => {
 });
 
 describe('get room user', () => {
-    let joinRes = roomChannelFactory.createJoin(0);
+    let joinRes = PayloadFactory.roomJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -263,7 +263,7 @@ describe('get room user', () => {
         expect(room.getUser()).toEqual(joinRes.user);
 
         // rejoin
-        let newJoinRes = roomChannelFactory.createJoin(0);
+        let newJoinRes = PayloadFactory.roomJoin(0);
         MockPush.__serverRespond('ok', newJoinRes, false);
 
         expect(room.getUser()).toEqual(newJoinRes.user);
@@ -276,7 +276,7 @@ describe('get room attributes', () => {
         string: '',
     };
 
-    let joinRes = roomChannelFactory.createJoin(0, { attributes });
+    let joinRes = PayloadFactory.roomJoin(0, { attributes });
     let room = null;
 
     beforeEach(() => {
@@ -309,7 +309,7 @@ describe('get room attributes', () => {
         expect(room.getAttributes()).toEqual(attributes);
 
         // rejoin
-        let newJoinRes = roomChannelFactory.createJoin(0, { attributes: {} });
+        let newJoinRes = PayloadFactory.roomJoin(0, { attributes: {} });
         MockPush.__serverRespond('ok', newJoinRes, false);
 
         expect(room.getAttributes()).toEqual({});
@@ -317,7 +317,7 @@ describe('get room attributes', () => {
 });
 
 describe('update room attributes', () => {
-    let initialResponse = roomChannelFactory.createJoin(0);
+    let initialResponse = PayloadFactory.roomJoin(0);
     let room = null;
 
     let attributes = {
@@ -343,7 +343,7 @@ describe('update room attributes', () => {
     test('server responds with ok', () => {
         expect.assertions(2);
 
-        let response = roomChannelFactory.createRoom({ attributes });
+        let response = PayloadFactory.room({ attributes });
 
         room.updateAttributes(attributes).then((attributes) => {
             expect(attributes).toEqual(attributes);
@@ -382,7 +382,7 @@ describe('update room attributes', () => {
 });
 
 describe('get archive status', () => {
-    const joinRes = roomChannelFactory.createHubJoin(0);
+    const joinRes = PayloadFactory.hubRoomJoin(0);
 
     let room = null;
 
@@ -413,7 +413,7 @@ describe('get archive status', () => {
 });
 
 describe('update archive status, archive', () => {
-    const joinRes = roomChannelFactory.createHubJoin(0);
+    const joinRes = PayloadFactory.hubRoomJoin(0);
     let room = null;
 
     beforeEach(() => {
@@ -443,7 +443,7 @@ describe('update archive status, archive', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = roomChannelFactory.createHubRoom({ archived: true });
+        let response = PayloadFactory.hubRoom({ archived: true });
 
         room.archive().then((info) => {
             expect(info.archived).toBe(true);
@@ -483,7 +483,7 @@ describe('update archive status, archive', () => {
 });
 
 describe('update archive status, unarchive', () => {
-    const joinRes = roomChannelFactory.createHubJoin(0, { archived: true });
+    const joinRes = PayloadFactory.hubRoomJoin(0, { archived: true });
     let room = null;
 
     beforeEach(() => {
@@ -512,7 +512,7 @@ describe('update archive status, unarchive', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = roomChannelFactory.createHubRoom({ archived: false });
+        let response = PayloadFactory.hubRoom({ archived: false });
 
         room.unarchive().then((info) => {
             expect(info.archived).toBe(response.archived);
@@ -553,7 +553,7 @@ describe('update archive status, unarchive', () => {
 
 describe('get hub user', () => {
     const hubUser = { id: 1, name: 'Batou', key: 'batou' };
-    const joinRes = roomChannelFactory.createHubJoin(0, { hub_user: hubUser });
+    const joinRes = PayloadFactory.hubRoomJoin(0, { hub_user: hubUser });
 
     let room = null;
 
@@ -585,7 +585,7 @@ describe('get hub user', () => {
 
 describe('update hub user', () => {
     const hubUser = { id: 42, name: 'Batou', key: 'batou' };
-    const joinRes = roomChannelFactory.createHubJoin(0);
+    const joinRes = PayloadFactory.hubRoomJoin(0);
 
     let room = null;
 
@@ -615,7 +615,7 @@ describe('update hub user', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = roomChannelFactory.createHubRoom({ hub_user: hubUser });
+        let response = PayloadFactory.hubRoom({ hub_user: hubUser });
 
         room.updateHubUser(42).then((info) => {
             expect(info.hubUser).toEqual(response.hub_user);
@@ -671,7 +671,7 @@ describe('disconnect', () => {
     test('removes the event listeners', () => {
         expect.assertions(0);
 
-        let message = roomChannelFactory.createMessage();
+        let message = PayloadFactory.message();
 
         room.on('message_posted', (data) => {
             expect(data.id).toBe(message.id);

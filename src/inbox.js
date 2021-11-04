@@ -26,9 +26,9 @@ import { validateParams } from './validators.js';
 //
 //  let inbox = kabel.openInbox({attributes: {country: 'DE'}});
 //
-//  inbox.once('ready', (items) => {});
-//  inbox.on('updated', (items) => {});
-//  inbox.loadMore().then((items) => {});
+//  inbox.once('ready', ({ items }) => {});
+//  inbox.on('updated', ({ items }) => {});
+//  inbox.loadMore().then(({ items }) => {});
 //
 const initInbox = function (socket, topic, params = {}) {
     params = validateParams(params, {

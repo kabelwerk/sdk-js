@@ -1,4 +1,4 @@
-import { privateChannelFactory } from './helpers/factories.js';
+import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -126,7 +126,7 @@ describe('private channel join', () => {
     test('join ok → ready event', () => {
         expect.assertions(5);
 
-        let rawUser = privateChannelFactory.createOwnUser();
+        let rawUser = PayloadFactory.user();
 
         kabelwerk.on('ready', (res) => {
             expect(res).toEqual({});
@@ -143,7 +143,7 @@ describe('private channel join', () => {
 });
 
 describe('user info', () => {
-    let user = privateChannelFactory.createOwnUser();
+    let user = PayloadFactory.user();
     let kabelwerk = null;
 
     beforeEach(() => {
@@ -172,7 +172,7 @@ describe('user info', () => {
     });
 
     test('update user, server responds with ok', () => {
-        let newUser = privateChannelFactory.createOwnUser();
+        let newUser = PayloadFactory.user();
 
         kabelwerk.updateUser({}).then((res) => {
             expect(res.hubId).toBe(newUser.hub_id);
@@ -215,7 +215,7 @@ describe('user info', () => {
     test('user_updated event', () => {
         expect.assertions(5);
 
-        let newUser = privateChannelFactory.createOwnUser();
+        let newUser = PayloadFactory.user();
 
         kabelwerk.on('user_updated', (res) => {
             expect(res.hubId).toBe(newUser.hub_id);
@@ -231,7 +231,7 @@ describe('user info', () => {
 });
 
 describe('create room', () => {
-    let user = privateChannelFactory.createOwnUser();
+    let user = PayloadFactory.user();
     let kabelwerk = null;
 
     beforeEach(() => {
@@ -284,7 +284,7 @@ describe('create room', () => {
 });
 
 describe('load hub info', () => {
-    let user = privateChannelFactory.createOwnUser();
+    let user = PayloadFactory.user();
     let kabelwerk = null;
 
     beforeEach(() => {
@@ -351,7 +351,7 @@ describe('load hub info', () => {
 });
 
 describe('disconnect', () => {
-    let user = privateChannelFactory.createOwnUser();
+    let user = PayloadFactory.user();
     let kabelwerk = null;
 
     beforeEach(() => {

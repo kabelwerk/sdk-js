@@ -1,7 +1,4 @@
-import {
-    hubInboxChannelFactory,
-    userInboxChannelFactory,
-} from './helpers/factories.js';
+import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
@@ -117,7 +114,7 @@ describe('user inbox connect', () => {
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
 
-        let response = userInboxChannelFactory.createInbox(0);
+        let response = PayloadFactory.inbox(0);
         MockPush.__serverRespond('ok', response); // push response
 
         let list = inbox.listItems();
@@ -137,7 +134,7 @@ describe('user inbox connect', () => {
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
 
-        let response = userInboxChannelFactory.createInbox(1);
+        let response = PayloadFactory.inbox(1);
         MockPush.__serverRespond('ok', response); // push response
 
         let list = inbox.listItems();
@@ -189,8 +186,8 @@ describe('user inbox connect', () => {
     test('updates betweeen rejoins are emitted', () => {
         expect.assertions(1);
 
-        const firstInbox = userInboxChannelFactory.createInbox(0);
-        const secondInbox = userInboxChannelFactory.createInbox(1);
+        const firstInbox = PayloadFactory.inbox(0);
+        const secondInbox = PayloadFactory.inbox(1);
 
         let inbox = initInbox(MockSocket, topic);
         inbox.on('updated', ({ items }) => {
@@ -288,7 +285,7 @@ describe('hub inbox connect', () => {
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
 
-        let response = hubInboxChannelFactory.createInbox(1);
+        let response = PayloadFactory.hubInbox(1);
         MockPush.__serverRespond('ok', response); // push response
 
         let list = inbox.listItems();
@@ -304,7 +301,7 @@ describe('hub inbox connect', () => {
 });
 
 describe('user inbox items list re-ordering', () => {
-    const listResponse = userInboxChannelFactory.createInbox(2);
+    const listResponse = PayloadFactory.inbox(2);
     const [itemA, itemB] = listResponse.items;
 
     let inbox = null;
@@ -317,7 +314,7 @@ describe('user inbox items list re-ordering', () => {
     });
 
     test('new message moves room to top', () => {
-        let update = userInboxChannelFactory.createInboxItem({
+        let update = PayloadFactory.inboxItem({
             id: itemB.room.id,
         });
         MockChannel.__serverPush('inbox_updated', update);
@@ -335,7 +332,7 @@ describe('user inbox items list re-ordering', () => {
     });
 
     test('new message pushes a new room', () => {
-        let update = userInboxChannelFactory.createInboxItem();
+        let update = PayloadFactory.inboxItem();
         MockChannel.__serverPush('inbox_updated', update);
 
         let list = inbox.listItems();
@@ -355,7 +352,7 @@ describe('user inbox items list re-ordering', () => {
     });
 
     test('new message without re-ordering', () => {
-        let update = userInboxChannelFactory.createInboxItem({
+        let update = PayloadFactory.inboxItem({
             id: itemA.room.id,
         });
         MockChannel.__serverPush('inbox_updated', update);
@@ -374,7 +371,7 @@ describe('user inbox items list re-ordering', () => {
 });
 
 describe('user inbox updated event', () => {
-    const listResponse = userInboxChannelFactory.createInbox(0);
+    const listResponse = PayloadFactory.inbox(0);
 
     let inbox = null;
 
@@ -388,7 +385,7 @@ describe('user inbox updated event', () => {
     test('works', () => {
         expect.assertions(2);
 
-        let update = userInboxChannelFactory.createInboxItem();
+        let update = PayloadFactory.inboxItem();
 
         inbox.on('updated', ({ items }) => {
             expect(items.length).toBe(1);
@@ -401,7 +398,7 @@ describe('user inbox updated event', () => {
 
 describe('hub inbox updated event', () => {
     const topic = 'hub_inbox:0';
-    const emptyResponse = hubInboxChannelFactory.createInbox(0);
+    const emptyResponse = PayloadFactory.hubInbox(0);
 
     let inbox = null;
 
@@ -413,7 +410,7 @@ describe('hub inbox updated event', () => {
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
 
-        let update = hubInboxChannelFactory.createInboxItem();
+        let update = PayloadFactory.hubInboxItem();
 
         inbox.on('updated', ({ items }) => {
             expect(items.length).toBe(1);
@@ -437,11 +434,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ archived: false })
+            PayloadFactory.hubInboxItem({ archived: false })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ archived: true })
+            PayloadFactory.hubInboxItem({ archived: true })
         );
     });
 
@@ -459,11 +456,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ archived: false })
+            PayloadFactory.hubInboxItem({ archived: false })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ archived: true })
+            PayloadFactory.hubInboxItem({ archived: true })
         );
     });
 
@@ -481,13 +478,13 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({
+            PayloadFactory.hubInboxItem({
                 attributes: { country: 'JP', foo: 'bar' },
             })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({
+            PayloadFactory.hubInboxItem({
                 attributes: { country: 'DE', foo: 'bar' },
             })
         );
@@ -507,11 +504,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ hub_user_id: null })
+            PayloadFactory.hubInboxItem({ hub_user_id: null })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ hub_user_id: 2 })
+            PayloadFactory.hubInboxItem({ hub_user_id: 2 })
         );
     });
 
@@ -529,18 +526,18 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ hub_user_id: null })
+            PayloadFactory.hubInboxItem({ hub_user_id: null })
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({ hub_user_id: 2 })
+            PayloadFactory.hubInboxItem({ hub_user_id: 2 })
         );
     });
 
     test('non-archive inbox, room is archived', () => {
         expect.assertions(3);
 
-        const response = hubInboxChannelFactory.createInbox(1);
+        const response = PayloadFactory.hubInbox(1);
         const roomId = response.items[0].room.id;
 
         inbox = initInbox(MockSocket, topic, { archived: false });
@@ -557,7 +554,7 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({
+            PayloadFactory.hubInboxItem({
                 id: roomId,
                 archived: true,
             })
@@ -567,7 +564,7 @@ describe('hub inbox updated event', () => {
     test('personal inbox, room is unassigned', () => {
         expect.assertions(3);
 
-        const response = hubInboxChannelFactory.createInbox(1);
+        const response = PayloadFactory.hubInbox(1);
         const roomId = response.items[0].room.id;
 
         inbox = initInbox(MockSocket, topic, { assignedTo: 1 });
@@ -584,7 +581,7 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            hubInboxChannelFactory.createInboxItem({
+            PayloadFactory.hubInboxItem({
                 id: roomId,
             })
         );
@@ -593,7 +590,7 @@ describe('hub inbox updated event', () => {
 
 describe('user inbox loading more rooms', () => {
     const topic = 'user_inbox:0';
-    const listResponse = userInboxChannelFactory.createInbox(1);
+    const listResponse = PayloadFactory.inbox(1);
 
     let inbox = null;
 
@@ -632,7 +629,7 @@ describe('user inbox loading more rooms', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = userInboxChannelFactory.createInbox(1);
+        let response = PayloadFactory.inbox(1);
 
         inbox.loadMore().then(({ items }) => {
             expect(items.length).toBe(2);
@@ -668,7 +665,7 @@ describe('user inbox loading more rooms', () => {
     test('room without last message', () => {
         expect.assertions(3);
 
-        let response = userInboxChannelFactory.createInbox(1, {
+        let response = PayloadFactory.inbox(1, {
             message: null,
         });
 
@@ -684,7 +681,7 @@ describe('user inbox loading more rooms', () => {
 
 describe('hub inbox loading more rooms', () => {
     const topic = 'hub_inbox:0';
-    const listResponse = hubInboxChannelFactory.createInbox(1);
+    const listResponse = PayloadFactory.hubInbox(1);
 
     let inbox = null;
 
@@ -731,7 +728,7 @@ describe('hub inbox loading more rooms', () => {
     test('server responds with ok', () => {
         expect.assertions(3);
 
-        let response = hubInboxChannelFactory.createInbox(1);
+        let response = PayloadFactory.hubInbox(1);
 
         inbox.loadMore().then(({ items }) => {
             expect(items.length).toBe(2);
@@ -767,7 +764,7 @@ describe('hub inbox loading more rooms', () => {
     test('room without last message', () => {
         expect.assertions(3);
 
-        let response = hubInboxChannelFactory.createInbox(1, {
+        let response = PayloadFactory.hubInbox(1, {
             message: null,
         });
 
@@ -783,7 +780,7 @@ describe('hub inbox loading more rooms', () => {
 
 describe('hub inbox searching rooms', () => {
     const topic = 'hub_inbox:0';
-    const listResponse = hubInboxChannelFactory.createInbox(0);
+    const listResponse = PayloadFactory.hubInbox(0);
 
     let inbox = null;
 
@@ -819,7 +816,7 @@ describe('hub inbox searching rooms', () => {
     test('server responds with ok', () => {
         expect.assertions(2);
 
-        let response = hubInboxChannelFactory.createInbox(1);
+        let response = PayloadFactory.hubInbox(1);
 
         inbox.search({ query: 'x' }).then(({ items }) => {
             expect(items.length).toBe(1);
@@ -869,7 +866,7 @@ describe('disconnect', () => {
     test('removes the event listeners', () => {
         expect.assertions(0);
 
-        let update = userInboxChannelFactory.createInboxItem();
+        let update = PayloadFactory.inboxItem();
 
         inbox.on('updated', ({ items }) => {
             expect(items.length).toBe(1);
