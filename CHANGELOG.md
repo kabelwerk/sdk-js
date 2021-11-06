@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 (TBD)
+
+-   Change in the API: inboxes now contain items instead of rooms ([docs](./docs/inboxes.md)).
+-   New feature: inbox search ([docs](./docs/inboxes.md#search)).
+-   New feature: markers ([docs](./docs/rooms.md#markers)).
+
 ## 0.1.7 (2021-10-21)
 
 -   Inboxes: updates missed while disconnected are emitted when reconnected.

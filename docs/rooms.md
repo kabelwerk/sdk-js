@@ -93,7 +93,7 @@ room.on('marker_moved', (marker) => {
 });
 ```
 
-Using this feature is optional. However, without markers you cannot take advantage of the `isNew` flag of inbox items as this will always be set to `true`.
+Using this feature is optional. However, without markers you cannot take advantage of the `isNew` flag of [inbox items](./inboxes.md) as this will always be set to `true`.
 
 ## Custom attributes
 
