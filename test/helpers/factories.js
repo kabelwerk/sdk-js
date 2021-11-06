@@ -1,9 +1,12 @@
-export const PayloadFactory = {};
+const PayloadFactory = {};
 
 //
 // private channels
 //
 
+// Generate a response to joining a private channel or to an update_user push,
+// or a user_updated event.
+//
 PayloadFactory.user = (function () {
     let counter = 0;
     let timestamp = new Date().getTime();
@@ -27,6 +30,8 @@ PayloadFactory.user = (function () {
 // inbox channels
 //
 
+// Generate an inbox_updated event.
+//
 PayloadFactory.inboxItem = (function () {
     let counter = 0;
 
@@ -47,18 +52,20 @@ PayloadFactory.inboxItem = (function () {
     };
 })();
 
-PayloadFactory.inbox = (function () {
-    return function (number, params = {}) {
-        let items = [];
+// Generate a response to a list_rooms push.
+//
+PayloadFactory.inbox = function (number, params = {}) {
+    let items = [];
 
-        for (let i = 0; i < number; i++) {
-            items.push(PayloadFactory.inboxItem(params));
-        }
+    for (let i = 0; i < number; i++) {
+        items.push(PayloadFactory.inboxItem(params));
+    }
 
-        return { items };
-    };
-})();
+    return { items };
+};
 
+// Generate an inbox_updated event as received by a hub user.
+//
 PayloadFactory.hubInboxItem = (function () {
     let counter = 0;
 
@@ -89,22 +96,24 @@ PayloadFactory.hubInboxItem = (function () {
     };
 })();
 
-PayloadFactory.hubInbox = (function () {
-    return function (number, params = {}) {
-        let items = [];
+// Generate a response to a list_rooms push from a hub user.
+//
+PayloadFactory.hubInbox = function (number, params = {}) {
+    let items = [];
 
-        for (let i = 0; i < number; i++) {
-            items.push(PayloadFactory.hubInboxItem(params));
-        }
+    for (let i = 0; i < number; i++) {
+        items.push(PayloadFactory.hubInboxItem(params));
+    }
 
-        return { items };
-    };
-})();
+    return { items };
+};
 
 //
 // room channels
 //
 
+// Generate a response to a set_attributes push.
+//
 PayloadFactory.room = (function () {
     let counter = 0;
 
@@ -123,17 +132,19 @@ PayloadFactory.room = (function () {
     };
 })();
 
-PayloadFactory.hubRoom = (function () {
-    return function (params = {}) {
-        return Object.assign(PayloadFactory.room(params), {
-            archived: 'archived' in params ? params.archived : false,
-            archived_until:
-                'archived_until' in params ? params.archived_until : null,
-            hub_user: 'hub_user' in params ? params.hub_user : null,
-        });
-    };
-})();
+// Generate a response to a set_inbox_info push.
+//
+PayloadFactory.hubRoom = function (params = {}) {
+    return Object.assign(PayloadFactory.room(params), {
+        archived: 'archived' in params ? params.archived : false,
+        archived_until:
+            'archived_until' in params ? params.archived_until : null,
+        hub_user: 'hub_user' in params ? params.hub_user : null,
+    });
+};
 
+// Generate a response to a post_message push or a message_posted event.
+//
 PayloadFactory.message = (function () {
     let counter = 0;
     let timestamp = new Date().getTime();
@@ -154,32 +165,34 @@ PayloadFactory.message = (function () {
     };
 })();
 
-PayloadFactory.messages = (function () {
-    return function (number, params = {}) {
-        let messages = [];
+// Generate a response to a list_messages push.
+//
+PayloadFactory.messages = function (number, params = {}) {
+    let messages = [];
 
-        for (let i = 0; i < number; i++) {
-            messages.push(PayloadFactory.message(params));
-        }
+    for (let i = 0; i < number; i++) {
+        messages.push(PayloadFactory.message(params));
+    }
 
-        return { messages };
-    };
-})();
+    return { messages };
+};
 
-PayloadFactory.roomJoin = (function () {
-    return function (number, params = {}) {
-        return Object.assign(
-            PayloadFactory.room(params),
-            PayloadFactory.messages(number, params)
-        );
-    };
-})();
+// Generate a response to joining a room channel as an end user.
+//
+PayloadFactory.roomJoin = function (number, params = {}) {
+    return Object.assign(
+        PayloadFactory.room(params),
+        PayloadFactory.messages(number, params)
+    );
+};
 
-PayloadFactory.hubRoomJoin = (function () {
-    return function (number, params = {}) {
-        return Object.assign(
-            PayloadFactory.hubRoom(params),
-            PayloadFactory.messages(number, params)
-        );
-    };
-})();
+// Generate a response to joining a room channel as a hub user.
+//
+PayloadFactory.hubRoomJoin = function (number, params = {}) {
+    return Object.assign(
+        PayloadFactory.hubRoom(params),
+        PayloadFactory.messages(number, params)
+    );
+};
+
+export { PayloadFactory };
