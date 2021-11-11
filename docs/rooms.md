@@ -67,12 +67,14 @@ A message object has the following fields:
 
 ## Markers
 
-A chat room may optionally have a marker marking the last message seen by the user (or at least by the user's client). If set, a marker object has the following fields:
+A non-empty chat room may also have a marker marking the last message seen by the user (or at least by the user's client). A marker's position is expected to be updated by the client (e.g. whenever the user opens a chat room with unseen messages); the position is also updated automatically whenever the user posts a new message in the chat room. However, using this feature is optional: if you choose not to update a user's markers, then you cannot take advantage of the `isNew` flag of [inbox items](./inboxes.md) — the flag will always be set to `true` unless the last message in the respective chat room is posted by the user (markers will still be updated automatically with posted messages) — but no other functionality depends on it.
+
+A marker object has the following fields:
 
 -   `messageId`: the ID of the message which is being marked;
 -   `updatedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the marker was last moved.
 
-If a room does not have a marker yet, then the ready event will be emitted with its `marker` field set to `null` instead.
+If a chat room does not have a marker yet (i.e. if the user has not posted a message and the client has not updated the marker explicitly), then the marker object will be `null`.
 
 ```js
 // returns null if the room does not have a marker yet
@@ -81,19 +83,18 @@ room.getMarker();
 // use this method to move the marker to a different message
 room.moveMarker(messageId)
     .then((marker) => {
-        // if the room does not have a marker, it gets created
+        // if the room does not have a marker yet, it gets created
     })
     .catch((error) => {
         // e.g. if the server times out
     });
 
-// this event is fired every time the room's marker is updated
+// this event is fired every time the room's marker is updated,
+// including after a message_posted event
 room.on('marker_moved', (marker) => {
     console.assert(marker.messageId == room.getMarker().messageId);
 });
 ```
-
-Using this feature is optional. However, without markers you cannot take advantage of the `isNew` flag of [inbox items](./inboxes.md) as this will always be set to `true`.
 
 ## Custom attributes
 
