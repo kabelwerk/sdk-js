@@ -24,13 +24,13 @@ import { validateParams } from './validators.js';
 //
 // Example usage:
 //
-//  let inbox = kabel.openInbox({attributes: {country: 'DE'}});
+//  let inbox = Kabelwerk.openInbox({attributes: {country: 'DE'}});
 //
 //  inbox.once('ready', ({ items }) => {});
 //  inbox.on('updated', ({ items }) => {});
 //  inbox.loadMore().then(({ items }) => {});
 //
-const initInbox = function (socket, topic, params = {}) {
+const initInbox = function (socket, user, params = {}) {
     params = validateParams(params, {
         archived: { type: 'boolean', optional: true },
         assignedTo: { type: 'integer', nullable: true, optional: true },
@@ -38,7 +38,7 @@ const initInbox = function (socket, topic, params = {}) {
         limit: { type: 'integer', optional: true },
     });
 
-    const isHubSide = topic.startsWith('hub');
+    const isHubSide = Boolean(user.hubId);
 
     let dispatcher = initDispatcher(['error', 'ready', 'updated']);
 
@@ -124,6 +124,10 @@ const initInbox = function (socket, topic, params = {}) {
     let channel = null;
 
     const setupChannel = function () {
+        const topic = isHubSide
+            ? `hub_inbox:${user.hubId}`
+            : `user_inbox:${user.id}`;
+
         channel = socket.channel(topic);
 
         channel.on('inbox_updated', function (payload) {
@@ -145,14 +149,11 @@ const initInbox = function (socket, topic, params = {}) {
         channel
             .join()
             .receive('ok', function () {
-                logger.info(`Joined the ${channel.topic} channel.`);
+                logger.info(`Joined the ${topic} channel.`);
                 loadItemsOnJoin();
             })
             .receive('error', function (error) {
-                logger.error(
-                    `Failed to join the ${channel.topic} channel.`,
-                    error
-                );
+                logger.error(`Failed to join the ${topic} channel.`, error);
                 dispatcher.send('error', initError(PUSH_REJECTED));
             })
             .receive('timeout', function () {

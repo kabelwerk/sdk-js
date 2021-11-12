@@ -6,14 +6,14 @@ import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 const { initInbox } = await import('../src/inbox.js');
 
 describe('user inbox connect', () => {
-    const topic = 'user_inbox:0';
+    const user = { id: 1, hubId: null };
 
     test('channel is joined', () => {
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.connect();
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
-        expect(MockSocket.channel).toHaveBeenCalledWith(topic);
+        expect(MockSocket.channel).toHaveBeenCalledWith('user_inbox:1');
 
         expect(MockChannel.join).toHaveBeenCalledTimes(1);
     });
@@ -21,7 +21,7 @@ describe('user inbox connect', () => {
     test('join error → error event', () => {
         expect.assertions(2);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
@@ -35,7 +35,7 @@ describe('user inbox connect', () => {
     test('join timeout → error event', () => {
         expect.assertions(2);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
@@ -47,7 +47,7 @@ describe('user inbox connect', () => {
     });
 
     test('push params, default', () => {
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
@@ -60,7 +60,7 @@ describe('user inbox connect', () => {
     });
 
     test('push params, custom limit', () => {
-        let inbox = initInbox(MockSocket, topic, { limit: 50 });
+        let inbox = initInbox(MockSocket, user, { limit: 50 });
 
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
@@ -75,7 +75,7 @@ describe('user inbox connect', () => {
     test('push error → error event', () => {
         expect.assertions(2);
 
-        let inbox = initInbox(MockSocket, topic, { limit: 50 });
+        let inbox = initInbox(MockSocket, user, { limit: 50 });
 
         inbox.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
@@ -90,7 +90,7 @@ describe('user inbox connect', () => {
     test('push timeout → error event', () => {
         expect.assertions(2);
 
-        let inbox = initInbox(MockSocket, topic, { limit: 50 });
+        let inbox = initInbox(MockSocket, user, { limit: 50 });
 
         inbox.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
@@ -105,7 +105,7 @@ describe('user inbox connect', () => {
     test('push ok → ready event, empty inbox', () => {
         expect.assertions(2);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.on('ready', (res) => {
             expect(res.items.length).toBe(0);
@@ -124,7 +124,7 @@ describe('user inbox connect', () => {
     test('push ok → ready event, inbox of one item', () => {
         expect.assertions(6);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.on('ready', (res) => {
             expect(res.items.length).toBe(1);
@@ -148,7 +148,7 @@ describe('user inbox connect', () => {
     });
 
     test('rejoin push params, default', () => {
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
         inbox.connect();
 
         let joinCallback = MockPush.receive.mock.calls.find(
@@ -166,7 +166,7 @@ describe('user inbox connect', () => {
     });
 
     test('rejoin push params, custom limit', () => {
-        let inbox = initInbox(MockSocket, topic, { limit: 50 });
+        let inbox = initInbox(MockSocket, user, { limit: 50 });
         inbox.connect();
 
         let joinCallback = MockPush.receive.mock.calls.find(
@@ -189,7 +189,7 @@ describe('user inbox connect', () => {
         const firstInbox = PayloadFactory.inbox(0);
         const secondInbox = PayloadFactory.inbox(1);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
         inbox.on('updated', ({ items }) => {
             expect(items.length).toBe(1);
         });
@@ -210,10 +210,10 @@ describe('user inbox connect', () => {
 });
 
 describe('hub inbox connect', () => {
-    const topic = 'hub_inbox:0';
+    const user = { id: 1, hubId: 1 };
 
     test('push params, default', () => {
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
@@ -226,7 +226,7 @@ describe('hub inbox connect', () => {
     });
 
     test('push params, custom params', () => {
-        let inbox = initInbox(MockSocket, topic, {
+        let inbox = initInbox(MockSocket, user, {
             limit: 50,
             archived: true,
             assignedTo: 1,
@@ -247,7 +247,7 @@ describe('hub inbox connect', () => {
     });
 
     test('rejoin push params, custom params', () => {
-        let inbox = initInbox(MockSocket, topic, {
+        let inbox = initInbox(MockSocket, user, {
             limit: 50,
             archived: true,
             assignedTo: 1,
@@ -275,7 +275,7 @@ describe('hub inbox connect', () => {
     test('push ok → ready event, inbox of one item', () => {
         expect.assertions(7);
 
-        let inbox = initInbox(MockSocket, topic);
+        let inbox = initInbox(MockSocket, user);
 
         inbox.on('ready', (res) => {
             expect(res.items.length).toBe(1);
@@ -397,7 +397,7 @@ describe('user inbox updated event', () => {
 });
 
 describe('hub inbox updated event', () => {
-    const topic = 'hub_inbox:0';
+    const user = { id: 1, hubId: 1 };
     const emptyResponse = PayloadFactory.hubInbox(0);
 
     let inbox = null;
@@ -405,7 +405,7 @@ describe('hub inbox updated event', () => {
     test('default params', () => {
         expect.assertions(2);
 
-        inbox = initInbox(MockSocket, topic);
+        inbox = initInbox(MockSocket, user);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -423,7 +423,7 @@ describe('hub inbox updated event', () => {
     test('filter archived rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockSocket, topic, { archived: true });
+        inbox = initInbox(MockSocket, user, { archived: true });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -445,7 +445,7 @@ describe('hub inbox updated event', () => {
     test('filter unarchived rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockSocket, topic, { archived: false });
+        inbox = initInbox(MockSocket, user, { archived: false });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -467,7 +467,7 @@ describe('hub inbox updated event', () => {
     test('filter rooms by attribute', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockSocket, topic, { attributes: { country: 'DE' } });
+        inbox = initInbox(MockSocket, user, { attributes: { country: 'DE' } });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -493,7 +493,7 @@ describe('hub inbox updated event', () => {
     test('filter assigned rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockSocket, topic, { assignedTo: 2 });
+        inbox = initInbox(MockSocket, user, { assignedTo: 2 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -515,7 +515,7 @@ describe('hub inbox updated event', () => {
     test('filter unassigned rooms', () => {
         expect.assertions(1);
 
-        inbox = initInbox(MockSocket, topic, { assignedTo: null });
+        inbox = initInbox(MockSocket, user, { assignedTo: null });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', emptyResponse); // first rooms response
@@ -540,7 +540,7 @@ describe('hub inbox updated event', () => {
         const response = PayloadFactory.hubInbox(1);
         const roomId = response.items[0].room.id;
 
-        inbox = initInbox(MockSocket, topic, { archived: false });
+        inbox = initInbox(MockSocket, user, { archived: false });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', response); // first rooms response
@@ -567,7 +567,7 @@ describe('hub inbox updated event', () => {
         const response = PayloadFactory.hubInbox(1);
         const roomId = response.items[0].room.id;
 
-        inbox = initInbox(MockSocket, topic, { assignedTo: 1 });
+        inbox = initInbox(MockSocket, user, { assignedTo: 1 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', response); // first rooms response
@@ -589,13 +589,13 @@ describe('hub inbox updated event', () => {
 });
 
 describe('user inbox loading more rooms', () => {
-    const topic = 'user_inbox:0';
+    const user = { id: 1, hubId: null };
     const listResponse = PayloadFactory.inbox(1);
 
     let inbox = null;
 
     beforeEach(() => {
-        inbox = initInbox(MockSocket, topic);
+        inbox = initInbox(MockSocket, user);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', listResponse); // push response
@@ -612,7 +612,7 @@ describe('user inbox loading more rooms', () => {
     });
 
     test('custom limit', () => {
-        let inbox = initInbox(MockSocket, topic, { limit: 20 });
+        let inbox = initInbox(MockSocket, user, { limit: 20 });
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', listResponse); // push response
@@ -680,13 +680,13 @@ describe('user inbox loading more rooms', () => {
 });
 
 describe('hub inbox loading more rooms', () => {
-    const topic = 'hub_inbox:0';
+    const user = { id: 1, hubId: 1 };
     const listResponse = PayloadFactory.hubInbox(1);
 
     let inbox = null;
 
     beforeEach(() => {
-        inbox = initInbox(MockSocket, topic);
+        inbox = initInbox(MockSocket, user);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', listResponse); // push response
@@ -703,7 +703,7 @@ describe('hub inbox loading more rooms', () => {
     });
 
     test('custom params', () => {
-        let inbox = initInbox(MockSocket, topic, {
+        let inbox = initInbox(MockSocket, user, {
             limit: 20,
             archived: true,
             assignedTo: 2,
@@ -779,13 +779,13 @@ describe('hub inbox loading more rooms', () => {
 });
 
 describe('hub inbox searching rooms', () => {
-    const topic = 'hub_inbox:0';
+    const user = { id: 1, hubId: 1 };
     const listResponse = PayloadFactory.hubInbox(0);
 
     let inbox = null;
 
     beforeEach(() => {
-        inbox = initInbox(MockSocket, topic);
+        inbox = initInbox(MockSocket, user);
         inbox.connect();
         MockPush.__serverRespond('ok', {}, 'clear-initial'); // join response
         MockPush.__serverRespond('ok', listResponse); // push response

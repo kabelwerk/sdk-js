@@ -268,12 +268,7 @@ const initKabelwerk = function () {
         //
         openInbox: function (params) {
             ensureReady();
-
-            let topic = user.hubId
-                ? `hub_inbox:${user.hubId}`
-                : `user_inbox:${user.id}`;
-
-            return initInbox(socket, topic, params);
+            return initInbox(socket, user, params);
         },
 
         // Init and return a room object.
