@@ -15,16 +15,20 @@ import { validate, validateParams } from './validators.js';
 //
 // A room object joins and maintains connection to a room channel.
 //
-const initRoom = function (socket, roomId, isHubSide = false) {
+const initRoom = function (socket, user, roomId) {
+    const isHubSide = Boolean(user.hubId);
+
     let dispatcher = initDispatcher(['error', 'ready', 'message_posted']);
 
     // internal state
+    let room = {
+        archived: null,
+        attributes: null,
+        hubUser: null,
+        user: null,
+    };
     let firstMessageId = null;
     let lastMessageId = null;
-    let attributes = null;
-    let user = null;
-    let hubUser = null;
-    let archived = null;
     let ready = false;
 
     // helper functions
@@ -43,15 +47,15 @@ const initRoom = function (socket, roomId, isHubSide = false) {
     };
 
     const updateRoom = function (payload) {
-        user = payload.user;
-        attributes = payload.attributes;
+        room.user = payload.user;
+        room.attributes = payload.attributes;
 
         if (isHubSide) {
             if ('archived' in payload) {
-                archived = payload.archived;
+                room.archived = payload.archived;
             }
             if ('hubUser' in payload) {
-                hubUser = payload.hubUser;
+                room.hubUser = payload.hubUser;
             }
         }
     };
@@ -197,7 +201,7 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         //
         getAttributes: function () {
             ensureReady();
-            return attributes;
+            return room.attributes;
         },
 
         // Return the room's assigned hub user.
@@ -205,14 +209,14 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         getHubUser: function () {
             ensureReady();
             ensureHubSide();
-            return hubUser;
+            return room.hubUser;
         },
 
         // Return the room's user.
         //
         getUser: function () {
             ensureReady();
-            return user;
+            return room.user;
         },
 
         // Return a boolean indicating whether the room is marked as archived.
@@ -220,7 +224,7 @@ const initRoom = function (socket, roomId, isHubSide = false) {
         isArchived: function () {
             ensureReady();
             ensureHubSide();
-            return archived;
+            return room.archived;
         },
 
         // Load more messages, from earlier in the history. Return a promise

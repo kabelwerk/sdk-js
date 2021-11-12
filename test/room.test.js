@@ -6,10 +6,12 @@ import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 const { initRoom } = await import('../src/room.js');
 
 describe('connect', () => {
+    const user = { id: 1, hubId: null };
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
     });
 
     test('channel is joined', () => {
@@ -95,13 +97,15 @@ describe('connect', () => {
 });
 
 describe('message posted event', () => {
-    let initialResponse = PayloadFactory.roomJoin(1);
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(1);
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('new message', () => {
@@ -119,13 +123,15 @@ describe('message posted event', () => {
 });
 
 describe('load earlier messages', () => {
-    let initialResponse = PayloadFactory.roomJoin(1);
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(1);
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('push params', () => {
@@ -133,7 +139,7 @@ describe('load earlier messages', () => {
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('list_messages', {
-            before: initialResponse.messages[0].id,
+            before: joinRes.messages[0].id,
         });
     });
 
@@ -175,13 +181,15 @@ describe('load earlier messages', () => {
 });
 
 describe('post message in room', () => {
-    let initialResponse = PayloadFactory.roomJoin(0);
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(0);
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('push params', () => {
@@ -230,11 +238,13 @@ describe('post message in room', () => {
 });
 
 describe('get room user', () => {
-    let joinRes = PayloadFactory.roomJoin(0);
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(0);
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
     });
 
     test('throws an error if called before ready', () => {
@@ -271,16 +281,17 @@ describe('get room user', () => {
 });
 
 describe('get room attributes', () => {
+    const user = { id: 1, hubId: null };
     const attributes = {
         number: 42,
         string: '',
     };
+    const joinRes = PayloadFactory.roomJoin(0, { attributes });
 
-    let joinRes = PayloadFactory.roomJoin(0, { attributes });
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
     });
 
     test('throws an error if called before ready', () => {
@@ -317,18 +328,19 @@ describe('get room attributes', () => {
 });
 
 describe('update room attributes', () => {
-    let initialResponse = PayloadFactory.roomJoin(0);
-    let room = null;
-
-    let attributes = {
+    const user = { id: 1, hubId: null };
+    const attributes = {
         number: 42,
         string: '',
     };
+    const joinRes = PayloadFactory.roomJoin(0);
+
+    let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
-        MockPush.__serverRespond('ok', initialResponse);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('push params', () => {
@@ -382,25 +394,28 @@ describe('update room attributes', () => {
 });
 
 describe('get archive status', () => {
+    const user = { id: 1, hubId: 1 };
     const joinRes = PayloadFactory.hubRoomJoin(0);
 
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
     test('throws an error if called before ready', () => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
 
         expect(room.isArchived).toThrow(Error);
     });
 
     test('throws an error if not on the hub side', () => {
-        room = initRoom(MockSocket, 0, false);
+        const user = { id: 1, hubId: null };
+
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
 
@@ -413,17 +428,21 @@ describe('get archive status', () => {
 });
 
 describe('update archive status, archive', () => {
+    const user = { id: 1, hubId: 1 };
     const joinRes = PayloadFactory.hubRoomJoin(0);
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
     test('throws an error if not on the hub side', () => {
-        room = initRoom(MockSocket, 0, false);
+        const user = { id: 1, hubId: null };
+
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
 
@@ -483,17 +502,21 @@ describe('update archive status, archive', () => {
 });
 
 describe('update archive status, unarchive', () => {
+    const user = { id: 1, hubId: 1 };
     const joinRes = PayloadFactory.hubRoomJoin(0, { archived: true });
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
     test('throws an error if not on the hub side', () => {
-        room = initRoom(MockSocket, 0, false);
+        const user = { id: 1, hubId: null };
+
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
 
@@ -552,26 +575,29 @@ describe('update archive status, unarchive', () => {
 });
 
 describe('get hub user', () => {
-    const hubUser = { id: 1, name: 'Batou', key: 'batou' };
+    const user = { id: 1, hubId: 1 };
+    const hubUser = { id: 42, name: 'Batou', key: 'batou' };
     const joinRes = PayloadFactory.hubRoomJoin(0, { hub_user: hubUser });
 
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
     test('throws an error if called before ready', () => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
 
         expect(room.getHubUser).toThrow(Error);
     });
 
     test('throws an error if not on the hub side', () => {
-        room = initRoom(MockSocket, 0, false);
+        const user = { id: 1, hubId: null };
+
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
 
@@ -584,19 +610,22 @@ describe('get hub user', () => {
 });
 
 describe('update hub user', () => {
+    const user = { id: 1, hubId: 1 };
     const hubUser = { id: 42, name: 'Batou', key: 'batou' };
     const joinRes = PayloadFactory.hubRoomJoin(0);
 
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0, true);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
     test('throws an error if not on the hub side', () => {
-        room = initRoom(MockSocket, 0, false);
+        const user = { id: 1, hubId: null };
+
+        room = initRoom(MockSocket, user, 0);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
 
@@ -655,10 +684,12 @@ describe('update hub user', () => {
 });
 
 describe('disconnect', () => {
+    const user = { id: 1, hubId: null };
+
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, 0);
+        room = initRoom(MockSocket, user, 0);
         room.connect();
     });
 

@@ -282,7 +282,7 @@ const initKabelwerk = function () {
                 throw initError(USAGE_ERROR, 'The room ID must be an integer.');
             }
 
-            return initRoom(socket, roomId, Boolean(user.hubId));
+            return initRoom(socket, user, roomId);
         },
 
         // Update the connected user's info. Return a promise resolving into
