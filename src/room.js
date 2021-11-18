@@ -4,6 +4,7 @@ import logger from './logger.js';
 import {
     parseHubRoom,
     parseHubRoomJoin,
+    parseMarker,
     parseMessage,
     parseMessages,
     parseRoom,
@@ -18,7 +19,12 @@ import { validate, validateParams } from './validators.js';
 const initRoom = function (socket, user, roomId) {
     const isHubSide = Boolean(user.hubId);
 
-    let dispatcher = initDispatcher(['error', 'ready', 'message_posted']);
+    let dispatcher = initDispatcher([
+        'error',
+        'ready',
+        'marker_moved',
+        'message_posted',
+    ]);
 
     // internal state
     let room = {
@@ -29,6 +35,7 @@ const initRoom = function (socket, user, roomId) {
     };
     let firstMessageId = null;
     let lastMessageId = null;
+    let marker = null;
     let ready = false;
 
     // helper functions
@@ -58,6 +65,20 @@ const initRoom = function (socket, user, roomId) {
                 room.hubUser = payload.hubUser;
             }
         }
+    };
+
+    const updateMarker = function (incoming) {
+        let hasChanged = false;
+
+        if (incoming && incoming.userId == user.id) {
+            marker = {
+                messageId: incoming.messageId,
+                updatedAt: incoming.updatedAt,
+            };
+            hasChanged = true;
+        }
+
+        return hasChanged;
     };
 
     const ensureReady = function () {
@@ -99,6 +120,12 @@ const initRoom = function (socket, user, roomId) {
             dispatcher.send('message_posted', message);
         });
 
+        channel.on('marker_moved', function (payload) {
+            if (updateMarker(parseMarker(payload))) {
+                dispatcher.send('marker_moved', marker);
+            }
+        });
+
         channel
             .join()
             .receive('ok', function (payload) {
@@ -111,15 +138,24 @@ const initRoom = function (socket, user, roomId) {
                 updateRoom(payload);
                 updateFirstLastIds(payload.messages);
 
+                const markerChanged = updateMarker(payload.marker);
+
                 if (ready) {
                     // channel was rejoined
+
                     for (let message of payload.messages) {
                         dispatcher.send('message_posted', message);
                     }
+
+                    if (markerChanged) {
+                        dispatcher.send('marker_moved', marker);
+                    }
                 } else {
                     ready = true;
+
                     dispatcher.send('ready', {
                         messages: payload.messages,
+                        marker: payload.marker,
                     });
                 }
             })
@@ -212,6 +248,13 @@ const initRoom = function (socket, user, roomId) {
             return room.hubUser;
         },
 
+        // Return the connected user's marker for the room.
+        //
+        getMarker: function () {
+            ensureReady();
+            return marker;
+        },
+
         // Return the room's user.
         //
         getUser: function () {
@@ -258,6 +301,36 @@ const initRoom = function (socket, user, roomId) {
                 push.receive('timeout', function () {
                     reject(initError(TIMEOUT));
                 });
+            });
+        },
+
+        // Move the user's marker for the room. Return a promise resolving into
+        // the updated marker.
+        //
+        moveMarker: function (messageId) {
+            try {
+                validate(messageId, { type: 'integer' });
+            } catch (error) {
+                throw initError(
+                    USAGE_ERROR,
+                    "The parameter 'messageId' must be an integer."
+                );
+            }
+
+            return new Promise(function (resolve, reject) {
+                channel
+                    .push('move_marker', { message: messageId })
+                    .receive('ok', function (payload) {
+                        updateMarker(parseMarker(payload));
+                        resolve(marker);
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to move the room marker.', error);
+                        reject(initError(PUSH_REJECTED));
+                    })
+                    .receive('timeout', function () {
+                        reject(initError(TIMEOUT));
+                    });
             });
         },
 

@@ -50,10 +50,11 @@ describe('connect', () => {
     test('ready event is emitted once', () => {
         let joinRes = PayloadFactory.roomJoin(0);
 
-        expect.assertions(1);
+        expect.assertions(2);
 
-        room.on('ready', ({ messages }) => {
+        room.on('ready', ({ messages, marker }) => {
             expect(messages).toEqual([]);
+            expect(marker).toBe(null);
         });
 
         room.connect();
@@ -94,7 +95,35 @@ describe('connect', () => {
         joinRes.messages.push(message);
         MockPush.__serverRespond('ok', joinRes, false);
     });
+
+    test('marker having moved between rejoins is emitted', () => {
+        const firstJoin = PayloadFactory.roomJoin(0, {
+            marker: PayloadFactory.marker({ user_id: 1 }),
+        });
+        const rejoin = PayloadFactory.roomJoin(0, {
+            marker: PayloadFactory.marker({ user_id: 1 }),
+        });
+
+        expect.assertions(2);
+
+        room.on('marker_moved', (res) => {
+            expect(res.messageId).toBe(rejoin.marker.message_id);
+            expect(res.updatedAt.toJSON()).toBe(rejoin.marker.updated_at);
+        });
+
+        room.connect();
+
+        // first join
+        MockPush.__serverRespond('ok', firstJoin, false);
+
+        // rejoin
+        MockPush.__serverRespond('ok', rejoin, false);
+    });
 });
+
+//
+// events
+//
 
 describe('message posted event', () => {
     const user = { id: 1, hubId: null };
@@ -121,6 +150,49 @@ describe('message posted event', () => {
         MockChannel.__serverPush('message_posted', message);
     });
 });
+
+describe('marker moved event', () => {
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(1);
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, user, 0);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('marker of connected user moved', () => {
+        expect.assertions(2);
+
+        let marker = PayloadFactory.marker({ user_id: 1 });
+
+        room.on('marker_moved', (res) => {
+            expect(res.messageId).toBe(marker.message_id);
+            expect(res.updatedAt.toJSON()).toBe(marker.updated_at);
+        });
+
+        MockChannel.__serverPush('marker_moved', marker);
+    });
+
+    test('marker of another user moved', () => {
+        expect.assertions(0);
+
+        let marker = PayloadFactory.marker({ user_id: 2 });
+
+        room.on('marker_moved', (res) => {
+            expect(res.messageId).toBe(marker.message_id);
+            expect(res.updatedAt.toJSON()).toBe(marker.updated_at);
+        });
+
+        MockChannel.__serverPush('marker_moved', marker);
+    });
+});
+
+//
+// methods
+//
 
 describe('load earlier messages', () => {
     const user = { id: 1, hubId: null };
@@ -237,6 +309,63 @@ describe('post message in room', () => {
     });
 });
 
+describe('move room marker', () => {
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(0);
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, user, 0);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('push params', () => {
+        room.moveMarker(42);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
+            message: 42,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(2);
+
+        let marker = PayloadFactory.marker({ user_id: 1 });
+
+        room.moveMarker(42).then((res) => {
+            expect(res.messageId).toEqual(marker.message_id);
+            expect(res.updatedAt.toJSON()).toEqual(marker.updated_at);
+        });
+
+        MockPush.__serverRespond('ok', marker);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        room.moveMarker(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        room.moveMarker(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
 describe('get room user', () => {
     const user = { id: 1, hubId: null };
     const joinRes = PayloadFactory.roomJoin(0);
@@ -277,6 +406,65 @@ describe('get room user', () => {
         MockPush.__serverRespond('ok', newJoinRes, false);
 
         expect(room.getUser()).toEqual(newJoinRes.user);
+    });
+});
+
+describe('get room marker', () => {
+    const user = { id: 1, hubId: null };
+    const marker = PayloadFactory.marker({ user_id: 1 });
+    const joinRes = PayloadFactory.roomJoin(0, { marker });
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, user, 0);
+    });
+
+    test('throws an error if called before ready', () => {
+        expect(room.getMarker).toThrow(Error);
+    });
+
+    test('returns null if no marker', () => {
+        expect.assertions(1);
+
+        room.on('ready', () => {
+            expect(room.getMarker()).toBe(null);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('ok', PayloadFactory.roomJoin(0));
+    });
+
+    test('returns the marker', () => {
+        expect.assertions(2);
+
+        room.on('ready', () => {
+            let res = room.getMarker();
+
+            expect(res.messageId).toBe(marker.message_id);
+            expect(res.updatedAt.toJSON()).toBe(marker.updated_at);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('the marker is updated on rejoin', () => {
+        room.connect();
+
+        // first join
+        MockPush.__serverRespond('ok', joinRes, false);
+
+        expect(room.getMarker().messageId).toBe(marker.message_id);
+        expect(room.getMarker().updatedAt.toJSON()).toBe(marker.updated_at);
+
+        // rejoin
+        const newMarker = PayloadFactory.marker({ user_id: 1 });
+        const rejoinRes = PayloadFactory.roomJoin(0, { marker: newMarker });
+        MockPush.__serverRespond('ok', rejoinRes, false);
+
+        expect(room.getMarker().messageId).toBe(newMarker.message_id);
+        expect(room.getMarker().updatedAt.toJSON()).toBe(newMarker.updated_at);
     });
 });
 

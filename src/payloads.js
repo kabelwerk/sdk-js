@@ -125,16 +125,32 @@ export const parseMessages = function (payload) {
     };
 };
 
+// Parse the payload of a move_marker response or a marker_moved event.
+//
+export const parseMarker = function (payload) {
+    return {
+        messageId: payload.message_id,
+        updatedAt: new Date(payload.updated_at),
+        userId: payload.user_id,
+    };
+};
+
 // Parse the payload of a join response (end side).
 //
 export const parseRoomJoin = function (payload) {
-    return Object.assign(parseRoom(payload), parseMessages(payload));
+    return Object.assign(parseRoom(payload), {
+        messages: payload.messages.map(parseMessage),
+        marker: payload.marker ? parseMarker(payload.marker) : null,
+    });
 };
 
 // Parse the payload of a join response (hub side).
 //
 export const parseHubRoomJoin = function (payload) {
-    return Object.assign(parseHubRoom(payload), parseMessages(payload));
+    return Object.assign(parseHubRoom(payload), {
+        messages: payload.messages.map(parseMessage),
+        marker: payload.marker ? parseMarker(payload.marker) : null,
+    });
 };
 
 //

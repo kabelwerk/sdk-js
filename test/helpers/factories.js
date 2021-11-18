@@ -177,12 +177,26 @@ PayloadFactory.messages = function (number, params = {}) {
     return { messages };
 };
 
+// Generate a response to a move_marker push or a marker_moved event.
+//
+PayloadFactory.marker = function (params = {}) {
+    return {
+        room_id:
+            'room_id' in params ? params.room_id : PayloadFactory.room().id,
+        message_id: 'message_id' in params ? params.message_id : 1,
+        updated_at: new Date().toJSON(),
+        user_id:
+            'user_id' in params ? params.user_id : PayloadFactory.user().id,
+    };
+};
+
 // Generate a response to joining a room channel as an end user.
 //
 PayloadFactory.roomJoin = function (number, params = {}) {
     return Object.assign(
         PayloadFactory.room(params),
-        PayloadFactory.messages(number, params)
+        PayloadFactory.messages(number, params),
+        { marker: 'marker' in params ? params.marker : null }
     );
 };
 
@@ -191,7 +205,8 @@ PayloadFactory.roomJoin = function (number, params = {}) {
 PayloadFactory.hubRoomJoin = function (number, params = {}) {
     return Object.assign(
         PayloadFactory.hubRoom(params),
-        PayloadFactory.messages(number, params)
+        PayloadFactory.messages(number, params),
+        { marker: 'marker' in params ? params.marker : null }
     );
 };
 
