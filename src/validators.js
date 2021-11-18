@@ -1,4 +1,4 @@
-import { USAGE_ERROR, initError } from './errors.js';
+import { UsageError } from './errors.js';
 
 // Example usage:
 //
@@ -11,57 +11,54 @@ const validate = function (value, spec) {
         if (spec.nullable) {
             return null;
         } else {
-            throw initError(USAGE_ERROR, 'This value cannot be null.');
+            throw UsageError('This value cannot be null.');
         }
     }
 
     switch (spec.type) {
         case 'boolean':
             if (typeof value != 'boolean') {
-                throw initError(USAGE_ERROR, `${value} is not a boolean.`);
+                throw UsageError(`${value} is not a boolean.`);
             }
 
             return value;
 
         case 'integer':
             if (!Number.isInteger(value)) {
-                throw initError(USAGE_ERROR, `${value} is not an integer.`);
+                throw UsageError(`${value} is not an integer.`);
             }
 
             return value;
 
         case 'string':
             if (typeof value != 'string') {
-                throw initError(USAGE_ERROR, `${value} is not a string.`);
+                throw UsageError(`${value} is not a string.`);
             }
 
             return value;
 
         case 'map':
             if (typeof value != 'object') {
-                throw initError(USAGE_ERROR, `${value} is not an object.`);
+                throw UsageError(`${value} is not an object.`);
             }
 
             return new Map(Object.entries(value));
 
         case 'function':
             if (typeof value != 'function') {
-                throw initError(USAGE_ERROR, `${value} is not a function.`);
+                throw UsageError(`${value} is not a function.`);
             }
 
             return value;
 
         case 'datetime':
             if (!(value instanceof Date)) {
-                throw initError(USAGE_ERROR, `${value} is not a Date object.`);
+                throw UsageError(`${value} is not a Date object.`);
             }
 
             // yeah.. this is a magical string check
             if (value.toString() == 'Invalid Date') {
-                throw initError(
-                    USAGE_ERROR,
-                    `${value} is not a valid datetime.`
-                );
+                throw UsageError(`${value} is not a valid datetime.`);
             }
 
             return value;
@@ -82,18 +79,14 @@ const validateParams = function (params, spec) {
             if (spec[key].optional) {
                 continue;
             } else {
-                throw initError(
-                    USAGE_ERROR,
-                    `The parameter '${key}' is required.`
-                );
+                throw UsageError(`The parameter '${key}' is required.`);
             }
         }
 
         try {
             value = validate(value, spec[key]);
         } catch (error) {
-            throw initError(
-                USAGE_ERROR,
+            throw UsageError(
                 `Invalid value passed for the parameter '${key}': ${error.message}`
             );
         }

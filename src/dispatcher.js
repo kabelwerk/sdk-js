@@ -1,4 +1,4 @@
-import { USAGE_ERROR, initError } from './errors.js';
+import { UsageError } from './errors.js';
 import logger from './logger.js';
 
 // Init a dispatcher object.
@@ -8,7 +8,7 @@ const initDispatcher = function (eventNames) {
 
     const checkEventName = function (eventName) {
         if (eventNames.indexOf(eventName) == -1) {
-            throw initError(USAGE_ERROR, `Uknown event name: ${eventName}.`);
+            throw UsageError(`Uknown event name: ${eventName}.`);
         }
     };
 

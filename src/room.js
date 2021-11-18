@@ -1,5 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
-import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
+import { PushRejected, Timeout, UsageError } from './errors.js';
 import logger from './logger.js';
 import {
     parseHubRoom,
@@ -83,16 +83,13 @@ const initRoom = function (socket, user, roomId) {
 
     const ensureReady = function () {
         if (!ready) {
-            throw initError(USAGE_ERROR, 'The room object is not ready yet.');
+            throw UsageError('The room object is not ready yet.');
         }
     };
 
     const ensureHubSide = function () {
         if (!isHubSide) {
-            throw initError(
-                USAGE_ERROR,
-                'This method is only available for hub users.'
-            );
+            throw UsageError('This method is only available for hub users.');
         }
     };
 
@@ -164,10 +161,10 @@ const initRoom = function (socket, user, roomId) {
                     `Failed to join the ${channel.topic} channel.`,
                     error
                 );
-                dispatcher.send('error', initError(PUSH_REJECTED));
+                dispatcher.send('error', PushRejected());
             })
             .receive('timeout', function () {
-                dispatcher.send('error', initError(TIMEOUT));
+                dispatcher.send('error', Timeout());
             });
     };
 
@@ -187,8 +184,7 @@ const initRoom = function (socket, user, roomId) {
             try {
                 validate(until, { type: 'datetime', nullable: true });
             } catch (error) {
-                throw initError(
-                    USAGE_ERROR,
+                throw UsageError(
                     "The parameter 'until' must be either a valid datetime or null."
                 );
             }
@@ -203,18 +199,17 @@ const initRoom = function (socket, user, roomId) {
                     })
                     .receive('error', function (error) {
                         logger.error('Failed to archive the room.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
 
         connect: function () {
             if (channel) {
-                throw initError(
-                    USAGE_ERROR,
+                throw UsageError(
                     'The connect() method was already called once.'
                 );
             }
@@ -295,11 +290,11 @@ const initRoom = function (socket, user, roomId) {
 
                 push.receive('error', function (error) {
                     logger.error('Failed to load earlier messages.', error);
-                    reject(initError(PUSH_REJECTED));
+                    reject(PushRejected());
                 });
 
                 push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
+                    reject(Timeout());
                 });
             });
         },
@@ -311,10 +306,7 @@ const initRoom = function (socket, user, roomId) {
             try {
                 validate(messageId, { type: 'integer' });
             } catch (error) {
-                throw initError(
-                    USAGE_ERROR,
-                    "The parameter 'messageId' must be an integer."
-                );
+                throw UsageError('The message ID must be an integer.');
             }
 
             return new Promise(function (resolve, reject) {
@@ -326,10 +318,10 @@ const initRoom = function (socket, user, roomId) {
                     })
                     .receive('error', function (error) {
                         logger.error('Failed to move the room marker.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
@@ -360,10 +352,10 @@ const initRoom = function (socket, user, roomId) {
                     })
                     .receive('error', function (error) {
                         logger.error('Failed to post the new message.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
@@ -387,11 +379,11 @@ const initRoom = function (socket, user, roomId) {
 
                 push.receive('error', function (error) {
                     logger.error('Failed to unarchive the room.', error);
-                    reject(initError(PUSH_REJECTED));
+                    reject(PushRejected());
                 });
 
                 push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
+                    reject(Timeout());
                 });
             });
         },
@@ -403,10 +395,7 @@ const initRoom = function (socket, user, roomId) {
             try {
                 attributes = validate(attributes, { type: 'map' });
             } catch (error) {
-                throw initError(
-                    USAGE_ERROR,
-                    'The room attributes must be an object.'
-                );
+                throw UsageError('The room attributes must be an object.');
             }
 
             return new Promise(function (resolve, reject) {
@@ -424,10 +413,10 @@ const initRoom = function (socket, user, roomId) {
                             "Failed to update the room's attributes.",
                             error
                         );
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
@@ -443,10 +432,7 @@ const initRoom = function (socket, user, roomId) {
             try {
                 validate(hubUserId, { type: 'integer' });
             } catch (error) {
-                throw initError(
-                    USAGE_ERROR,
-                    'The hub user ID must be an integer.'
-                );
+                throw UsageError('The hub user ID must be an integer.');
             }
 
             return new Promise(function (resolve, reject) {
@@ -462,10 +448,10 @@ const initRoom = function (socket, user, roomId) {
                             "Failed to update the room's assigned hub user.",
                             error
                         );
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },

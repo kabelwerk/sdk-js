@@ -1,5 +1,5 @@
 import { initDispatcher } from './dispatcher.js';
-import { PUSH_REJECTED, TIMEOUT, USAGE_ERROR, initError } from './errors.js';
+import { PushRejected, Timeout, UsageError } from './errors.js';
 import logger from './logger.js';
 import {
     parseHubInbox,
@@ -154,10 +154,10 @@ const initInbox = function (socket, user, params = {}) {
             })
             .receive('error', function (error) {
                 logger.error(`Failed to join the ${topic} channel.`, error);
-                dispatcher.send('error', initError(PUSH_REJECTED));
+                dispatcher.send('error', PushRejected());
             })
             .receive('timeout', function () {
-                dispatcher.send('error', initError(TIMEOUT));
+                dispatcher.send('error', Timeout());
             });
     };
 
@@ -191,27 +191,23 @@ const initInbox = function (socket, user, params = {}) {
             })
             .receive('error', function (error) {
                 logger.error('Failed to retrieve the inbox items.', error);
-                dispatcher.send('error', initError(PUSH_REJECTED));
+                dispatcher.send('error', PushRejected());
             })
             .receive('timeout', function () {
-                dispatcher.send('error', initError(TIMEOUT));
+                dispatcher.send('error', Timeout());
             });
     };
 
     const ensureHubSide = function () {
         if (!isHubSide) {
-            throw initError(
-                USAGE_ERROR,
-                'This method is only available for hub users.'
-            );
+            throw UsageError('This method is only available for hub users.');
         }
     };
 
     return {
         connect: function () {
             if (channel) {
-                throw initError(
-                    USAGE_ERROR,
+                throw UsageError(
                     'The connect() method was already called once.'
                 );
             }
@@ -257,10 +253,10 @@ const initInbox = function (socket, user, params = {}) {
                     })
                     .receive('error', function (error) {
                         logger.error('Failed to load more inbox items.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
@@ -307,10 +303,10 @@ const initInbox = function (socket, user, params = {}) {
                     })
                     .receive('error', function (error) {
                         logger.error('The search failed.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },

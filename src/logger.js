@@ -1,4 +1,4 @@
-import { USAGE_ERROR, initError } from './errors.js';
+import { UsageError } from './errors.js';
 
 // logging levels
 const LEVELS = {
@@ -35,8 +35,7 @@ const logger = (function () {
         levelName = levelName.toUpperCase();
 
         if (!LEVELS.hasOwnProperty(levelName)) {
-            throw initError(
-                USAGE_ERROR,
+            throw UsageError(
                 'The logging level has to be one of the following strings ' +
                     '(case-insensitive): DEBUG, INFO, ERROR, SILENT.'
             );

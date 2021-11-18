@@ -2,11 +2,10 @@ import { Socket } from 'phoenix';
 
 import { initDispatcher } from './dispatcher.js';
 import {
-    CONNECTION_ERROR,
-    PUSH_REJECTED,
-    TIMEOUT,
-    USAGE_ERROR,
-    initError,
+    ConnectionError,
+    PushRejected,
+    Timeout,
+    UsageError,
 } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
@@ -75,7 +74,7 @@ const initKabelwerk = function () {
 
         socket.onError(function (error) {
             logger.error('Websocket error.', error);
-            dispatcher.send('error', initError(CONNECTION_ERROR, error));
+            dispatcher.send('error', ConnectionError(error));
 
             if (config.refreshToken && !tokenIsRefreshing) {
                 tokenIsRefreshing = true;
@@ -129,20 +128,17 @@ const initKabelwerk = function () {
                         "Failed to join the user's private channel.",
                         error
                     );
-                    dispatcher.send('error', initError(PUSH_REJECTED));
+                    dispatcher.send('error', PushRejected());
                 })
                 .receive('timeout', function () {
-                    dispatcher.send('error', initError(TIMEOUT));
+                    dispatcher.send('error', Timeout());
                 });
         });
     };
 
     const ensureReady = function () {
         if (!ready) {
-            throw initError(
-                USAGE_ERROR,
-                'The Kabelwerk object is not ready yet.'
-            );
+            throw UsageError('The Kabelwerk object is not ready yet.');
         }
     };
 
@@ -168,10 +164,7 @@ const initKabelwerk = function () {
 
         connect: function () {
             if (socket) {
-                throw initError(
-                    USAGE_ERROR,
-                    'Kabewerk.connect() was already called once.'
-                );
+                throw UsageError('Kabewerk.connect() was already called once.');
             }
 
             setupSocket();
@@ -189,7 +182,7 @@ const initKabelwerk = function () {
             try {
                 validate(hubId, { type: 'integer' });
             } catch (error) {
-                throw initError(USAGE_ERROR, 'The hub ID must be an integer.');
+                throw UsageError('The hub ID must be an integer.');
             }
 
             return new Promise(function (resolve, reject) {
@@ -200,10 +193,10 @@ const initKabelwerk = function () {
                     })
                     .receive('error', function (error) {
                         logger.error('Failed to create a new room.', error);
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },
@@ -249,11 +242,11 @@ const initKabelwerk = function () {
 
                 push.receive('error', function (error) {
                     logger.error("Failed to load the user hub's info.", error);
-                    reject(initError(PUSH_REJECTED));
+                    reject(PushRejected());
                 });
 
                 push.receive('timeout', function () {
-                    reject(initError(TIMEOUT));
+                    reject(Timeout());
                 });
             });
         },
@@ -279,7 +272,7 @@ const initKabelwerk = function () {
             try {
                 validate(roomId, { type: 'integer' });
             } catch (error) {
-                throw initError(USAGE_ERROR, 'The room ID must be an integer.');
+                throw UsageError('The room ID must be an integer.');
             }
 
             return initRoom(socket, user, roomId);
@@ -307,10 +300,10 @@ const initKabelwerk = function () {
                             "Failed to update the user's info.",
                             error
                         );
-                        reject(initError(PUSH_REJECTED));
+                        reject(PushRejected());
                     })
                     .receive('timeout', function () {
-                        reject(initError(TIMEOUT));
+                        reject(Timeout());
                     });
             });
         },

@@ -1,39 +1,80 @@
-// when the SDK is not used as expected
+// This module contains the errors which are raised or returned by the SDK.
+//
+// The errors are standard Error instances with the name attribute set to a
+// string specifying the error type. This is because extending the built-in
+// Error class is not well supported in JavaScript.
+//
+// Example usage:
+//
+//  throw UsageError('This is how you raise an error!');
+//  throw Timeout();
+//
+
+//
+// the error names (types)
+//
+
 export const USAGE_ERROR = 'UsageError';
-
-// when the websocket fails to connect to the Kabelwerk backend
 export const CONNECTION_ERROR = 'ConnectionError';
-
-// when a websocket frame sent upstream is rejected by the Kabelwerk backend
 export const PUSH_REJECTED = 'PushRejected';
-
-// when a websocket frame sent upstream does not get an answer back
 export const TIMEOUT = 'Timeout';
 
-// Init an Error instance.
 //
-// Store the type of error in Error.prototype.name, as extending the built-in
-// Error class is not well supported [1].
+// the errors (functions that return Error instances)
 //
-// If no message is given, provide one depending on the error type.
+
+// An error to be raised when the SDK is not used as expected — e.g. a method
+// is called with a wrong argument.
 //
-// [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
-//
-export const initError = function (type, message) {
+export const UsageError = function (message) {
     if (!message) {
-        if (type == USAGE_ERROR) {
-            message = 'Unexpected usage.';
-        } else if (type == CONNECTION_ERROR) {
-            message = 'Failed to connect to the server.';
-        } else if (type == PUSH_REJECTED) {
-            message = 'The server rejected the request.';
-        } else if (type == TIMEOUT) {
-            message = 'The server timed out.';
-        }
+        message = 'Unexpected usage.';
     }
 
-    let error = new Error(message);
-    error.name = type;
+    const error = new Error(message);
+    error.name = USAGE_ERROR;
+
+    return error;
+};
+
+// An error to be raised when the websocket fails to connect to the Kabelwerk
+// backend.
+//
+export const ConnectionError = function (message) {
+    if (!message) {
+        message = 'Failed to connect to the server.';
+    }
+
+    const error = new Error(message);
+    error.name = CONNECTION_ERROR;
+
+    return error;
+};
+
+// An error to be raised when a websocket message sent upstream is rejected by
+// the Kabelwerk backend.
+//
+export const PushRejected = function (message) {
+    if (!message) {
+        message = 'The server rejected the request.';
+    }
+
+    const error = new Error(message);
+    error.name = PUSH_REJECTED;
+
+    return error;
+};
+
+// An error to be raised when a websocket message sent upstream does not get
+// back a response.
+//
+export const Timeout = function (message) {
+    if (!message) {
+        message = 'The server timed out.';
+    }
+
+    const error = new Error(message);
+    error.name = TIMEOUT;
 
     return error;
 };
