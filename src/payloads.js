@@ -32,22 +32,24 @@ export const parseOwnHub = function (payload) {
 
 // Parse the payload of an inbox_updated event.
 //
-export const parseUserInboxItem = function (payload) {
+export const parseUserInboxItem = function (payload, user) {
     return {
         room: {
             hubId: payload.room.hub_id,
             id: payload.room.id,
         },
         message: payload.message ? parseMessage(payload.message) : null,
-        isNew: Boolean(payload.is_new),
+        isNew: payload.marked_by.indexOf(user.id) == -1,
     };
 };
 
 // Parse the payload of a list_rooms response.
 //
-export const parseUserInbox = function (payload) {
+export const parseUserInbox = function (payload, user) {
     return {
-        items: payload.items.map(parseUserInboxItem),
+        items: payload.items.map(function (item) {
+            return parseUserInboxItem(item, user);
+        }),
     };
 };
 
@@ -57,7 +59,7 @@ export const parseUserInbox = function (payload) {
 
 // Parse the payload of an inbox_updated event.
 //
-export const parseHubInboxItem = function (payload) {
+export const parseHubInboxItem = function (payload, user) {
     return {
         room: {
             archived: payload.room.archived,
@@ -68,15 +70,17 @@ export const parseHubInboxItem = function (payload) {
             user: parseUser(payload.room.user),
         },
         message: payload.message ? parseMessage(payload.message) : null,
-        isNew: Boolean(payload.is_new),
+        isNew: payload.marked_by.indexOf(user.id) == -1,
     };
 };
 
 // Parse the payload of a list_rooms response.
 //
-export const parseHubInbox = function (payload) {
+export const parseHubInbox = function (payload, user) {
     return {
-        items: payload.items.map(parseHubInboxItem),
+        items: payload.items.map(function (item) {
+            return parseHubInboxItem(item, user);
+        }),
     };
 };
 

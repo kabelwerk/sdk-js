@@ -131,7 +131,7 @@ const initInbox = function (socket, user, params = {}) {
         channel = socket.channel(topic);
 
         channel.on('inbox_updated', function (payload) {
-            let item = parseInboxItem(payload);
+            let item = parseInboxItem(payload, user);
 
             if (matchesParams(item)) {
                 items.set(item.room.id, item);
@@ -173,7 +173,7 @@ const initInbox = function (socket, user, params = {}) {
         channel
             .push('list_rooms', Object.fromEntries(pushParams))
             .receive('ok', function (payload) {
-                for (let item of parseInbox(payload).items) {
+                for (let item of parseInbox(payload, user).items) {
                     items.set(item.room.id, item);
                 }
 
@@ -247,7 +247,7 @@ const initInbox = function (socket, user, params = {}) {
                 channel
                     .push('list_rooms', Object.fromEntries(pushParams))
                     .receive('ok', function (payload) {
-                        for (let item of parseInbox(payload).items) {
+                        for (let item of parseInbox(payload, user).items) {
                             items.set(item.room.id, item);
                         }
 
@@ -302,7 +302,7 @@ const initInbox = function (socket, user, params = {}) {
                     .push('list_rooms', Object.fromEntries(pushParams))
                     .receive('ok', function (payload) {
                         resolve({
-                            items: parseInbox(payload).items,
+                            items: parseInbox(payload, user).items,
                         });
                     })
                     .receive('error', function (error) {

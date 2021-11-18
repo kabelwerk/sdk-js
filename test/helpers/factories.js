@@ -47,7 +47,7 @@ PayloadFactory.inboxItem = (function () {
                 'message' in params
                     ? params.message
                     : PayloadFactory.message({ room_id: id }),
-            isNew: 'is_new' in params ? params.is_new : true,
+            marked_by: 'marked_by' in params ? params.marked_by : [],
         };
     };
 })();
@@ -91,7 +91,7 @@ PayloadFactory.hubInboxItem = (function () {
                 'message' in params
                     ? params.message
                     : PayloadFactory.message({ room_id: id }),
-            isNew: 'is_new' in params ? params.is_new : true,
+            marked_by: 'marked_by' in params ? params.marked_by : [],
         };
     };
 })();
