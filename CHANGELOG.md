@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (TBD)
+## 0.2.0 (2021-11-19)
 
 -   Change in the API: inboxes now contain items instead of rooms ([docs](./docs/inboxes.md)).
 -   New feature: inbox search ([docs](./docs/inboxes.md#search)).
