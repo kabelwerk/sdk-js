@@ -35,9 +35,21 @@ An inbox item is an object with the following fields:
 -   `message`: the latest message posted in this room; either a [message object](./rooms.md#messaging) or `null` if the room is empty;
 -   `isNew`: a boolean; `true` if the room contains at least one message which is new to the connected user and `false` otherwise; determining whether a message is new relies on the room's [marker](./rooms.md#markers) — so if you do not move markers the value will always be `true` unless the latest message posted in the room is authored by the user.
 
-Please note that the inbox items just hold information; in order to send and receive messages in the chat rooms, you have to explicitly [init room objects](./rooms.md).
+Please note that inbox items just hold data; in order to send and receive messages in the chat rooms, you have to explicitly [init room objects](./rooms.md).
 
 Each end user has one room per hub; so if your care team is organised in a single hub, an end user's inbox will contain (at most) one room. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
+
+## Implementing notifications
+
+To implement client-side notifications, you can attach a listener to the `updated` event and trigger a notification for each incoming message that is not authored by the connected user. Here is an example using the [browser notifications API](https://developer.mozilla.org/en-US/docs/Web/API/notification) and assuming that permissions requesting is handled elsewhere:
+
+```js
+inbox.on('updated', { item } => {
+    if (item.message && item.message.user.id != Kabelwerk.getUser().id) {
+        new Notification(message.user.name, { body: message.text });
+    }
+});
+```
 
 ## On the hub side
 
@@ -123,7 +135,7 @@ For the time being, the search functionality is not very sophisticated: the sear
 
 -   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 -   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing the list of initially loaded inbox items.
--   `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including those not yet loaded. The attached listeners are called with the updated list of inbox items.
+-   `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including those not yet loaded. The attached listeners are called with an `{items, item}` object containing the updated list of inbox items as well as the exact inbox item which was updated.
 
 ## See also
 
