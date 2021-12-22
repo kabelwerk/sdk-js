@@ -2,7 +2,7 @@
 
 ## 0.2.1 (TBD)
 
--   Inboxes: listeners to the `updated` event now also receive the exact inbox item causing the update ([docs](./docs/inboxes.md#implementing-notifications)).
+-   Inboxes: listeners to the `updated` event now also receive the exact inbox items causing the update ([docs](./docs/inboxes.md#implementing-notifications)).
 
 ## 0.2.0 (2021-11-19)
 

@@ -44,9 +44,13 @@ Each end user has one room per hub; so if your care team is organised in a singl
 To implement client-side notifications, you can attach a listener to the `updated` event and trigger a notification for each incoming message that is not authored by the connected user. Here is an example using the [browser notifications API](https://developer.mozilla.org/en-US/docs/Web/API/notification) and assuming that permissions requesting is handled elsewhere:
 
 ```js
-inbox.on('updated', { item } => {
-    if (item.message && item.message.user.id != Kabelwerk.getUser().id) {
-        new Notification(message.user.name, { body: message.text });
+inbox.on('updated', ({ changedItems }) => {
+    for (const item of changedItems) {
+        const message = item.message;
+
+        if (message.user.id != Kabelwerk.getUser().id) {
+            new Notification(message.user.name, { body: message.text });
+        }
     }
 });
 ```
@@ -135,7 +139,7 @@ For the time being, the search functionality is not very sophisticated: the sear
 
 -   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 -   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing the list of initially loaded inbox items.
--   `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including those not yet loaded. The attached listeners are called with an `{items, item}` object containing the updated list of inbox items as well as the exact inbox item which was updated.
+-   `updated` → Fired when there is a new message in any of the rooms that belong to the inbox, including rooms not yet loaded. Also, if the websocket connection drops, fired upon reconnect if messages had been posted while the websocket was disconnected. The attached listeners are called with an `{items, changedItems}` object containing both the updated list of inbox items as well as the list of the particular inbox items causing the update.
 
 ## See also
 
