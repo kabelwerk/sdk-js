@@ -2,7 +2,7 @@
 
 ## 0.2.1 (TBD)
 
--   Inboxes: new event emitted — `message_posted` — allowing for easier implementation of notifications ([docs](./docs/inboxes.md#implementing-notifications)).
+-   New feature: notifiers ([docs](./docs/notifiers.md)).
 
 ## 0.2.0 (2021-11-19)
 

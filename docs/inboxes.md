@@ -39,20 +39,6 @@ Please note that inbox items just hold data; in order to send and receive messag
 
 Each end user has one room per hub; so if your care team is organised in a single hub, an end user's inbox will contain (at most) one room. On the other hand, each hub user has access to all rooms belonging to their hub and would often need multiple inboxes to better organise their work.
 
-## Implementing notifications
-
-To implement client-side notifications, you can attach a listener to the `message_posted` event and trigger a notification for each incoming message that is not authored by the connected user. Here is an example using the [browser notifications API](https://developer.mozilla.org/en-US/docs/Web/API/notification) and assuming that permissions requesting is handled elsewhere:
-
-```js
-inbox.on('message_posted', ({ item }) => {
-    const message = item.message;
-
-    if (message.user.id != Kabelwerk.getUser().id) {
-        new Notification(message.user.name, { body: message.text });
-    }
-});
-```
-
 ## On the hub side
 
 Inbox objects provide some additional functionality if the connected user is a hub user. First, the inbox items' room objects have a few more fields in addition to those listed above:
@@ -138,9 +124,9 @@ For the time being, the search functionality is not very sophisticated: the sear
 -   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 -   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an `{items}` object containing the list of initially loaded inbox items.
 -   `updated` → Fired when any of the inbox items changes. An inbox update is triggered by a new message posted in any of the rooms (including rooms not yet loaded); on the hub side it is also triggered by moving rooms between inboxes. Also, if the websocket connection drops, the event is fired upon reconnect if any update occurred while the websocket was disconnected. The attached listeners are called with an `{items}` object containing the updated (and re-ordered) list of inbox items.
--   `message_posted` → Fired when there is a new message in any of the rooms that belong to the inbox, including rooms not yet loaded. Also, if the websocket connection drops, fired upon reconnect for each message posted while the websocket was disconnected. The attached listeners are called with an `{item}` object containing the inbox item with the posted message.
 
 ## See also
 
 -   [Rooms](./rooms.md)
+-   [Notifiers](./notifiers.md)
 -   [The Kabelwerk object](./kabelwerk.md)
