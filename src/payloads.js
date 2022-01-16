@@ -158,6 +158,26 @@ export const parseHubRoomJoin = function (payload) {
 };
 
 //
+// notifier channel
+//
+
+// Parse the payload of a join response.
+//
+export const parseNotifierJoin = function (payload) {
+    return {
+        messages: payload.messages.map(parseMessage),
+    };
+};
+
+// Parse the payload of a message_posted event.
+//
+export const parseNotifierMessage = function (payload) {
+    return {
+        message: parseMessage(payload.message),
+    };
+};
+
+//
 // helpers
 //
 

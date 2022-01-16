@@ -210,4 +210,22 @@ PayloadFactory.hubRoomJoin = function (number, params = {}) {
     );
 };
 
+//
+// notifier channels
+//
+
+// Generate a response to joining a notifier channel.
+//
+PayloadFactory.notifierJoin = function (number, params = {}) {
+    return Object.assign(PayloadFactory.messages(number, params));
+};
+
+// Generate a message_posted event (in a notifier channel).
+//
+PayloadFactory.notifierMessage = function (params = {}) {
+    return {
+        message: PayloadFactory.message(params),
+    };
+};
+
 export { PayloadFactory };

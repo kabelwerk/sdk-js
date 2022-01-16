@@ -9,6 +9,7 @@ import {
 } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
+import { initNotifier } from './notifier.js';
 import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
 import { validate, validateParams } from './validators.js';
@@ -262,6 +263,13 @@ const initKabelwerk = function () {
         openInbox: function (params) {
             ensureReady();
             return initInbox(socket, user, params);
+        },
+
+        // Init and return a notifier object.
+        //
+        openNotifier: function () {
+            ensureReady();
+            return initNotifier(socket, user);
         },
 
         // Init and return a room object.
