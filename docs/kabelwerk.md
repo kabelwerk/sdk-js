@@ -124,3 +124,4 @@ Kabelwerk.loadHubInfo()
 
 -   [Inboxes](./inboxes.md)
 -   [Rooms](./rooms.md)
+-   [Notifiers](./notifiers.md)
