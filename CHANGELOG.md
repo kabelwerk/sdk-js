@@ -3,6 +3,7 @@
 ## 0.2.1 (TBD)
 
 -   New feature: notifiers ([docs](./docs/notifiers.md)).
+-   Rooms: enabled access to others' markers ([docs](./docs/rooms.md#markers)).
 
 ## 0.2.0 (2021-11-19)
 

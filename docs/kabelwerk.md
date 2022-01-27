@@ -103,7 +103,7 @@ Kabelwerk.loadHubInfo()
 -   **`Kabelwerk.getUser()`** → Returns the connected user, as an `{id, key, name}` object.
 -   **`Kabelwerk.isConnected()`** → Returns a boolean indicating whether the SDK is currently connected to the server.
 -   **`Kabelwerk.loadHubInfo()`** → Loads info about the connected user's hub. Returns a Promise resolving info an `{id, name, users}` object. This method is only available on the hub side.
--   **`Kabelwerk.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
+-   **`Kabelwerk.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the Kabelwerk object are removed.
 -   **`Kabelwerk.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `Kabelwerk.off(event, ref)` method.
 -   **`Kabelwerk.once(event, listener)`** → The same as the `Kabelwerk.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
 -   **`Kabelwerk.openInbox(params)`** → Initialises and returns an [inbox object](./inboxes.md) with the given parameters.

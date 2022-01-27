@@ -7,7 +7,7 @@ To initialise a room object, you need the room's ID (usually you would obtain it
 ```js
 let room = Kabelwerk.openRoom(roomId);
 
-room.on('ready', ({ messages, marker }) => {
+room.on('ready', ({ messages, markers }) => {
     // this event is fired once when the room is loaded
 });
 
@@ -67,34 +67,33 @@ A message object has the following fields:
 
 ## Markers
 
-A non-empty chat room may also have a marker marking the last message seen by the user (or at least by the user's client). A marker's position is expected to be updated by the client (e.g. whenever the user opens a chat room with unseen messages); the position is also updated automatically whenever the user posts a new message in the chat room. However, using this feature is optional: if you choose not to update a user's markers, then you cannot take advantage of the `isNew` flag of [inbox items](./inboxes.md) — the flag will always be set to `true` unless the last message in the respective chat room is posted by the user (markers will still be updated automatically with posted messages) — but no other functionality depends on it.
-
-A marker object has the following fields:
+A user in a non-empty chat room may also have a marker marking the message last seen by them. A marker's position is expected to be updated by the client (e.g. whenever the user opens a chat room with unseen messages); the position is also updated automatically whenever the user posts a new message in the chat room. A marker object has the following fields:
 
 -   `messageId`: the ID of the message which is being marked;
--   `updatedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the marker was last moved.
+-   `updatedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the marker was last moved;
+-   `userId`: the ID of the user who moved the marker.
 
-If a chat room does not have a marker yet (i.e. if the user has not posted a message and the client has not updated the marker explicitly), then the marker object will be `null`.
+An end user has access to up to 2 markers in a chat room: their own marker and the latest hub-side marker. A hub user has access to all markers in a chat room.
 
 ```js
-// returns null if the room does not have a marker yet
-room.getMarker();
+// may return an empty list if the room does not have a marker yet
+room.listMarkers();
 
-// use this method to move the marker to a different message
+// use this method to move the connected user's marker to a different message
 room.moveMarker(messageId)
     .then((marker) => {
-        // if the room does not have a marker yet, it gets created
+        // if the user does not yet have a marker in the room, it gets created
     })
     .catch((error) => {
         // e.g. if the server times out
     });
 
-// this event is fired every time the room's marker is updated,
+// this event is fired every time a marker in the room is moved,
 // including after a message_posted event
-room.on('marker_moved', (marker) => {
-    console.assert(marker.messageId == room.getMarker().messageId);
-});
+room.on('marker_moved', (marker) => {});
 ```
+
+Using the markers feature is optional: if you choose not to update a user's markers, then you cannot take advantage of the `isNew` flag of [inbox items](./inboxes.md) — the flag will always be set to `true` unless the last message in the respective chat room is posted by the user (markers will still be updated automatically with posted messages) — but no other functionality depends on it.
 
 ## Custom attributes
 
@@ -165,16 +164,16 @@ room.updateHubUser(Kabelwerk.getUser().id)
 -   **`room.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
 -   **`room.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 -   **`room.getAttributes()`** → Returns the room's custom attributes.
--   **`room.getHubUser()`** → Returns the hub user who is assigned to this room, as an `{id, key, name}` object. Returns `null` if there is no hub user assigned to this room. This method is only available on the hub side.
--   **`room.getMarker()`** → Returns the room's marker, as an `{messageId, updatedAt}` object. Returns `null` if the room does not have a marker yet.
--   **`room.getUser()`** → Returns the room's user, as an `{id, key, name}` object.
+-   **`room.getHubUser()`** → Returns the hub user who is assigned to this room, as an `{ id, key, name }` object. Returns `null` if there is no hub user assigned to this room. This method is only available on the hub side.
+-   **`room.getUser()`** → Returns the room's user, as an `{ id, key, name }` object.
 -   **`room.isArchived()`** → Returns a boolean indicating whether the room is marked as archived. This method is only available on the hub side.
--   **`room.loadEarlier()`** → Loads more messages from earlier in the chat history. A room object keeps track of the earliest message it has processed, so this method would usually just work when loading a chat room's history. Returns a Promise which resolves into a `{messages}` object.
--   **`room.moveMarker(messageId)`** → Moves the room's marker, creating it if it does not exist yet. The parameter should be the ID of the message to which to move the marker. Returns a Promise which resolves into the updated marker object.
+-   **`room.listMarkers()`** → Returns the room's markers, as a list of `{ messageId, updatedAt, userId }` objects. May return an empty list if the room does not have a marker yet.
+-   **`room.loadEarlier()`** → Loads more messages from earlier in the chat history. A room object keeps track of the earliest message it has processed, so this method would usually just work when loading a chat room's history. Returns a Promise which resolves into a `{ messages }` object.
+-   **`room.moveMarker(messageId)`** → Moves the connected user's marker in the room, creating it if it does not exist yet. The parameter should be the ID of the message to which to move the marker. Returns a Promise which resolves into the updated marker object.
 -   **`room.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
 -   **`room.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `room.off(event, ref)` method.
 -   **`room.once(event, listener)`** → The same as the `room.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
--   **`room.postMessage(message)`** → Posts a new message in the chat room. The parameter should be a `{text}` object. Returns a Promise which resolves into the newly added message.
+-   **`room.postMessage(message)`** → Posts a new message in the chat room. The parameter should be a `{ text }` object. Returns a Promise which resolves into the newly added message.
 -   **`room.unarchive()`** → Marks the room as not archived. Returns a Promise. This method is only available on the hub side.
 -   **`room.updateAttributes(attributes)`** → Sets the room's custom attributes. Returns a Promise.
 -   **`room.updateHubUser(hubUserId)`** → Sets the hub user assigned to this room. The parameter should be either the hub user's ID or `null` when un-assigning a room. Returns a Promise. This method is only available on the hub side.
@@ -182,9 +181,9 @@ room.updateHubUser(Kabelwerk.getUser().id)
 ## List of events
 
 -   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
--   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing (1) a list of the chat room's most recent messages, and (2) the chat room's marker.
+-   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing (1) a list of the room's most recent messages, and (2) the list of the room's markers.
 -   `message_posted` → Fired when there is a new message posted in the room. The attached listeners are called with the newly added message.
--   `marker_moved` → Fired when the room's marker is updated (or created). The attached listeners are called with the updated marker object.
+-   `marker_moved` → Fired when a marker in the room is updated (or created). The attached listeners are called with the updated marker object.
 
 ## See also
 
