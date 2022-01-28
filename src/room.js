@@ -33,9 +33,12 @@ const initRoom = function (socket, user, roomId) {
         hubUser: null,
         user: null,
     };
+
     let firstMessageId = null;
     let lastMessageId = null;
-    let marker = null;
+
+    const markers = { own: null, other: null };
+
     let ready = false;
 
     // helper functions
@@ -65,20 +68,6 @@ const initRoom = function (socket, user, roomId) {
                 room.hubUser = payload.hubUser;
             }
         }
-    };
-
-    const updateMarker = function (incoming) {
-        let hasChanged = false;
-
-        if (incoming && incoming.userId == user.id) {
-            marker = {
-                messageId: incoming.messageId,
-                updatedAt: incoming.updatedAt,
-            };
-            hasChanged = true;
-        }
-
-        return hasChanged;
     };
 
     const ensureReady = function () {
@@ -118,7 +107,16 @@ const initRoom = function (socket, user, roomId) {
         });
 
         channel.on('marker_moved', function (payload) {
-            if (updateMarker(parseMarker(payload))) {
+            const marker = parseMarker(payload);
+
+            if (marker.userId == user.id) {
+                markers.own = marker;
+                dispatcher.send('marker_moved', marker);
+            } else if (
+                markers.other == null ||
+                markers.other.messageId < marker.messageId
+            ) {
+                markers.other = marker;
                 dispatcher.send('marker_moved', marker);
             }
         });
@@ -135,8 +133,6 @@ const initRoom = function (socket, user, roomId) {
                 updateRoom(payload);
                 updateFirstLastIds(payload.messages);
 
-                const markerChanged = updateMarker(payload.marker);
-
                 if (ready) {
                     // channel was rejoined
 
@@ -144,15 +140,34 @@ const initRoom = function (socket, user, roomId) {
                         dispatcher.send('message_posted', message);
                     }
 
-                    if (markerChanged) {
-                        dispatcher.send('marker_moved', marker);
+                    if (
+                        payload.markers[0] != null &&
+                        (markers.own == null ||
+                            markers.own.messageId <
+                                payload.markers[0].messageId)
+                    ) {
+                        markers.own = payload.markers[0];
+                        dispatcher.send('marker_moved', markers.own);
+                    }
+
+                    if (
+                        payload.markers[1] != null &&
+                        (markers.other == null ||
+                            markers.other.messageId <
+                                payload.markers[1].messageId)
+                    ) {
+                        markers.other = payload.markers[1];
+                        dispatcher.send('marker_moved', markers.other);
                     }
                 } else {
                     ready = true;
 
+                    markers.own = payload.markers[0];
+                    markers.other = payload.markers[1];
+
                     dispatcher.send('ready', {
                         messages: payload.messages,
-                        marker: payload.marker,
+                        markers: payload.markers,
                     });
                 }
             })
@@ -243,11 +258,11 @@ const initRoom = function (socket, user, roomId) {
             return room.hubUser;
         },
 
-        // Return the connected user's marker for the room.
+        // Return the room's pair of markers.
         //
-        getMarker: function () {
+        getMarkers: function () {
             ensureReady();
-            return marker;
+            return [markers.own, markers.other];
         },
 
         // Return the room's user.
@@ -313,7 +328,15 @@ const initRoom = function (socket, user, roomId) {
                 channel
                     .push('move_marker', { message: messageId })
                     .receive('ok', function (payload) {
-                        updateMarker(parseMarker(payload));
+                        const marker = parseMarker(payload);
+
+                        if (
+                            markers.own == null ||
+                            markers.own.messageId < marker.messageId
+                        ) {
+                            markers.own = marker;
+                        }
+
                         resolve(marker);
                     })
                     .receive('error', function (error) {

@@ -196,7 +196,7 @@ PayloadFactory.roomJoin = function (number, params = {}) {
     return Object.assign(
         PayloadFactory.room(params),
         PayloadFactory.messages(number, params),
-        { marker: 'marker' in params ? params.marker : null }
+        { markers: 'markers' in params ? params.markers : [null, null] }
     );
 };
 
@@ -206,7 +206,7 @@ PayloadFactory.hubRoomJoin = function (number, params = {}) {
     return Object.assign(
         PayloadFactory.hubRoom(params),
         PayloadFactory.messages(number, params),
-        { marker: 'marker' in params ? params.marker : null }
+        { markers: 'markers' in params ? params.markers : [null, null] }
     );
 };
 
