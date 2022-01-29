@@ -4,6 +4,7 @@
 
 -   New feature: notifiers ([docs](./docs/notifiers.md)).
 -   Rooms: enabled access to the other side's marker ([docs](./docs/rooms.md#markers)).
+-   Upgraded Phoenix to [1.6.6](https://hexdocs.pm/phoenix/1.6.6/js/).
 
 ## 0.2.0 (2021-11-19)
 

@@ -24,7 +24,7 @@
   "type": "module",
   "repository": "github:kabelwerk/sdk-js",
   "dependencies": {
-    "phoenix": "~1.5.13"
+    "phoenix": "~1.6.6"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^20.0.0",
