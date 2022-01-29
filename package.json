@@ -1,11 +1,11 @@
 {
   "name": "kabelwerk",
-  "version": "0.2.0",
-  "description": "The base Kabelwerk SDK for JavaScript.",
+  "version": "0.2.1",
+  "description": "The Kabelwerk SDK for JavaScript.",
   "keywords": [
     "kabelwerk"
   ],
-  "homepage": "https://github.com/kabelwerk/sdk-js",
+  "homepage": "https://kabelwerk.io",
   "bugs": {
     "url": "https://github.com/kabelwerk/sdk-js/issues",
     "email": "devs@kabelwerk.io"

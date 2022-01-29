@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.1 (TBD)
+## 0.2.1 (2022-01-29)
 
 -   New feature: notifiers ([docs](./docs/notifiers.md)).
 -   Rooms: enabled access to the other side's marker ([docs](./docs/rooms.md#markers)).

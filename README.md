@@ -1,6 +1,6 @@
 # Kabelwerk
 
-This is Kabelwerk's base (low-level) SDK for JavaScript.
+This is the [Kabelwerk](https://kabelwerk.io) base (low-level) SDK for JavaScript.
 
 ## Installation
 
