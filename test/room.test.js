@@ -839,12 +839,21 @@ describe('update hub user', () => {
         expect(() => room.updateHubUser(null)).toThrow(Error);
     });
 
-    test('push params', () => {
+    test('push params, assign', () => {
         room.updateHubUser(42);
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('set_inbox_info', {
             hub_user: 42,
+        });
+    });
+
+    test('push params, unassign', () => {
+        room.updateHubUser(null);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('set_inbox_info', {
+            hub_user: null,
         });
     });
 

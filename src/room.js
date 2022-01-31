@@ -453,7 +453,7 @@ const initRoom = function (socket, user, roomId) {
             ensureHubSide();
 
             try {
-                validate(hubUserId, { type: 'integer' });
+                validate(hubUserId, { type: 'integer', nullable: true });
             } catch (error) {
                 throw UsageError('The hub user ID must be an integer.');
             }

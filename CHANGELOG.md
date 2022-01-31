@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (TBD)
+
+-   Rooms: fixed `updateHubUser` to accept `null`.
+
 ## 0.2.1 (2022-01-29)
 
 -   New feature: notifiers ([docs](./docs/notifiers.md)).
