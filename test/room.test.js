@@ -324,7 +324,7 @@ describe('post message in room', () => {
 
 describe('move room marker', () => {
     const user = { id: 1, hubId: null };
-    const joinRes = PayloadFactory.roomJoin(0);
+    const joinRes = PayloadFactory.roomJoin(1);
 
     let room = null;
 
@@ -334,12 +334,21 @@ describe('move room marker', () => {
         MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('push params', () => {
+    test('push params, specify the message', () => {
         room.moveMarker(42);
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
             message: 42,
+        });
+    });
+
+    test('push params, no parameter', () => {
+        room.moveMarker();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
+            message: joinRes.messages[0].id,
         });
     });
 

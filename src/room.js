@@ -318,6 +318,15 @@ const initRoom = function (socket, user, roomId) {
         // the updated marker.
         //
         moveMarker: function (messageId) {
+            if (messageId === undefined) {
+                if (lastMessageId == null) {
+                    throw UsageError(
+                        'There must be at least one message in the room before moving the marker.'
+                    );
+                }
+                messageId = lastMessageId;
+            }
+
             try {
                 validate(messageId, { type: 'integer' });
             } catch (error) {

@@ -80,6 +80,8 @@ A user has access to up to 2 markers in a chat room: for an end user these are t
 const [ownMarker, otherMarker] = room.getMarkers();
 
 // use this method to move the connected user's marker to a different message
+// specifying the message ID is optional: by default the marker will be moved
+// to the last message in the room the client is aware of
 room.moveMarker(messageId)
     .then((marker) => {
         // if the user does not yet have a marker in the room, it gets created
@@ -169,7 +171,7 @@ room.updateHubUser(Kabelwerk.getUser().id)
 -   **`room.getUser()`** → Returns the room's user, as an `{ id, key, name }` object.
 -   **`room.isArchived()`** → Returns a boolean indicating whether the room is marked as archived. This method is only available on the hub side.
 -   **`room.loadEarlier()`** → Loads more messages from earlier in the chat history. A room object keeps track of the earliest message it has processed, so this method would usually just work when loading a chat room's history. Returns a Promise which resolves into a `{ messages }` object.
--   **`room.moveMarker(messageId)`** → Moves the connected user's marker in the room, creating it if it does not exist yet. The parameter should be the ID of the message to which to move the marker. Returns a Promise which resolves into the updated marker object.
+-   **`room.moveMarker(messageId)`** → Moves the connected user's marker in the room, creating it if it does not exist yet. If provided, the optional parameter should be the ID of the message to which to move the marker; the default value is the ID of the last message in the room that the client is aware of. Returns a Promise which resolves into the updated marker object.
 -   **`room.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
 -   **`room.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `room.off(event, ref)` method.
 -   **`room.once(event, listener)`** → The same as the `room.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
