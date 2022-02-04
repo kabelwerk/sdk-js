@@ -4,4 +4,3 @@ slug: /
 ---
 
 # Getting started
-
