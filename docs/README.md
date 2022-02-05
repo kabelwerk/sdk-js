@@ -6,7 +6,7 @@ Welcome to the documentation of [Kabelwerk](https://kabelwerk.io)'s low-level SD
 
 The SDK is available as an [npm package](https://www.npmjs.com/package/kabelwerk).
 
-```bash
+```bash npm2yarn
 npm install kabelwerk
 ```
 
