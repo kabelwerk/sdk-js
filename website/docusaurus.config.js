@@ -22,6 +22,7 @@ const config = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
+                    path: '../docs',
                     routeBasePath: '/',
                     sidebarPath: require.resolve('./sidebars.js'),
                     editUrl: 'https://github.com/kabelwerk/sdk-js',
@@ -46,7 +47,7 @@ const config = {
                 items: [
                     {
                         type: 'doc',
-                        docId: 'intro',
+                        docId: 'README',
                         position: 'left',
                         label: 'Docs',
                     },

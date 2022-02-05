@@ -1,6 +1,6 @@
-# Kabelwerk
+# The Kabelwerk object
 
-The `Kabelwerk` object is a singleton that opens and maintains the websocket connection to the Kabelwerk backend. It is also used for retrieving and updating the connected user's info, opening [inboxes](./inboxes.md), and creating and opening [rooms](./rooms.md).
+The Kabelwerk object is a singleton that opens and maintains the websocket connection to the Kabelwerk backend. It is also used for retrieving and updating the connected user's info, opening [inboxes](./inboxes.md), and creating and opening [rooms](./rooms.md).
 
 ```js
 import Kabelwerk from 'kabelwerk';
