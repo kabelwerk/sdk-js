@@ -20,8 +20,8 @@ const config = {
                     path: '../docs',
                     routeBasePath: '/',
                     sidebarPath: require.resolve('./sidebars.js'),
-                    editUrl: ({ docPath }) =>
-                        `https://github.com/kabelwerk/sdk-js/blob/master/docs/${docPath}`,
+                    editUrl: ({ version, docPath }) =>
+                        `https://github.com/kabelwerk/sdk-js/blob/v${version}/docs/${docPath}`,
                     remarkPlugins: [
                         [
                             require('@docusaurus/remark-plugin-npm2yarn'),
@@ -39,7 +39,7 @@ const config = {
 
     themeConfig: {
         // used for the og:image <meta> tag
-        image: 'https://kabelwerk.io/images/logo.png',
+        image: 'https://kabelwerk.io/images/logo_256.png',
 
         navbar: {
             title: "Kabelwerk's SDK for JavaScript",
@@ -49,9 +49,12 @@ const config = {
             },
             items: [
                 {
-                    type: 'doc',
-                    docId: 'README',
-                    label: 'Docs',
+                    type: 'docsVersionDropdown',
+                    position: 'right',
+                },
+                {
+                    href: 'https://github.com/kabelwerk/sdk-js/blob/master/CHANGELOG.md',
+                    label: 'Changelog',
                     position: 'right',
                 },
                 {
