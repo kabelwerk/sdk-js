@@ -2,15 +2,15 @@ const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 const config = {
-    title: 'Kabelwerk SDK for JavaScript',
-    tagline: 'Dinosaurs are cool',
-    url: 'https://kabelwerk.io',
-    baseUrl: '/',
+    url: 'https://docs.kabelwerk.io',
+    baseUrl: '/js/',
+
+    title: "Kabelwerk's SDK for JavaScript",
+    titleDelimiter: '—',
+    favicon: 'img/logo.svg',
+
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
-    favicon: 'img/logo.svg',
-    organizationName: 'kabelwerk', // Usually your GitHub org/user name.
-    projectName: 'sdk-js', // Usually your repo name.
 
     presets: [
         [
@@ -38,11 +38,14 @@ const config = {
     ],
 
     themeConfig: {
+        // used for the og:image <meta> tag
+        image: 'https://kabelwerk.io/images/logo.png',
+
         navbar: {
-            title: 'Kabelwerk SDK for JavaScript',
+            title: "Kabelwerk's SDK for JavaScript",
             logo: {
-                alt: 'My Site Logo',
                 src: 'img/logo.svg',
+                alt: 'Kabelwerk logo',
             },
             items: [
                 {
