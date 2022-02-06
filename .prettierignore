@@ -1,3 +1,10 @@
-/.git/*
+/.git/
+/node_modules/
+/website/node_modules/
+
+# the build used for the demo
 /demo/kabelwerk.sdk.js
-/node_modules/*
+
+# docusaurus
+/website/build/
+/website/.docusaurus/
