@@ -241,12 +241,21 @@ describe('create room', () => {
         MockPush.__serverRespond('ok', user, 'clear-initial');
     });
 
-    test('push params', () => {
+    test('push params, integer', () => {
         kabelwerk.createRoom(42);
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('create_room', {
             hub: 42,
+        });
+    });
+
+    test('push params, string', () => {
+        kabelwerk.createRoom('slug');
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('create_room', {
+            hub: 'slug',
         });
     });
 

@@ -1,4 +1,4 @@
-import { validate, validateParams } from '../src/validators.js';
+import { validate, validateOneOf, validateParams } from '../src/validators.js';
 
 describe('validate', () => {
     test('booleans', () => {
@@ -72,6 +72,20 @@ describe('validate', () => {
             'datetime',
         ]) {
             expect(validate(null, { type, nullable: true })).toBe(null);
+        }
+    });
+});
+
+describe('validate one of', () => {
+    test('integer or string', () => {
+        const specs = [{ type: 'integer' }, { type: 'string' }];
+
+        for (let value of [0, 42, '', 'a string']) {
+            expect(validateOneOf(value, specs)).toBe(value);
+        }
+
+        for (let value of [null, false, {}, [], () => {}]) {
+            expect(() => validateOneOf(value, specs)).toThrow(Error);
         }
     });
 });

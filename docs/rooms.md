@@ -18,7 +18,7 @@ room.connect();
 If the room does not exist yet, it has to be explicitly created (usually by the client of the end user) before the room object can be initialised:
 
 ```js
-Kabelwerk.createRoom(hubId)
+Kabelwerk.createRoom(hubIdOrSlug)
     .then(({ id }) => {
         let room = Kabelwerk.openRoom(id);
         room.connect();

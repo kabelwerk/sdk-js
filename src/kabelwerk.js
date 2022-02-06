@@ -12,7 +12,7 @@ import logger from './logger.js';
 import { initNotifier } from './notifier.js';
 import { parseOwnHub, parseOwnUser } from './payloads.js';
 import { initRoom } from './room.js';
-import { validate, validateParams } from './validators.js';
+import { validate, validateOneOf, validateParams } from './validators.js';
 import { VERSION } from './version.js';
 
 // Init a Kabelwerk object.
@@ -177,18 +177,21 @@ const initKabelwerk = function () {
         // Create a room for the connected user. Return a promise resolving
         // into an object with the newly created room's ID.
         //
-        createRoom: function (hubId) {
+        createRoom: function (hubIdOrSlug) {
             ensureReady();
 
             try {
-                validate(hubId, { type: 'integer' });
+                validateOneOf(hubIdOrSlug, [
+                    { type: 'integer' },
+                    { type: 'string' },
+                ]);
             } catch (error) {
-                throw UsageError('The hub ID must be an integer.');
+                throw UsageError('The hub ID must be an integer or a string.');
             }
 
             return new Promise(function (resolve, reject) {
                 privateChannel
-                    .push('create_room', { hub: hubId })
+                    .push('create_room', { hub: hubIdOrSlug })
                     .receive('ok', function (payload) {
                         resolve({ id: payload.id });
                     })

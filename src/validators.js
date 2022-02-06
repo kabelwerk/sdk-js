@@ -67,6 +67,29 @@ const validate = function (value, spec) {
 
 // Example usage:
 //
+//  validateOneOf(true, [{type: 'boolean'}, {type: 'integer'}]);
+//  validateOneOf(0, [{type: 'string'}, {type: 'datetime'}]);
+//
+const validateOneOf = function (value, specs) {
+    const errors = [];
+
+    for (const spec of specs) {
+        try {
+            validate(value, spec);
+        } catch (error) {
+            errors.push(error);
+        }
+    }
+
+    if (errors.length < specs.length) {
+        return value;
+    } else {
+        throw errors[0];
+    }
+};
+
+// Example usage:
+//
 //  validateParams({x: true}, {x: {type: 'boolean'}})
 //
 const validateParams = function (params, spec) {
@@ -97,4 +120,4 @@ const validateParams = function (params, spec) {
     return map;
 };
 
-export { validate, validateParams };
+export { validate, validateOneOf, validateParams };

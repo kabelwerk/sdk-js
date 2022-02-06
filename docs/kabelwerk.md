@@ -70,7 +70,7 @@ See the [inboxes](./inboxes.md) page.
 
 ```js
 // to create a new room for the connected user in the given hub
-Kabelwerk.createRoom(hubId).then(({ id }) => {
+Kabelwerk.createRoom(hubIdOrSlug).then(({ id }) => {
     let room = Kabelwerk.openRoom(id);
 });
 
@@ -98,7 +98,7 @@ Kabelwerk.loadHubInfo()
 
 -   **`Kabelwerk.config(opts)`** → Sets the [configuration](#config). This method should be called at least once before invoking `Kabelwerk.connect()` in order to set an authentication token.
 -   **`Kabelwerk.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
--   **`Kabelwerk.createRoom(hubId)`** → Creates a chat room between the connected user and a hub. Returns a Promise resolving into an `{id}` object holding the ID of the newly created room. This method is intended to be used on the end side.
+-   **`Kabelwerk.createRoom(hubIdOrSlug)`** → Creates a chat room between the connected user and a hub. Returns a Promise resolving into an `{id}` object holding the ID of the newly created room. This method is intended to be used on the end side.
 -   **`Kabelwerk.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 -   **`Kabelwerk.getUser()`** → Returns the connected user, as an `{id, key, name}` object.
 -   **`Kabelwerk.isConnected()`** → Returns a boolean indicating whether the SDK is currently connected to the server.
@@ -114,12 +114,12 @@ Kabelwerk.loadHubInfo()
 
 ## List of events
 
--   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
--   `ready` → Fired at most once, when the connection to the server is first established and the `Kabelwerk` object is ready to be used.
--   `connected` → Fired at most once, when the connection to the server is first established. At this point the `Kabelwerk` object is not ready to be used as it yet has to exchange some data with the server (such as fetching the connected user's info). However, this event may be useful for displaying the connection's status.
--   `disconnected` → Fired when the connection to the server is dropped. Useful for displaying the connection's status to the user.
--   `reconnected` → Fired when the connection to the server is automatically re-established after a disconnect. Useful for displaying the connection's status to the user.
--   `user_updated` → Fired when the connected user's attributes are changed. The attached listeners are called with the up-to-date `{id, key, name}` object.
+-   **`error`** → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
+-   **`ready`** → Fired at most once, when the connection to the server is first established and the `Kabelwerk` object is ready to be used.
+-   **`connected`** → Fired at most once, when the connection to the server is first established. At this point the `Kabelwerk` object is not ready to be used as it yet has to exchange some data with the server (such as fetching the connected user's info). However, this event may be useful for displaying the connection's status.
+-   **`disconnected`** → Fired when the connection to the server is dropped. Useful for displaying the connection's status to the user.
+-   **`reconnected`** → Fired when the connection to the server is automatically re-established after a disconnect. Useful for displaying the connection's status to the user.
+-   **`user_updated`** → Fired when the connected user's attributes are changed. The attached listeners are called with the up-to-date `{id, key, name}` object.
 
 ## See also
 
