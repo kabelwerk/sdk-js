@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.2 (TBD)
+## 0.2.2 (2022-02-10)
 
 -   Rooms: fixed `updateHubUser` to accept `null` ([docs](./docs/rooms.md#on-the-hub-side)).
 -   Rooms: providing a `messageId` to `moveMarker` is now optional; the default value is the ID of the last message in the room the client is aware of ([docs](./docs/rooms.md#markers)).
