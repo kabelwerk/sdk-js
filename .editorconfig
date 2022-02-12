@@ -1,13 +1,17 @@
 root = true
 
 [*]
-end_of_line = lf
 charset = utf-8
+end_of_line = lf
+insert_final_newline = true
 
 [*.{js,md}]
 indent_style = space
 indent_size = 4
 
-[*.{json,html}]
+[*.json]
 indent_style = space
 indent_size = 2
+
+[*.{html,css}]
+indent_style = tab
