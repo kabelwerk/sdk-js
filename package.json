@@ -27,17 +27,12 @@
     "phoenix": "~1.6.6"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^20.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
     "jest": "^27.0.5",
-    "prettier": "^2.3.2",
-    "rollup": "^2.50.2",
-    "rollup-plugin-serve": "^1.1.0"
+    "prettier": "^2.3.2"
   },
   "scripts": {
     "prepack": "[[ $(grep -o -m 1 '[0-9].[0-9].[0-9]' package.json) == $(grep -o '[0-9].[0-9].[0-9]' src/version.js) ]]",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --config test/jest.config.js",
-    "demo": "rollup --config demo/rollup.config.js --watch",
     "format": "prettier --write ."
   },
   "prettier": {
