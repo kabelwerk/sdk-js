@@ -1,10 +1,12 @@
 # dependencies
 /node_modules/
+/demo/node_modules/
 /website/node_modules/
 
-# the build used for the demo
-/demo/kabelwerk.sdk.js
+# demo build files
+/demo/dist/
+/demo/.parcel-cache/
 
-# docusaurus
+# website build files
 /website/build/
 /website/.docusaurus/
