@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Chat, Context } from './chat.js';
+import { Chat, KabelwerkProvider } from './chat.js';
 import { Login } from './login.js';
 
 const loadStoredConfig = function () {
@@ -38,9 +38,9 @@ const App = function () {
 
     if (config.url && config.token) {
         return (
-            <Context config={config}>
+            <KabelwerkProvider config={config}>
                 <Chat resetToken={resetToken} />
-            </Context>
+            </KabelwerkProvider>
         );
     } else {
         return <Login config={config} updateConfig={updateConfig} />;
