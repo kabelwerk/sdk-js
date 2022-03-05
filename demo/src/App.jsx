@@ -14,7 +14,7 @@ const loadStoredConfig = function () {
     return config;
 };
 
-const App = function () {
+const App = () => {
     // the config is a {url, token, name} object
     const [config, setConfig] = React.useState(loadStoredConfig);
 

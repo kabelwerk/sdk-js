@@ -41,7 +41,12 @@ const KabelwerkProvider = function ({ children, config }) {
         Kabelwerk.on('ready', () => {
             inbox.current = Kabelwerk.openInbox();
 
-            inbox.current.on('ready', ({ items }) => setInboxItems(items));
+            inbox.current.on('ready', ({ items }) => {
+                if (items.length === 0) {
+                    Kabelwerk.createRoom(1);
+                }
+                setInboxItems(items);
+            });
 
             inbox.current.on('updated', ({ items }) => setInboxItems(items));
 
