@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-import { Chat, KabelwerkProvider } from './chat.js';
-import { Login } from './login.js';
+import { Chat, KabelwerkProvider } from './Chat.jsx';
+import { Login } from './Login.jsx';
 
 const loadStoredConfig = function () {
     let config = Object.create(null);

@@ -6,6 +6,7 @@
 # demo build files
 /demo/dist/
 /demo/.parcel-cache/
+/.parcel-cache/
 
 # website build files
 /website/build/
