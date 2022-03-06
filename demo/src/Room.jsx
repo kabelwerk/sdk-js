@@ -1,6 +1,7 @@
-import React from 'react';
+import { IconButton, Pane, SendMessageIcon, Textarea } from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
-// import { Pane } from 'evergreen-ui'
+import React from 'react';
+import { Message } from './Message';
 
 const Room = ({ id }) => {
     // the Kabelwerk room object
@@ -14,6 +15,16 @@ const Room = ({ id }) => {
 
     // the value of the <textarea> for posting new messages
     const [draft, setDraft] = React.useState('');
+
+    const handleSendMessage = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            onSubmit();
+        }
+
+        if (e.key === 'Enter' && e.shiftKey) {
+            setDraft(draft + '\n');
+        }
+    };
 
     // setup the room object
     React.useEffect(() => {
@@ -36,35 +47,81 @@ const Room = ({ id }) => {
         };
     }, [id]);
 
-    const onSubmit = function (e) {
-        e.preventDefault();
-
-        if (room.current) {
-            room.current.postMessage({ text: draft });
-            setDraft('');
+    const onSubmit = function () {
+        if (draft.length > 0) {
+            if (room.current) {
+                room.current.postMessage({ text: draft });
+                setDraft('');
+            }
         }
+    };
+
+    const showUserName = (message, prevMessage) => {
+        if (prevMessage === undefined) {
+            return false;
+        }
+
+        return message.user.id !== prevMessage.user.id;
     };
 
     if (!isReady) {
         return <p>Loading…</p>;
     } else {
         return (
-            <>
-                <ul>
-                    {messages.map((message) => (
-                        <li key={message.id}>{message.text}</li>
-                    ))}
-                </ul>
-                <form onSubmit={onSubmit}>
-                    <textarea
-                        name="text"
-                        required
+            <Pane
+                // height={'80vh'}
+                display="flex"
+                flexDirection="column"
+            >
+                <Pane marginBottom={130} marginLeft={20} marginRight={20}>
+                    {messages.map((message, index) => {
+                        return (
+                            <Pane key={message.id} display="flex" flexDirection="column">
+                                <Message
+                                    isLastMessage={index === messages.length - 1}
+                                    message={message}
+                                    showUserName={showUserName(
+                                        message,
+                                        messages.length === index - 1
+                                            ? undefined
+                                            : messages[index - 1]
+                                    )}
+                                />
+                            </Pane>
+                        );
+                    })}
+                </Pane>
+                <Pane
+                    position="fixed"
+                    bottom={0}
+                    width="100vw"
+                    height={120}
+                    display="flex"
+                    alignItems="center"
+                    backgroundColor='#fff'
+                    paddingLeft={32}
+                >
+                    <Textarea
+                        type="text"
                         value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
+                        fontSize={14}
+                        placeholder="Write a message"
+                        onChange={(e) => {
+                            setDraft(e.target.value);
+                        }}
+                        onKeyUp={(e) => {
+                            handleSendMessage(e);
+                        }}
                     />
-                    <button type="submit">Send</button>
-                </form>
-            </>
+                    <IconButton
+                        onClick={onSubmit}
+                        icon={SendMessageIcon}
+                        appearance="minimal"
+                        size="large"
+                        disabled={draft.length == 0}
+                    ></IconButton>
+                </Pane>
+            </Pane>
         );
     }
 };

@@ -4,7 +4,6 @@ import { Room } from './Room';
 
 const Chat = ({ resetToken }) => {
     const { connState, inboxItems } = React.useContext(KabelwerkContext);
-
     const [activeRoomId, setActiveRoomId] = React.useState(null);
 
     if (connState == CONN_STATES.START) {

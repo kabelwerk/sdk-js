@@ -3,10 +3,10 @@ import {
     DataConnectionIcon,
     Heading,
     Pane,
-    TextInputField,
+    TextInputField
 } from 'evergreen-ui';
 import React from 'react';
-import { formatText } from './utils/stringUtils';
+import { formatText } from './utils/string';
 
 const validateLogin = (config) => {
     const { url, token } = config;
