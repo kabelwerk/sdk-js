@@ -70,15 +70,20 @@ const MockSocket = (function () {
     const onError = jest.fn();
     const connect = jest.fn();
 
-    const __constructor = jest.fn().mockImplementation(() => {
+    const __constructor = jest.fn(() => {
         return MockSocket;
     });
 
-    const channel = jest.fn().mockImplementation(() => {
+    const channel = jest.fn(() => {
         return MockChannel;
     });
 
-    const disconnect = jest.fn();
+    const disconnect = jest.fn(() => {
+        // call the onClose callbacks
+        for (let call of onClose.mock.calls) {
+            call[0]();
+        }
+    });
 
     // fake the server accepting the connection
     const __open = function () {
