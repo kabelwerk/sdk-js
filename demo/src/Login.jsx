@@ -1,8 +1,9 @@
 import {
     Button,
     DataConnectionIcon,
-    Heading, Pane,
-    TextInputField
+    Heading,
+    Pane,
+    TextInputField,
 } from 'evergreen-ui';
 import React from 'react';
 import { formatText } from './utils/stringUtils';
@@ -57,7 +58,9 @@ const Login = function ({ config, updateConfig }) {
         >
             <Pane padding={32} elevation={4} borderRadius={20} width={400}>
                 <Pane>
-                    <Heading size={800} marginBottom={32}>Connect</Heading>
+                    <Heading size={800} marginBottom={32}>
+                        Connect
+                    </Heading>
                 </Pane>
                 <Pane marginTop={16}>
                     <TextInputField
@@ -112,7 +115,7 @@ const Login = function ({ config, updateConfig }) {
                 <Pane marginTop={16}>
                     <TextInputField
                         label="Name"
-                        description='The displayed name in the chat'
+                        description="The displayed name in the chat"
                         placeholder="Name"
                         onChange={(e) => setName(formatText(e.target.value))}
                         value={name}
