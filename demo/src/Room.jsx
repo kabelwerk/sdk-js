@@ -6,6 +6,7 @@ import { Message } from './Message';
 const Room = ({ id }) => {
     // the Kabelwerk room object
     const room = React.useRef(null);
+    const [marker, setMarker] = React.useState(null);
 
     // whether the room object is ready
     const [isReady, setIsReady] = React.useState(false);
@@ -30,13 +31,18 @@ const Room = ({ id }) => {
     React.useEffect(() => {
         room.current = Kabelwerk.openRoom(id);
 
-        room.current.on('ready', ({ messages }) => {
+        room.current.on('ready', ({ messages, markers }) => {
             setMessages(messages);
+            setMarker(markers[1]);
             setIsReady(true);
         });
 
         room.current.on('message_posted', (message) => {
             setMessages((messages) => messages.concat(message));
+        });
+
+        room.current.on('marker_moved', () => {
+            setMarker(room.current.getMarkers()[1]);
         });
 
         room.current.connect();
@@ -73,21 +79,34 @@ const Room = ({ id }) => {
                 display="flex"
                 flexDirection="column"
             >
-                <Pane marginBottom={130} marginLeft={20} marginRight={20}>
+                <Pane marginBottom={130} marginLeft={40} marginRight={40}>
                     {messages.map((message, index) => {
                         return (
-                            <Pane key={message.id} display="flex" flexDirection="column">
-                                <Message
-                                    isLastMessage={index === messages.length - 1}
-                                    message={message}
-                                    showUserName={showUserName(
-                                        message,
-                                        messages.length === index - 1
-                                            ? undefined
-                                            : messages[index - 1]
-                                    )}
-                                />
-                            </Pane>
+                            <>
+                                <Pane
+                                    key={message.id}
+                                    display="flex"
+                                    flexDirection="column"
+                                >
+                                    <Message
+                                        marker={
+                                            marker?.messageId === message.id
+                                                ? marker
+                                                : undefined
+                                        }
+                                        isLastMessage={
+                                            index === messages.length - 1
+                                        }
+                                        message={message}
+                                        showUserName={showUserName(
+                                            message,
+                                            messages.length === index - 1
+                                                ? undefined
+                                                : messages[index - 1]
+                                        )}
+                                    />
+                                </Pane>
+                            </>
                         );
                     })}
                 </Pane>
@@ -98,7 +117,7 @@ const Room = ({ id }) => {
                     height={120}
                     display="flex"
                     alignItems="center"
-                    backgroundColor='#fff'
+                    backgroundColor="#fff"
                     paddingLeft={32}
                 >
                     <Textarea

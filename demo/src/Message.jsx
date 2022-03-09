@@ -1,17 +1,17 @@
-import React from 'react';
-import { Heading, Pane, Text } from 'evergreen-ui';
+import { EyeOnIcon, Heading, Pane, Text, Tooltip } from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
+import React from 'react';
 import { dateToString } from './utils/datetime';
 
-const Message = ({ message, showUserName, isLastMessage }) => {
+const Message = ({ message, showUserName, isLastMessage, marker }) => {
     const isOwnMessage = Kabelwerk.getUser().id === message.user.id;
-    const lastMessage = React.useRef()
-    
+    const lastMessage = React.useRef();
+
     React.useEffect(() => {
         if (isLastMessage) {
-            lastMessage.current.scrollIntoView()
+            lastMessage.current.scrollIntoView();
         }
-    }, [])
+    }, []);
 
     return (
         <Pane
@@ -32,26 +32,46 @@ const Message = ({ message, showUserName, isLastMessage }) => {
                     {message.user.name}
                 </Heading>
             )}
-            <Pane
-                backgroundColor={isOwnMessage ? '#EBF0FF' : '#EBF0FF'}
-                key={message.id}
-                elevation={2}
-                width="fit-content"
-                marginTop={4}
-                padding={8}
-                paddingTop={8}
-                paddingBottom={8}
-                paddingLeft={16}
-                paddingRight={16}
-                borderRadius={5}
-                maxWidth="75vw"
-                display="flex"
-                flexDirection="column"
-            >
-                <Text>{message.text}</Text>
-                <Heading marginTop={2} size={100} textAlign="right">
-                    {dateToString(message.insertedAt)}
-                </Heading>
+            <Pane display="flex" alignItems="flex-end">
+                <Pane
+                    backgroundColor={isOwnMessage ? '#EBF0FF' : '#EBF0FF'}
+                    key={message.id}
+                    elevation={2}
+                    width="fit-content"
+                    marginTop={4}
+                    padding={8}
+                    paddingTop={8}
+                    paddingBottom={8}
+                    paddingLeft={16}
+                    paddingRight={16}
+                    borderRadius={5}
+                    maxWidth="75vw"
+                    display="flex"
+                    flexDirection="column"
+                >
+                    <Text>{message.text}</Text>
+                    <Heading marginTop={2} size={100} textAlign="right">
+                        {dateToString(message.insertedAt)}
+                    </Heading>
+                </Pane>
+                {marker !== undefined && (
+                    <div
+                        style={{
+                            marginRight: '-20px',
+                        }}
+                    >
+                        <Tooltip
+                            title="seen"
+                            content={
+                                <Text size="small" color="white">
+                                    seen {dateToString(marker.updatedAt)}
+                                </Text>
+                            }
+                        >
+                            <EyeOnIcon marginLeft="5px" color="grey" />
+                        </Tooltip>
+                    </div>
+                )}
             </Pane>
         </Pane>
     );
