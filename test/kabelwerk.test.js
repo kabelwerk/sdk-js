@@ -4,151 +4,151 @@ import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 import { initKabelwerk } from '../src/kabelwerk.js';
 
-describe('socket connect', () => {
+const url = 'url';
+const token = 'token';
+
+describe('connect', () => {
     let kabelwerk = null;
 
     beforeEach(() => {
         kabelwerk = initKabelwerk();
-        kabelwerk.config({ url: 'url', token: 'token' });
+        kabelwerk.config({ url, token });
     });
 
-    test('socket params', () => {
+    test('socket opening → CONNECTING state', () => {
+        expect(kabelwerk.getState()).toBe(kabelwerk.INACTIVE);
+
         kabelwerk.connect();
 
-        expect(MockSocket.__constructor).toHaveBeenCalledTimes(1);
-        expect(MockSocket.onOpen).toHaveBeenCalledTimes(1);
-        expect(MockSocket.onClose).toHaveBeenCalledTimes(1);
-        expect(MockSocket.onError).toHaveBeenCalledTimes(1);
-        expect(MockSocket.connect).toHaveBeenCalledTimes(1);
+        expect(kabelwerk.getState()).toBe(kabelwerk.CONNECTING);
     });
 
-    test('connected event is emitted', () => {
-        expect.assertions(1);
-
-        kabelwerk.on('connected', (arg) => {
-            expect(arg).toEqual({});
-        });
-
-        kabelwerk.connect();
-        MockSocket.__open();
-    });
-
-    test('disconnected event is emitted', () => {
-        expect.assertions(1);
-
-        kabelwerk.on('disconnected', (res) => {
-            expect(res).toEqual({});
-        });
-
-        kabelwerk.connect();
-        MockSocket.onClose.mock.calls[0][0]();
-    });
-
-    test('error event is emitted', () => {
-        expect.assertions(2);
+    test('socket error → CONNECTING state, error event', () => {
+        expect.assertions(3);
 
         kabelwerk.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(CONNECTION_ERROR);
+
+            expect(kabelwerk.getState()).toBe(kabelwerk.CONNECTING);
         });
 
         kabelwerk.connect();
         MockSocket.onError.mock.calls[0][0]('timeout');
     });
 
-    test('ready event is emitted once', () => {
-        expect.assertions(1);
-
-        kabelwerk.on('ready', (res) => {
-            expect(res).toEqual({});
-        });
-
-        kabelwerk.connect();
-
-        for (let i = 0; i < 2; i++) {
-            MockSocket.__open();
-            MockPush.__serverRespond('ok', {}, false);
-        }
-    });
-
-    test('reconnected event is emitted', () => {
+    test('socket opened → ONLINE state, connected event', () => {
         expect.assertions(2);
 
-        kabelwerk.on('reconnected', (arg) => {
-            expect(arg).toEqual({});
+        kabelwerk.on('connected', ({ state }) => {
+            expect(state).toBe(kabelwerk.ONLINE);
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
         });
 
-        kabelwerk.connect();
-
-        for (let i = 0; i < 3; i++) {
-            MockSocket.__open();
-            MockPush.__serverRespond('ok', {}, false);
-        }
-    });
-});
-
-describe('private channel join', () => {
-    let kabelwerk = null;
-
-    beforeEach(() => {
-        kabelwerk = initKabelwerk();
         kabelwerk.connect();
         MockSocket.__open();
     });
 
-    test('channel topic', () => {
+    test('socket opened → join private channel', () => {
+        kabelwerk.connect();
+        expect(MockSocket.channel).toHaveBeenCalledTimes(0);
+
+        MockSocket.__open();
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
         expect(MockSocket.channel).toHaveBeenCalledWith('private');
     });
 
     test('join error → error event', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         kabelwerk.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
+
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
         });
 
+        kabelwerk.connect();
+        MockSocket.__open();
         MockPush.__serverRespond('error', {});
     });
 
     test('join timeout → error event', () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         kabelwerk.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(TIMEOUT);
+
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
         });
 
+        kabelwerk.connect();
+        MockSocket.__open();
         MockPush.__serverRespond('timeout', {});
     });
 
     test('join ok → ready event', () => {
         expect.assertions(5);
 
-        let rawUser = PayloadFactory.user();
+        const rawUser = PayloadFactory.user();
 
-        kabelwerk.on('ready', (res) => {
-            expect(res).toEqual({});
+        kabelwerk.on('ready', ({ user }) => {
+            expect(user.hubId).toBe(rawUser.hub_id);
+            expect(user.id).toBe(rawUser.id);
+            expect(user.key).toBe(rawUser.key);
+            expect(user.name).toBe(rawUser.name);
 
-            let resUser = kabelwerk.getUser();
-            expect(resUser.hubId).toBe(rawUser.hub_id);
-            expect(resUser.id).toBe(rawUser.id);
-            expect(resUser.key).toBe(rawUser.key);
-            expect(resUser.name).toBe(rawUser.name);
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
         });
 
+        kabelwerk.connect();
+        MockSocket.__open();
         MockPush.__serverRespond('ok', rawUser);
+    });
+
+    test('ready event is emitted once', () => {
+        expect.assertions(1);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
+        });
+
+        kabelwerk.connect();
+
+        for (let i = 0; i < 2; i++) {
+            MockSocket.__open();
+            MockPush.__serverRespond('ok', PayloadFactory.user(), false);
+        }
+    });
+
+    test('connected event is emitted each time', () => {
+        expect.assertions(4);
+
+        kabelwerk.on('connected', ({ state }) => {
+            expect(state).toBe(kabelwerk.ONLINE);
+            expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
+        });
+
+        kabelwerk.connect();
+
+        for (let i = 0; i < 2; i++) {
+            MockSocket.__open();
+            MockPush.__serverRespond('ok', PayloadFactory.user(), false);
+        }
     });
 });
 
 describe('user info', () => {
-    let user = PayloadFactory.user();
+    const user = PayloadFactory.user();
+
     let kabelwerk = null;
 
     beforeEach(() => {
         kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
         kabelwerk.connect();
+
         MockSocket.__open();
         MockPush.__serverRespond('ok', user, 'clear-initial');
     });
@@ -231,12 +231,15 @@ describe('user info', () => {
 });
 
 describe('create room', () => {
-    let user = PayloadFactory.user();
+    const user = PayloadFactory.user();
+
     let kabelwerk = null;
 
     beforeEach(() => {
         kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
         kabelwerk.connect();
+
         MockSocket.__open();
         MockPush.__serverRespond('ok', user, 'clear-initial');
     });
@@ -293,12 +296,15 @@ describe('create room', () => {
 });
 
 describe('load hub info', () => {
-    let user = PayloadFactory.user();
+    const user = PayloadFactory.user();
+
     let kabelwerk = null;
 
     beforeEach(() => {
         kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
         kabelwerk.connect();
+
         MockSocket.__open();
         MockPush.__serverRespond('ok', user, 'clear-initial');
     });
@@ -360,12 +366,15 @@ describe('load hub info', () => {
 });
 
 describe('disconnect', () => {
-    let user = PayloadFactory.user();
+    const user = PayloadFactory.user();
+
     let kabelwerk = null;
 
     beforeEach(() => {
         kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
         kabelwerk.connect();
+
         MockSocket.__open();
         MockPush.__serverRespond('ok', user, 'clear-initial');
     });

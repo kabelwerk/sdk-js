@@ -1,6 +1,6 @@
 import { Socket } from 'phoenix';
 
-import { ConnectionError } from './errors.js';
+import { ConnectionError, UsageError } from './errors.js';
 import logger from './logger.js';
 import { VERSION } from './version.js';
 
@@ -20,17 +20,6 @@ const initConnector = function (config, dispatcher) {
 
     let token = config.token;
     let tokenIsRefreshing = false;
-
-    const refreshToken = function () {
-        if (config.refreshToken) {
-            return config.refreshToken(token).then((newToken) => {
-                token = newToken;
-                return token;
-            });
-        } else {
-            return Promise.resolve(token);
-        }
-    };
 
     const socket = new Socket(config.url, {
         params: function () {
@@ -70,13 +59,15 @@ const initConnector = function (config, dispatcher) {
         if (config.refreshToken && !tokenIsRefreshing) {
             tokenIsRefreshing = true;
 
-            refreshToken()
-                .then(function () {
+            config
+                .refreshToken()
+                .then(function (newToken) {
                     logger.info('Auth token refreshed.');
+                    token = newToken;
                     tokenIsRefreshing = false;
                 })
                 .catch(function (error) {
-                    logger.error('Failed to refresh auth token.', error);
+                    logger.error('Failed to refresh the auth token.', error);
                     tokenIsRefreshing = false;
                 });
         }
@@ -84,13 +75,38 @@ const initConnector = function (config, dispatcher) {
 
     return {
         connect: function () {
-            return refreshToken()
-                .then(() => {
-                    socket.connect();
-                })
-                .catch((error) => {
-                    dispatcher.send('error', error);
-                });
+            // if the connector is configured with a token — use it, regardless
+            // of whether it is also configured with a refreshToken function
+            if (token) {
+                state = CONNECTING;
+
+                return socket.connect();
+            }
+
+            if (config.refreshToken) {
+                state = CONNECTING;
+
+                return config
+                    .refreshToken()
+                    .then(function (newToken) {
+                        logger.info('Auth token obtained.');
+
+                        token = newToken;
+                        socket.connect();
+                    })
+                    .catch(function (error) {
+                        logger.error('Failed to obtain an auth token.', error);
+
+                        state = INACTIVE;
+
+                        dispatcher.send('error', ConnectionError(error));
+                    });
+            }
+
+            throw UsageError(
+                'Kabelwerk must be configured with either a token ' +
+                    'or a refreshToken function in order to connect to the server.'
+            );
         },
 
         disconnect: function () {

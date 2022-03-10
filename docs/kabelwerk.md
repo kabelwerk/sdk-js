@@ -121,7 +121,7 @@ Kabelwerk.loadHubInfo()
 ## List of events
 
 -   **`error`** → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
--   **`ready`** → Fired when the connection to the server is first established and the `Kabelwerk` object is ready to be used.
+-   **`ready`** → Fired when the connection to the server is first established and the Kabelwerk object is ready to be used. The attached event listeners are called with a `{user}` object containing info about the connected user.
 -   **`connected`** → Fired when the connection to the server is established. This could be either because `Kabelwerk.connect()` was invoked, or it could be due to automatically re-establishing the connection after a connection drop. In the former case, the Kabelwerk object may not yet be ready to be used as it may still have to fetch some data from the server (such as the connected user's info). Useful for displaying the connection's status to the user.
 -   **`disconnected`** → Fired when the connection to the server is dropped. Useful for displaying the connection's status to the user.
 -   **`user_updated`** → Fired when the connected user's attributes are changed. The attached listeners are called with the up-to-date `{id, key, name}` object.
