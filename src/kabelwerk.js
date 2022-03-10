@@ -92,10 +92,16 @@ const initKabelwerk = function () {
             params = validateParams(params, {
                 url: { type: 'string', optional: true },
                 token: { type: 'string', optional: true },
-                refreshToken: {
-                    type: 'function',
-                    nullable: true,
+                refreshToken: { type: 'function', optional: true },
+                ensureRooms: {
+                    type: 'iterable',
                     optional: true,
+                    each: function (hubIdOrSlug) {
+                        return validateOneOf(hubIdOrSlug, [
+                            { type: 'integer' },
+                            { type: 'string' },
+                        ]);
+                    },
                 },
                 logging: { type: 'string', optional: true },
             });
