@@ -40,7 +40,11 @@ PayloadFactory.inboxItem = (function () {
 
         return {
             room: {
-                hub_id: 1,
+                hub: {
+                    id: 1,
+                    name: 'Hub',
+                    slug: 'hub',
+                },
                 id: id,
             },
             message:
