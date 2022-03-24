@@ -55,7 +55,10 @@ describe('connect', () => {
 
         MockSocket.__open();
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
-        expect(MockSocket.channel).toHaveBeenCalledWith('private');
+        expect(MockSocket.channel).toHaveBeenCalledWith(
+            'private',
+            expect.any(Function)
+        );
     });
 
     test('join error → error event', () => {

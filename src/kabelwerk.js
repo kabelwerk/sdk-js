@@ -45,7 +45,15 @@ const initKabelwerk = function () {
     let privateChannel = null;
 
     const setupPrivateChannel = function () {
-        privateChannel = connector.getSocket().channel('private');
+        privateChannel = connector.getSocket().channel('private', function () {
+            const params = {};
+
+            if (config.ensureRooms) {
+                params.ensure_rooms = config.ensureRooms;
+            }
+
+            return params;
+        });
 
         privateChannel.on('user_updated', function (payload) {
             user = parseOwnUser(payload);
@@ -96,11 +104,8 @@ const initKabelwerk = function () {
                 ensureRooms: {
                     type: 'iterable',
                     optional: true,
-                    each: function (hubIdOrSlug) {
-                        return validateOneOf(hubIdOrSlug, [
-                            { type: 'integer' },
-                            { type: 'string' },
-                        ]);
+                    each: function (hubSlug) {
+                        return validate(hubSlug, { type: 'string' });
                     },
                 },
                 logging: { type: 'string', optional: true },
