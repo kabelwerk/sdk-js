@@ -234,14 +234,14 @@ const initKabelwerk = function () {
         //
         openInbox: function (params) {
             ensureReady();
-            return initInbox(socket, user, params);
+            return initInbox(connector.getSocket(), user, params);
         },
 
         // Init and return a notifier object.
         //
         openNotifier: function () {
             ensureReady();
-            return initNotifier(socket, user);
+            return initNotifier(connector.getSocket(), user);
         },
 
         // Init and return a room object.
@@ -255,7 +255,7 @@ const initKabelwerk = function () {
                 throw UsageError('The room ID must be an integer.');
             }
 
-            return initRoom(socket, user, roomId);
+            return initRoom(connector.getSocket(), user, roomId);
         },
 
         // Update the connected user's info. Return a promise resolving into

@@ -368,6 +368,57 @@ describe('load hub info', () => {
     });
 });
 
+describe('open methods', () => {
+    const user = PayloadFactory.user();
+
+    let kabelwerk = null;
+
+    beforeEach(() => {
+        kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
+        kabelwerk.connect();
+    });
+
+    test('open inbox', () => {
+        expect.assertions(2);
+
+        expect(kabelwerk.openInbox).toThrow(Error);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.openInbox()).toBeTruthy();
+        });
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user);
+    });
+
+    test('open notifier', () => {
+        expect.assertions(2);
+
+        expect(kabelwerk.openNotifier).toThrow(Error);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.openNotifier()).toBeTruthy();
+        });
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user);
+    });
+
+    test('open room', () => {
+        expect.assertions(2);
+
+        expect(() => kabelwerk.openRoom(42)).toThrow(Error);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.openRoom(42)).toBeTruthy();
+        });
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', user);
+    });
+});
+
 describe('disconnect', () => {
     const user = PayloadFactory.user();
 
