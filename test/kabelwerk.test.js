@@ -61,14 +61,18 @@ describe('connect', () => {
         );
     });
 
-    test('join error → error event', () => {
-        expect.assertions(3);
+    test('join error → error + disconnected events', () => {
+        expect.assertions(4);
 
         kabelwerk.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(PUSH_REJECTED);
 
             expect(kabelwerk.getState()).toBe(kabelwerk.ONLINE);
+        });
+
+        kabelwerk.on('disconnected', () => {
+            expect(kabelwerk.getState()).toBe(kabelwerk.INACTIVE);
         });
 
         kabelwerk.connect();

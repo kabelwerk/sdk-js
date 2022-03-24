@@ -82,7 +82,12 @@ const initKabelwerk = function () {
                     "Failed to join the user's private channel.",
                     error
                 );
+
                 dispatcher.send('error', PushRejected());
+
+                // if we cannot (re-)join the private channel, then terminate
+                // the connection
+                disconnect();
             })
             .receive('timeout', function () {
                 dispatcher.send('error', Timeout());
@@ -93,6 +98,19 @@ const initKabelwerk = function () {
         if (!connector || !ready) {
             throw UsageError('The Kabelwerk object is not ready yet.');
         }
+    };
+
+    const disconnect = function () {
+        if (privateChannel) privateChannel.leave();
+        privateChannel = null;
+
+        if (connector) connector.disconnect();
+        connector = null;
+
+        dispatcher.off();
+
+        user = null;
+        ready = false;
     };
 
     return {
@@ -168,18 +186,7 @@ const initKabelwerk = function () {
         // Close the currently active websocket connection to the backend and
         // reset the internal state.
         //
-        disconnect: function () {
-            if (privateChannel) privateChannel.leave();
-            privateChannel = null;
-
-            if (connector) connector.disconnect();
-            connector = null;
-
-            dispatcher.off();
-
-            user = null;
-            ready = false;
-        },
+        disconnect: disconnect,
 
         // Return the current connection state.
         //
