@@ -1,5 +1,6 @@
 import { Socket } from 'phoenix';
 
+import { INACTIVE, CONNECTING, ONLINE, initConnector } from './connector.js';
 import { initDispatcher } from './dispatcher.js';
 import {
     ConnectionError,
@@ -21,126 +22,95 @@ import { VERSION } from './version.js';
 // easier when we have a constructor function.
 //
 const initKabelwerk = function () {
-    let config = {
+    const config = {
         url: 'wss://hub.kabelwerk.io/socket/user',
         token: '',
         refreshToken: null,
         logging: 'silent',
     };
 
-    let dispatcher = initDispatcher([
+    const dispatcher = initDispatcher([
         'error',
         'ready',
         'connected',
         'disconnected',
-        'reconnected',
         'user_updated',
     ]);
 
-    // internal state
-    let ready = false;
+    let connector = null;
     let user = null;
-    let tokenIsRefreshing = false;
-
-    // the phoenix socket
-    let socket = null;
-
-    const setupSocket = function () {
-        socket = new Socket(config.url, {
-            params: function () {
-                return {
-                    token: config.token,
-                    agent: `sdk-js/${VERSION}`,
-                };
-            },
-            logger: function (kind, msg, data) {
-                logger.debug(`${kind}: ${msg}`, data);
-            },
-        });
-
-        socket.onOpen(function () {
-            logger.info('Websocket connected.');
-
-            if (ready) {
-                dispatcher.send('reconnected', {});
-            } else {
-                dispatcher.send('connected', {});
-            }
-        });
-
-        socket.onClose(function (event) {
-            logger.info('Websocket disconnected.', event);
-            dispatcher.send('disconnected', {});
-        });
-
-        socket.onError(function (error) {
-            logger.error('Websocket error.', error);
-            dispatcher.send('error', ConnectionError(error));
-
-            if (config.refreshToken && !tokenIsRefreshing) {
-                tokenIsRefreshing = true;
-
-                config
-                    .refreshToken(config.token)
-                    .then(function (newToken) {
-                        logger.info('Auth token refreshed.');
-                        config.token = newToken;
-                        tokenIsRefreshing = false;
-                    })
-                    .catch(function (error) {
-                        logger.error('Failed to refresh auth token.', error);
-                        tokenIsRefreshing = false;
-                    });
-            }
-        });
-    };
+    let ready = false;
 
     // the user's private channel
     let privateChannel = null;
 
     const setupPrivateChannel = function () {
-        privateChannel = socket.channel('private');
+        privateChannel = connector.getSocket().channel('private', function () {
+            const params = {};
+
+            if (config.ensureRooms) {
+                params.ensure_rooms = config.ensureRooms;
+            }
+
+            return params;
+        });
 
         privateChannel.on('user_updated', function (payload) {
             user = parseOwnUser(payload);
             dispatcher.send('user_updated', user);
         });
 
-        dispatcher.once('connected', function () {
-            privateChannel
-                .join()
-                .receive('ok', function (payload) {
-                    logger.info("Joined the user's private channel.");
+        privateChannel
+            .join()
+            .receive('ok', function (payload) {
+                logger.info("Joined the user's private channel.");
 
-                    if (user) {
-                        user = parseOwnUser(payload);
-                    } else {
-                        user = parseOwnUser(payload);
-                        dispatcher.send('user_updated', user);
-                    }
+                if (user) {
+                    user = parseOwnUser(payload);
+                } else {
+                    user = parseOwnUser(payload);
+                    dispatcher.send('user_updated', user);
+                }
 
-                    if (!ready) {
-                        ready = true;
-                        dispatcher.send('ready', {});
-                    }
-                })
-                .receive('error', function (error) {
-                    logger.error(
-                        "Failed to join the user's private channel.",
-                        error
-                    );
-                    dispatcher.send('error', PushRejected());
-                })
-                .receive('timeout', function () {
-                    dispatcher.send('error', Timeout());
-                });
-        });
+                if (!ready) {
+                    ready = true;
+                    dispatcher.send('ready', { user });
+                }
+            })
+            .receive('error', function (error) {
+                logger.error(
+                    "Failed to join the user's private channel.",
+                    error
+                );
+
+                dispatcher.send('error', PushRejected());
+
+                // if we cannot (re-)join the private channel, then terminate
+                // the connection
+                disconnect();
+            })
+            .receive('timeout', function () {
+                dispatcher.send('error', Timeout());
+            });
     };
 
     const ensureReady = function () {
-        if (!ready) {
+        if (!connector || !ready) {
             throw UsageError('The Kabelwerk object is not ready yet.');
         }
+    };
+
+    const disconnect = function () {
+        if (privateChannel) privateChannel.leave();
+        privateChannel = null;
+
+        if (connector) connector.disconnect();
+        connector = null;
+
+        dispatcher.off();
+
+        user = null;
+        ready = false;
     };
 
     return {
@@ -148,10 +118,13 @@ const initKabelwerk = function () {
             params = validateParams(params, {
                 url: { type: 'string', optional: true },
                 token: { type: 'string', optional: true },
-                refreshToken: {
-                    type: 'function',
-                    nullable: true,
+                refreshToken: { type: 'function', optional: true },
+                ensureRooms: {
+                    type: 'iterable',
                     optional: true,
+                    each: function (hubSlug) {
+                        return validate(hubSlug, { type: 'string' });
+                    },
                 },
                 logging: { type: 'string', optional: true },
             });
@@ -163,15 +136,20 @@ const initKabelwerk = function () {
             logger.setLevel(config.logging);
         },
 
+        // Open a websocket connection to the Kabelwerk backend.
+        //
         connect: function () {
-            if (socket) {
-                throw UsageError('Kabewerk.connect() was already called once.');
+            if (connector) {
+                const word =
+                    connector.getState() == ONLINE ? 'online' : 'connecting';
+                throw UsageError(`Kabewerk is already ${word}.`);
             }
 
-            setupSocket();
-            setupPrivateChannel();
+            connector = initConnector(config, dispatcher);
 
-            socket.connect();
+            dispatcher.once('connected', setupPrivateChannel);
+
+            connector.connect();
         },
 
         // Create a room for the connected user. Return a promise resolving
@@ -205,17 +183,19 @@ const initKabelwerk = function () {
             });
         },
 
-        disconnect: function () {
-            dispatcher.off();
+        // Close the currently active websocket connection to the backend and
+        // reset the internal state.
+        //
+        disconnect: disconnect,
 
-            if (privateChannel) privateChannel.leave();
-            privateChannel = null;
-
-            if (socket) socket.disconnect();
-            socket = null;
-
-            user = null;
-            ready = false;
+        // Return the current connection state.
+        //
+        getState: function () {
+            if (connector) {
+                return connector.getState();
+            } else {
+                return INACTIVE;
+            }
         },
 
         // Return the connected user's info.
@@ -223,10 +203,6 @@ const initKabelwerk = function () {
         getUser: function () {
             ensureReady();
             return user;
-        },
-
-        isConnected: function () {
-            return Boolean(socket && socket.isConnected());
         },
 
         // Retrieve info about the user's hub (name, list of fellow hub users).
@@ -265,14 +241,14 @@ const initKabelwerk = function () {
         //
         openInbox: function (params) {
             ensureReady();
-            return initInbox(socket, user, params);
+            return initInbox(connector.getSocket(), user, params);
         },
 
         // Init and return a notifier object.
         //
         openNotifier: function () {
             ensureReady();
-            return initNotifier(socket, user);
+            return initNotifier(connector.getSocket(), user);
         },
 
         // Init and return a room object.
@@ -286,7 +262,7 @@ const initKabelwerk = function () {
                 throw UsageError('The room ID must be an integer.');
             }
 
-            return initRoom(socket, user, roomId);
+            return initRoom(connector.getSocket(), user, roomId);
         },
 
         // Update the connected user's info. Return a promise resolving into
@@ -319,7 +295,13 @@ const initKabelwerk = function () {
             });
         },
 
-        VERSION: VERSION,
+        // connection states
+        INACTIVE,
+        CONNECTING,
+        ONLINE,
+
+        // SDK version
+        VERSION,
     };
 };
 

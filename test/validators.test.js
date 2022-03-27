@@ -31,6 +31,34 @@ describe('validate', () => {
         }
     });
 
+    test('iterables', () => {
+        for (let value of ['', []]) {
+            expect(validate(value, { type: 'iterable' })).toBe(value);
+        }
+
+        for (let value of [undefined, null, false, 0, {}, () => {}]) {
+            expect(() => validate(value, { type: 'iterable' })).toThrow(Error);
+        }
+    });
+
+    test('iterables with each function', () => {
+        const spec = {
+            type: 'iterable',
+            each: (x) => validate(x, { type: 'string' }),
+        };
+
+        for (let value of ['abc', ['a', 'b', 'c'], []]) {
+            expect(validate(value, spec)).toBe(value);
+        }
+
+        for (let value of [
+            [1, 2, 3, 4],
+            ['a', 'b', 5],
+        ]) {
+            expect(() => validate(value, spec)).toThrow(Error);
+        }
+    });
+
     test('maps', () => {
         expect(validate({}, { type: 'map' })).toEqual(new Map());
         expect(validate({ b: 2 }, { type: 'map' })).toEqual(
@@ -67,6 +95,7 @@ describe('validate', () => {
             'boolean',
             'integer',
             'string',
+            'iterable',
             'map',
             'function',
             'datetime',

@@ -1,5 +1,18 @@
 const sidebars = {
-    tutorialSidebar: ['README', 'kabelwerk', 'inboxes', 'rooms', 'notifiers'],
+    tutorialSidebar: [
+        'README',
+        {
+            type: 'category',
+            label: 'Kabelwerk',
+            link: { type: 'doc', id: 'kabelwerk' },
+            items: ['connection-states'],
+            collapsible: true,
+            collapsed: false,
+        },
+        'inboxes',
+        'rooms',
+        'notifiers',
+    ],
 };
 
 module.exports = sidebars;
