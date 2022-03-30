@@ -19,6 +19,7 @@ const Room = ({ id }) => {
 
     const handleSendMessage = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
+            room.current.moveMarker();
             onSubmit();
         }
 
@@ -64,7 +65,7 @@ const Room = ({ id }) => {
 
     const showUserName = (message, prevMessage) => {
         if (prevMessage === undefined) {
-            return false;
+            return true;
         }
 
         return message.user.id !== prevMessage.user.id;
@@ -75,11 +76,17 @@ const Room = ({ id }) => {
     } else {
         return (
             <Pane
-                // height={'80vh'}
                 display="flex"
                 flexDirection="column"
+                width="calc(100vw - 300px)"
+                marginLeft={300}
             >
-                <Pane marginBottom={130} marginLeft={40} marginRight={40}>
+                <Pane
+                    marginBottom={130}
+                    marginLeft={30}
+                    marginRight={40}
+                    marginTop={20}
+                >
                     {messages.map((message, index) => {
                         return (
                             <>
@@ -113,10 +120,10 @@ const Room = ({ id }) => {
                 <Pane
                     position="fixed"
                     bottom={0}
-                    width="100vw"
-                    height={120}
+                    width="calc(100vw - 300px)"
+                    height={100}
                     display="flex"
-                    alignItems="center"
+                    alignItems="flex-start"
                     backgroundColor="#fff"
                     paddingLeft={32}
                 >
@@ -138,6 +145,7 @@ const Room = ({ id }) => {
                         appearance="minimal"
                         size="large"
                         disabled={draft.length == 0}
+                        marginTop={20}
                     ></IconButton>
                 </Pane>
             </Pane>

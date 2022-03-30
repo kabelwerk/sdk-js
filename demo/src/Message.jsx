@@ -34,12 +34,11 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
             )}
             <Pane display="flex" alignItems="flex-end">
                 <Pane
-                    backgroundColor={isOwnMessage ? '#EBF0FF' : '#EBF0FF'}
+                    backgroundColor="#EBF0FF"
                     key={message.id}
                     elevation={2}
                     width="fit-content"
                     marginTop={4}
-                    padding={8}
                     paddingTop={8}
                     paddingBottom={8}
                     paddingLeft={16}
@@ -55,11 +54,7 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                     </Heading>
                 </Pane>
                 {marker !== undefined && (
-                    <div
-                        style={{
-                            marginRight: '-20px',
-                        }}
-                    >
+                    <Pane marginRight={-20}>
                         <Tooltip
                             title="seen"
                             content={
@@ -68,9 +63,9 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                                 </Text>
                             }
                         >
-                            <EyeOnIcon marginLeft="5px" color="grey" />
+                            <EyeOnIcon marginLeft={5} color="grey" />
                         </Tooltip>
-                    </div>
+                    </Pane>
                 )}
             </Pane>
         </Pane>

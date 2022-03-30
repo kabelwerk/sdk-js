@@ -1,9 +1,11 @@
 import React from 'react';
+import { Pane } from 'evergreen-ui';
 import { CONN_STATES, KabelwerkContext } from './KabelwerkContext';
 import { Room } from './Room';
+import Sidebar from './Sidebar';
 
 const Chat = ({ resetToken }) => {
-    const { connState, inboxItems } = React.useContext(KabelwerkContext);
+    const { connState } = React.useContext(KabelwerkContext);
     const [activeRoomId, setActiveRoomId] = React.useState(null);
 
     if (connState == CONN_STATES.START) {
@@ -19,24 +21,14 @@ const Chat = ({ resetToken }) => {
         );
     } else {
         return (
-            <>
-                <ul>
-                    {inboxItems.map((item) => (
-                        <li
-                            key={item.room.id}
-                            onClick={() => setActiveRoomId(item.room.id)}
-                        >
-                            {item.room.id}
-                        </li>
-                    ))}
-                </ul>
-                <button onClick={resetToken}>Logout</button>
+            <Pane>
+                <Sidebar setActiveRoom={(roomId) => setActiveRoomId(roomId)} />
                 {activeRoomId ? (
                     <Room id={activeRoomId} />
                 ) : (
                     <p>Please select a room to open.</p>
                 )}
-            </>
+            </Pane>
         );
     }
 };
