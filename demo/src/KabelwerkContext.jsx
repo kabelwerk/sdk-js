@@ -1,22 +1,14 @@
 import Kabelwerk from 'kabelwerk';
 import React from 'react';
 
-export const CONN_STATES = Object.freeze({
-    START: 0,
-    CONNECTING: 1,
-    ONLINE: 2,
-    RECONNECTING: 3,
-});
-
 const KabelwerkContext = React.createContext({
-    connState: CONN_STATES.START,
+    connState: Kabelwerk.getState(),
     inboxItems: [],
-    messages: [],
 });
 
 const KabelwerkProvider = function ({ children, config }) {
-    // the current connection state, 1 of the 4 CONN_STATES constants
-    const [connState, setConnState] = React.useState(CONN_STATES.START);
+    // the current connection state
+    const [connState, setConnState] = React.useState(Kabelwerk.getState);
 
     // the Kabelwerk inbox object
     const inbox = React.useRef(null);
@@ -33,18 +25,14 @@ const KabelwerkProvider = function ({ children, config }) {
             logging: 'info',
         });
 
-        Kabelwerk.on('connected', () => setConnState(CONN_STATES.ONLINE));
+        Kabelwerk.on('connected', () => setConnState(Kabelwerk.getState));
 
-        Kabelwerk.on('disconnected', () =>
-            setConnState(CONN_STATES.RECONNECTING)
-        );
+        Kabelwerk.on('disconnected', () => setConnState(Kabelwerk.getState));
 
         Kabelwerk.on('ready', () => {
             inbox.current = Kabelwerk.openInbox();
 
-            inbox.current.on('ready', ({ items }) => {
-                setInboxItems(items);
-            });
+            inbox.current.on('ready', ({ items }) => setInboxItems(items));
 
             inbox.current.on('updated', ({ items }) => setInboxItems(items));
 
@@ -53,11 +41,13 @@ const KabelwerkProvider = function ({ children, config }) {
 
         Kabelwerk.connect();
 
-        setConnState(CONN_STATES.CONNECTING);
+        setConnState(Kabelwerk.getState);
 
         return () => {
             // this also removes all attached event listeners
             Kabelwerk.disconnect();
+
+            setConnState(Kabelwerk.getState);
         };
     }, [config]);
 
