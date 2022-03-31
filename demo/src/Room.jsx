@@ -6,7 +6,6 @@ import { Message } from './Message';
 const Room = ({ id }) => {
     // the Kabelwerk room object
     const room = React.useRef(null);
-    const [marker, setMarker] = React.useState(null);
 
     // whether the room object is ready
     const [isReady, setIsReady] = React.useState(false);
@@ -14,19 +13,11 @@ const Room = ({ id }) => {
     // the list of loaded messages
     const [messages, setMessages] = React.useState([]);
 
+    // the hub-side marker — marking the last message read by the hub side
+    const [marker, setMarker] = React.useState(null);
+
     // the value of the <textarea> for posting new messages
     const [draft, setDraft] = React.useState('');
-
-    const handleSendMessage = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            room.current.moveMarker();
-            onSubmit();
-        }
-
-        if (e.key === 'Enter' && e.shiftKey) {
-            setDraft(draft + '\n');
-        }
-    };
 
     // setup the room object
     React.useEffect(() => {
@@ -34,16 +25,35 @@ const Room = ({ id }) => {
 
         room.current.on('ready', ({ messages, markers }) => {
             setMessages(messages);
-            setMarker(markers[1]);
+
+            // mark all messages as read as soon as these are loaded
+            if (messages.length) {
+                room.current.moveMarker();
+            }
+
+            // will be null if the hub side has not read any message yet
+            if (markers[1] != null) {
+                setMarker(markers[1]);
+            }
+
             setIsReady(true);
         });
 
+        // this event is fired whenever a new message is posted in the room,
+        // also if the message has been posted by the connected user
         room.current.on('message_posted', (message) => {
             setMessages((messages) => messages.concat(message));
+
+            // mark the message as read
+            room.current.moveMarker();
         });
 
-        room.current.on('marker_moved', () => {
-            setMarker(room.current.getMarkers()[1]);
+        // this event is fired whenever a message marker is moved in the room,
+        // also if it is the marker of the connected user
+        room.current.on('marker_moved', (marker) => {
+            if (marker.userId != Kabelwerk.getUser().id) {
+                setMarker(marker);
+            }
         });
 
         room.current.connect();
@@ -60,6 +70,16 @@ const Room = ({ id }) => {
                 room.current.postMessage({ text: draft });
                 setDraft('');
             }
+        }
+    };
+
+    const handleSendMessage = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            onSubmit();
+        }
+
+        if (e.key === 'Enter' && e.shiftKey) {
+            setDraft(draft + '\n');
         }
     };
 
