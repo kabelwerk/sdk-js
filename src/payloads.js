@@ -35,7 +35,7 @@ export const parseOwnHub = function (payload) {
 export const parseUserInboxItem = function (payload, user) {
     return {
         room: {
-            hubId: payload.room.hub_id,
+            hub: parseHub(payload.room.hub),
             id: payload.room.id,
         },
         message: payload.message ? parseMessage(payload.message) : null,
@@ -192,5 +192,15 @@ const parseUser = function (payload) {
         id: payload.id,
         key: payload.key,
         name: payload.name,
+    };
+};
+
+// Helper for parseUserInboxItem.
+//
+const parseHub = function (payload) {
+    return {
+        id: payload.id,
+        name: payload.name,
+        slug: payload.slug,
     };
 };

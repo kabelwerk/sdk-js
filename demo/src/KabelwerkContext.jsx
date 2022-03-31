@@ -29,11 +29,12 @@ const KabelwerkProvider = function ({ children, config }) {
         Kabelwerk.config({
             url: config.url,
             token: config.token,
+            ensureRooms: 'all',
             logging: 'info',
         });
 
         Kabelwerk.on('connected', () => setConnState(CONN_STATES.ONLINE));
-        Kabelwerk.on('reconnected', () => setConnState(CONN_STATES.ONLINE));
+
         Kabelwerk.on('disconnected', () =>
             setConnState(CONN_STATES.RECONNECTING)
         );
@@ -42,9 +43,6 @@ const KabelwerkProvider = function ({ children, config }) {
             inbox.current = Kabelwerk.openInbox();
 
             inbox.current.on('ready', ({ items }) => {
-                if (items.length === 0) {
-                    Kabelwerk.createRoom(1);
-                }
                 setInboxItems(items);
             });
 

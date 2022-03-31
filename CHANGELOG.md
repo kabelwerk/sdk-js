@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (TBA)
+
+-   Kabelwerk object: new method `getState()` for checking the current [connection state](./docs/connection-states.md) ([docs](./docs/kabelwerk.md#list-of-methods)).
+-   Kabelwerk object: removed the `isConnected()` method; please use the new `getState()` method instead (see above).
+-   Kabelwerk object: removed the `reconnected` event; please use the `connected` event instead ([docs](./docs/kabelwerk.md#list-of-events)).
+-   Kabelwerk object: the `token` config option is no longer required; when not provided, the function supplied to the `refreshToken` config option will be used to obtain an initial auth token ([docs](./docs/kabelwerk.md#config)).
+-   Kabelwerk object: added the `ensureRooms` config option ([docs](./docs/kabelwerk.md#config)).
+
 ## 0.2.2 (2022-02-10)
 
 -   Rooms: fixed `updateHubUser` to accept `null` ([docs](./docs/rooms.md#on-the-hub-side)).

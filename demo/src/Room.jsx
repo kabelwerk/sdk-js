@@ -89,31 +89,29 @@ const Room = ({ id }) => {
                 >
                     {messages.map((message, index) => {
                         return (
-                            <>
-                                <Pane
-                                    key={message.id}
-                                    display="flex"
-                                    flexDirection="column"
-                                >
-                                    <Message
-                                        marker={
-                                            marker?.messageId === message.id
-                                                ? marker
-                                                : undefined
-                                        }
-                                        isLastMessage={
-                                            index === messages.length - 1
-                                        }
-                                        message={message}
-                                        showUserName={showUserName(
-                                            message,
-                                            messages.length === index - 1
-                                                ? undefined
-                                                : messages[index - 1]
-                                        )}
-                                    />
-                                </Pane>
-                            </>
+                            <Pane
+                                key={message.id}
+                                display="flex"
+                                flexDirection="column"
+                            >
+                                <Message
+                                    marker={
+                                        marker?.messageId === message.id
+                                            ? marker
+                                            : undefined
+                                    }
+                                    isLastMessage={
+                                        index === messages.length - 1
+                                    }
+                                    message={message}
+                                    showUserName={showUserName(
+                                        message,
+                                        messages.length === index - 1
+                                            ? undefined
+                                            : messages[index - 1]
+                                    )}
+                                />
+                            </Pane>
                         );
                     })}
                 </Pane>
