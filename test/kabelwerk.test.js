@@ -34,7 +34,7 @@ describe('connect', () => {
         });
 
         kabelwerk.connect();
-        MockSocket.onError.mock.calls[0][0]('timeout');
+        MockSocket.__error();
     });
 
     test('socket opened → ONLINE state, connected event', () => {

@@ -33,30 +33,29 @@ const initConnector = function (config, dispatcher) {
         },
     });
 
+    // fired when the websocket connection is opened
     socket.onOpen(function () {
-        logger.info('Websocket connected.');
+        logger.info('Websocket connection opened.');
 
         state = ONLINE;
 
         dispatcher.send('connected', { state });
     });
 
+    // fired when the websocket connection is closed
     socket.onClose(function (event) {
-        logger.info('Websocket disconnected.', event);
+        logger.info('Websocket connection closed.', event);
 
-        state = INACTIVE;
+        // the same condition as the one used by Phoenix
+        if (!event.wasClean && event.code != 1000) {
+            state = CONNECTING;
+        } else {
+            state = INACTIVE;
+        }
 
         dispatcher.send('disconnected', { state });
-    });
 
-    socket.onError(function (error) {
-        logger.error('Websocket error.', error);
-
-        state = CONNECTING;
-
-        dispatcher.send('error', ConnectionError(error));
-
-        if (config.refreshToken && !tokenIsRefreshing) {
+        if (state == CONNECTING && config.refreshToken && !tokenIsRefreshing) {
             tokenIsRefreshing = true;
 
             config
@@ -71,6 +70,14 @@ const initConnector = function (config, dispatcher) {
                     tokenIsRefreshing = false;
                 });
         }
+    });
+
+    // fired when the websocket connection is closed because of an error
+    // the onClose handler takes care of updating the state
+    socket.onError(function (event) {
+        logger.error('Websocket connection error.', event);
+
+        dispatcher.send('error', ConnectionError(event));
     });
 
     return {

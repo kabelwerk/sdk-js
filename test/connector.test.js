@@ -97,20 +97,36 @@ describe('connect', () => {
         }
     });
 
-    test('socket error → CONNECTING state, error event', () => {
-        expect.assertions(3);
+    test('socket closed → CONNECTING state, disconnected event', () => {
+        expect.assertions(4);
 
-        dispatcher.on('error', (error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(CONNECTION_ERROR);
-
+        dispatcher.on('disconnected', ({ state }) => {
+            expect(state).toBe(CONNECTING);
             expect(connector.getState()).toBe(CONNECTING);
         });
 
         connector = initConnector({ url, token }, dispatcher);
         connector.connect();
 
-        MockSocket.onError.mock.calls[0][0]('timeout');
+        for (let i = 0; i < 2; i++) {
+            MockSocket.__close();
+        }
+    });
+
+    test('socket error → error event', () => {
+        expect.assertions(4);
+
+        dispatcher.on('error', (error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(CONNECTION_ERROR);
+        });
+
+        connector = initConnector({ url, token }, dispatcher);
+        connector.connect();
+
+        for (let i = 0; i < 2; i++) {
+            MockSocket.__error();
+        }
     });
 
     test('error obtaining initial token → INACTIVE state, error event', () => {

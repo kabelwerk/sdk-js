@@ -79,21 +79,48 @@ const MockSocket = (function () {
     });
 
     const disconnect = jest.fn(() => {
-        // call the onClose callbacks
-        for (let call of onClose.mock.calls) {
-            call[0]();
-        }
+        __close({ code: 1000, wasClean: true });
     });
 
-    // fake the server accepting the connection
+    // fake a websocket open event
     const __open = function () {
+        const event = new Event('open');
+
         for (let call of onOpen.mock.calls) {
             call[0]();
         }
     };
 
+    // fake a websocket close event
+    const __close = function (params = {}) {
+        // ideally this should be a CloseEvent instance
+        const event = new Event('close');
+
+        // if no websocket connection close code is provided, default to the
+        // code used by Firefox when the server drops the connection
+        event.code = 'code' in params ? params.code : 1006;
+
+        // cleanly closed means that there has been a closing handshake
+        event.wasClean = 'wasClean' in params ? params.wasClean : false;
+
+        for (let call of onClose.mock.calls) {
+            call[0](event);
+        }
+    };
+
+    // fake a websocket error event
+    const __error = function () {
+        const event = new Event('error');
+
+        for (let call of onError.mock.calls) {
+            call[0](event);
+        }
+    };
+
     return {
+        __close,
         __constructor,
+        __error,
         __open,
         connect,
         channel,
