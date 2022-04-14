@@ -1,25 +1,31 @@
-import { Heading, Icon, Pane, Paragraph, RecordIcon, Text } from 'evergreen-ui';
+import {
+    Heading,
+    Pane,
+    Paragraph,
+    RecordIcon,
+    SwapHorizontalIcon,
+    Text,
+    Tooltip,
+} from 'evergreen-ui';
 import React from 'react';
 import { KabelwerkContext } from './KabelwerkContext';
 import { dateToString } from './utils/datetime';
 import { ellideText } from './utils/text';
 
-const Sidebar = ({ setActiveRoom }) => {
+const Sidebar = ({ resetToken, setActiveRoom }) => {
     const { inboxItems } = React.useContext(KabelwerkContext);
 
     return (
         <Pane flex="0 0 300px" backgroundColor="#696f8c">
-            <Heading
-                size={700}
-                color="white"
-                width="fit-content"
-                marginBottom={16}
-                paddingTop={16}
-                paddingBottom={16}
-                paddingLeft={16}
-                paddingRight={8}
-            >
+            <Heading color="white" size={700} marginX={16} marginY={32}>
                 Kabelwerk Demo
+                <Tooltip content="Try with a different token">
+                    <SwapHorizontalIcon
+                        float="right"
+                        cursor="pointer"
+                        onClick={resetToken}
+                    />
+                </Tooltip>
             </Heading>
             {inboxItems.map((item) => (
                 <Pane

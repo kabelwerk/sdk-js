@@ -56,14 +56,13 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                 {marker !== undefined && (
                     <Pane marginRight={-20}>
                         <Tooltip
-                            title="seen"
-                            content={
-                                <Text size={300} color="white">
-                                    seen {dateToString(marker.updatedAt)}
-                                </Text>
-                            }
+                            content={'seen ' + dateToString(marker.updatedAt)}
                         >
-                            <EyeOnIcon marginLeft={5} color="grey" />
+                            <EyeOnIcon
+                                marginLeft={5}
+                                color="grey"
+                                cursor="help"
+                            />
                         </Tooltip>
                     </Pane>
                 )}

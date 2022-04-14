@@ -1,7 +1,7 @@
 import {
     Button,
-    DataConnectionIcon,
     Heading,
+    OfflineIcon,
     Pane,
     TextInputField,
 } from 'evergreen-ui';
@@ -122,7 +122,7 @@ const Login = function ({ config, updateConfig }) {
                             type="submit"
                             appearance="primary"
                             size="large"
-                            iconBefore={DataConnectionIcon}
+                            iconBefore={OfflineIcon}
                             disabled={
                                 !url || !!urlError || !!tokenError || !token
                             }
