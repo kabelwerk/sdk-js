@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
+
 		<title>Kabelwerk Demo</title>
+
+		<link rel="stylesheet" href="style.css" />
 	</head>
-	<body style="margin: 0">
+
+	<body>
+		<!-- the demo react app -->
 		<div id="app"></div>
 		<script type="module" src="App.jsx"></script>
+
+		<!-- play with Kabelwerk in the web console! -->
+		<script type="module">
+			import Kabelwerk from 'kabelwerk';
+			window.Kabelwerk = Kabelwerk;
+		</script>
 	</body>
 </html>
