@@ -37,6 +37,10 @@ const KabelwerkProvider = function ({ children, config }) {
             inbox.current.on('updated', ({ items }) => setInboxItems(items));
 
             inbox.current.connect();
+
+            if (config.name) {
+                Kabelwerk.updateUser({ name: config.name });
+            }
         });
 
         Kabelwerk.connect();

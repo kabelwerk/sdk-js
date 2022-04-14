@@ -48,12 +48,18 @@ const Sidebar = ({ resetToken, setActiveRoom }) => {
                             </Heading>
                             {item.message ? (
                                 <Paragraph color="white">
-                                    <strong>{item.message.user.name}</strong>:{' '}
+                                    <span>
+                                        {item.message.user.id ==
+                                        Kabelwerk.getUser().id
+                                            ? 'you'
+                                            : item.message.user.name}
+                                    </span>
+                                    &nbsp;&mdash;&nbsp;
                                     {ellideText(20, item.message.text)}
                                 </Paragraph>
                             ) : (
                                 <Paragraph color="white" fontStyle="italic">
-                                    no messages yet.
+                                    no messages yet
                                 </Paragraph>
                             )}
                         </Pane>
