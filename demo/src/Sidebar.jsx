@@ -8,12 +8,7 @@ const Sidebar = ({ setActiveRoom }) => {
     const { inboxItems } = React.useContext(KabelwerkContext);
 
     return (
-        <Pane
-            minHeight="100vh"
-            width={300}
-            position="fixed"
-            backgroundColor="#696f8c"
-        >
+        <Pane flex="0 0 300px" backgroundColor="#696f8c">
             <Heading
                 size={700}
                 color="white"
@@ -24,7 +19,7 @@ const Sidebar = ({ setActiveRoom }) => {
                 paddingLeft={16}
                 paddingRight={8}
             >
-                Kabelwerk
+                Kabelwerk Demo
             </Heading>
             {inboxItems.map((item) => (
                 <Pane
@@ -43,7 +38,7 @@ const Sidebar = ({ setActiveRoom }) => {
                     <Pane display="flex" justifyContent="space-between">
                         <Pane>
                             <Heading color="white" size={500}>
-                                {item.room.id}
+                                {item.room.hub.name}
                             </Heading>
                             {item.message ? (
                                 <Paragraph color="white">

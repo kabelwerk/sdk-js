@@ -96,10 +96,11 @@ const Room = ({ id }) => {
     } else {
         return (
             <Pane
+                flex="1"
+                height="100vh"
                 display="flex"
                 flexDirection="column"
-                width="calc(100vw - 300px)"
-                marginLeft={300}
+                overflowY="scroll"
             >
                 <Pane
                     marginBottom={130}
@@ -146,7 +147,6 @@ const Room = ({ id }) => {
                     paddingLeft={32}
                 >
                     <Textarea
-                        type="text"
                         value={draft}
                         fontSize={14}
                         placeholder="Write a message"

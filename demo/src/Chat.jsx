@@ -1,7 +1,6 @@
+import { CircleArrowLeftIcon, Pane } from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
 import React from 'react';
-
-import { Pane } from 'evergreen-ui';
 import { KabelwerkContext } from './KabelwerkContext';
 import { Room } from './Room';
 import Sidebar from './Sidebar';
@@ -24,12 +23,22 @@ const Chat = ({ resetToken }) => {
     }
 
     return (
-        <Pane>
+        <Pane display="flex" flexDirection="row" height="100vh">
             <Sidebar setActiveRoom={(roomId) => setActiveRoomId(roomId)} />
             {activeRoomId ? (
                 <Room id={activeRoomId} />
             ) : (
-                <p>Please select a room to open.</p>
+                <Pane
+                    flex="1"
+                    display="flex"
+                    flexDirection="row"
+                    columnGap={10}
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                    <CircleArrowLeftIcon />
+                    <p>Please select a room to open.</p>
+                </Pane>
             )}
         </Pane>
     );

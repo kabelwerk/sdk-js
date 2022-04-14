@@ -58,7 +58,7 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                         <Tooltip
                             title="seen"
                             content={
-                                <Text size="small" color="white">
+                                <Text size={300} color="white">
                                     seen {dateToString(marker.updatedAt)}
                                 </Text>
                             }
