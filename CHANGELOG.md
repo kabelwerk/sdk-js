@@ -7,6 +7,7 @@
 -   Kabelwerk object: removed the `reconnected` event; please use the `connected` event instead ([docs](./docs/kabelwerk.md#list-of-events)).
 -   Kabelwerk object: the `token` config option is no longer required; when not provided, the function supplied to the `refreshToken` config option will be used to obtain an initial auth token ([docs](./docs/kabelwerk.md#config)).
 -   Kabelwerk object: added the `ensureRooms` config option ([docs](./docs/kabelwerk.md#config)).
+-   Upgraded Phoenix to [1.6.7](https://hexdocs.pm/phoenix/1.6.7/js/).
 
 ## 0.2.2 (2022-02-10)
 
