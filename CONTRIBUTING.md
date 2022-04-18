@@ -20,12 +20,13 @@ npm install
 # run the unit tests
 npm test
 
-# check it out in a browser at localhost:8080
-npm run demo
-
 # run prettier
 npm run format
 ```
+
+### Demo
+
+This project also comes with a simple React app for demo purposes. You can try out your changes in this demo app and/or you can also contribute code to the demo app itself. Please refer to [demo/README.md](./demo/README.md) for setup info.
 
 ### Conventions
 
