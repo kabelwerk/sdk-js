@@ -26,6 +26,7 @@ const Chat = ({ resetToken }) => {
         <Pane display="flex" flexDirection="row" height="100vh">
             <Sidebar
                 resetToken={resetToken}
+                activeRoomId={activeRoomId}
                 setActiveRoom={(roomId) => setActiveRoomId(roomId)}
             />
             {activeRoomId ? (

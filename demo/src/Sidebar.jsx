@@ -2,9 +2,7 @@ import {
     Heading,
     Pane,
     Paragraph,
-    RecordIcon,
     SwapHorizontalIcon,
-    Text,
     Tooltip,
 } from 'evergreen-ui';
 import React from 'react';
@@ -12,8 +10,14 @@ import { KabelwerkContext } from './KabelwerkContext';
 import { dateToString } from './utils/datetime';
 import { ellideText } from './utils/text';
 
-const Sidebar = ({ resetToken, setActiveRoom }) => {
+const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
     const { inboxItems } = React.useContext(KabelwerkContext);
+
+    React.useEffect(() => {
+        if (inboxItems.length > 0) {
+            setActiveRoom(inboxItems[0].room.id);
+        }
+    }, [inboxItems]);
 
     return (
         <Pane flex="0 0 300px" backgroundColor="#696f8c">
@@ -30,6 +34,11 @@ const Sidebar = ({ resetToken, setActiveRoom }) => {
             {inboxItems.map((item) => (
                 <Pane
                     key={`${item.room.id}-${item.message?.id}`}
+                    backgroundColor={
+                        activeRoomId === item.room.id
+                            ? '#8f95b2'
+                            : 'transparent'
+                    }
                     borderBottom="1px solid #8f95b2"
                     borderTop="1px solid #8f95b2"
                     paddingTop={16}

@@ -1,4 +1,10 @@
-import { IconButton, Pane, SendMessageIcon, Textarea } from 'evergreen-ui';
+import {
+    Heading,
+    IconButton,
+    Pane,
+    SendMessageIcon,
+    Textarea,
+} from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
 import React from 'react';
 import { Message } from './Message';
@@ -108,33 +114,54 @@ const Room = ({ id }) => {
                     marginRight={40}
                     marginTop={20}
                 >
-                    {messages.map((message, index) => {
-                        return (
-                            <Pane
-                                key={message.id}
-                                display="flex"
-                                flexDirection="column"
+                    {messages.length === 0 ? (
+                        <Pane
+                            flex="1"
+                            display="flex"
+                            flexDirection="row"
+                            alignItems="center"
+                            justifyContent="center"
+                            height="calc(100vh - 100px)"
+                        >
+                            <Heading
+                                fontStyle="italic"
+                                size={100}
+                                fontSize={11}
+                                width="fit-content"
+                                marginBottom={8}
                             >
-                                <Message
-                                    marker={
-                                        marker?.messageId === message.id
-                                            ? marker
-                                            : undefined
-                                    }
-                                    isLastMessage={
-                                        index === messages.length - 1
-                                    }
-                                    message={message}
-                                    showUserName={showUserName(
-                                        message,
-                                        messages.length === index - 1
-                                            ? undefined
-                                            : messages[index - 1]
-                                    )}
-                                />
-                            </Pane>
-                        );
-                    })}
+                                No messages yet
+                            </Heading>
+                        </Pane>
+                    ) : (
+                        messages.map((message, index) => {
+                            return (
+                                <Pane
+                                    key={message.id}
+                                    display="flex"
+                                    flexDirection="column"
+                                >
+                                    <Message
+                                        marker={
+                                            marker?.messageId === message.id
+                                                ? marker
+                                                : undefined
+                                        }
+                                        isLastMessage={
+                                            index === messages.length - 1
+                                        }
+                                        message={message}
+                                        showUserName={showUserName(
+                                            message,
+                                            messages.length === index - 1
+                                                ? undefined
+                                                : messages[index - 1]
+                                        )}
+                                    />
+                                </Pane>
+                            );
+                        })
+                    )}
                 </Pane>
                 <Pane
                     position="fixed"
