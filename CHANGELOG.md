@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (TBA)
+## 0.3.0 (2022-04-21)
 
 -   Kabelwerk object: new method `getState()` for checking the current [connection state](./docs/connection-states.md) ([docs](./docs/kabelwerk.md#list-of-methods)).
 -   Kabelwerk object: removed the `isConnected()` method; please use the new `getState()` method instead (see above).
