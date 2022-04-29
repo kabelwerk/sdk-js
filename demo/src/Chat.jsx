@@ -35,13 +35,27 @@ const Chat = ({ resetToken }) => {
                 <Pane
                     flex="1"
                     display="flex"
-                    flexDirection="row"
+                    flexDirection="column"
                     columnGap={10}
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <CircleArrowLeftIcon />
+                    <p>
+                        Welcome to the user-side demo of{' '}
+                        <a
+                            href="https://docs.kabelwerk.io/js/"
+                            title="Kabelwerk's SDK for JavaScript"
+                        >
+                            Kabelwerk's SDK for JavaScript
+                        </a>
+                        !
+                    </p>
+                    <p>
+                        To the left is the user's inbox &mdash; one chat room
+                        for each hub.
+                    </p>
                     <p>Please select a room to open.</p>
+                    <CircleArrowLeftIcon />
                 </Pane>
             )}
         </Pane>

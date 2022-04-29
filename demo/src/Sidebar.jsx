@@ -13,12 +13,6 @@ import { ellideText } from './utils/text';
 const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
     const { inboxItems } = React.useContext(KabelwerkContext);
 
-    React.useEffect(() => {
-        if (inboxItems.length > 0) {
-            setActiveRoom(inboxItems[0].room.id);
-        }
-    }, [inboxItems]);
-
     return (
         <Pane flex="0 0 300px" backgroundColor="#696f8c">
             <Heading color="white" size={700} marginX={16} marginY={32}>
@@ -33,7 +27,7 @@ const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
             </Heading>
             {inboxItems.map((item) => (
                 <Pane
-                    key={`${item.room.id}-${item.message?.id}`}
+                    key={`${item.room.id}`}
                     backgroundColor={
                         activeRoomId === item.room.id
                             ? '#8f95b2'
