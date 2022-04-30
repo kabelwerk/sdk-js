@@ -1,0 +1,19 @@
+{
+  "tutorialSidebar": [
+    "README",
+    {
+      "type": "category",
+      "label": "Kabelwerk",
+      "link": {
+        "type": "doc",
+        "id": "kabelwerk"
+      },
+      "items": ["connection-states"],
+      "collapsible": true,
+      "collapsed": false
+    },
+    "inboxes",
+    "rooms",
+    "notifiers"
+  ]
+}
