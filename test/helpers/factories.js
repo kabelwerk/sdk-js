@@ -4,8 +4,7 @@ const PayloadFactory = {};
 // private channels
 //
 
-// Generate a response to joining a private channel or to an update_user push,
-// or a user_updated event.
+// Generate a response to an update_user push, or a user_updated event.
 //
 PayloadFactory.user = (function () {
     let counter = 0;
@@ -25,6 +24,15 @@ PayloadFactory.user = (function () {
         };
     };
 })();
+
+// Generate a response to joining a private channel.
+//
+PayloadFactory.privateJoin = function (params = {}) {
+    return {
+        room_ids: 'room_ids' in params ? params.room_ids : [],
+        user: 'user' in params ? params.user : PayloadFactory.user(),
+    };
+};
 
 //
 // inbox channels

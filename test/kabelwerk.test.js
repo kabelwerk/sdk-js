@@ -99,6 +99,7 @@ describe('connect', () => {
         expect.assertions(5);
 
         const rawUser = PayloadFactory.user();
+        const joinRes = PayloadFactory.privateJoin({ user: rawUser });
 
         kabelwerk.on('ready', ({ user }) => {
             expect(user.hubId).toBe(rawUser.hub_id);
@@ -111,7 +112,7 @@ describe('connect', () => {
 
         kabelwerk.connect();
         MockSocket.__open();
-        MockPush.__serverRespond('ok', rawUser);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('ready event is emitted once', () => {
@@ -125,7 +126,7 @@ describe('connect', () => {
 
         for (let i = 0; i < 2; i++) {
             MockSocket.__open();
-            MockPush.__serverRespond('ok', PayloadFactory.user(), false);
+            MockPush.__serverRespond('ok', PayloadFactory.privateJoin(), false);
         }
     });
 
@@ -141,13 +142,14 @@ describe('connect', () => {
 
         for (let i = 0; i < 2; i++) {
             MockSocket.__open();
-            MockPush.__serverRespond('ok', PayloadFactory.user(), false);
+            MockPush.__serverRespond('ok', PayloadFactory.privateJoin(), false);
         }
     });
 });
 
 describe('user info', () => {
     const user = PayloadFactory.user();
+    const joinRes = PayloadFactory.privateJoin({ user });
 
     let kabelwerk = null;
 
@@ -157,11 +159,11 @@ describe('user info', () => {
         kabelwerk.connect();
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', joinRes, 'clear-initial');
     });
 
     test('get user', () => {
-        let res = kabelwerk.getUser();
+        const res = kabelwerk.getUser();
 
         expect(res.hubId).toBe(user.hub_id);
         expect(res.id).toBe(user.id);
@@ -179,7 +181,7 @@ describe('user info', () => {
     });
 
     test('update user, server responds with ok', () => {
-        let newUser = PayloadFactory.user();
+        const newUser = PayloadFactory.user();
 
         kabelwerk.updateUser({}).then((res) => {
             expect(res.hubId).toBe(newUser.hub_id);
@@ -194,7 +196,7 @@ describe('user info', () => {
     });
 
     test('update user, server responds with error', () => {
-        let userBefore = kabelwerk.getUser();
+        const userBefore = kabelwerk.getUser();
 
         kabelwerk.updateUser({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
@@ -207,7 +209,7 @@ describe('user info', () => {
     });
 
     test('update user, server times out', () => {
-        let userBefore = kabelwerk.getUser();
+        const userBefore = kabelwerk.getUser();
 
         kabelwerk.updateUser({}).catch((error) => {
             expect(error).toBeInstanceOf(Error);
@@ -222,7 +224,7 @@ describe('user info', () => {
     test('user_updated event', () => {
         expect.assertions(5);
 
-        let newUser = PayloadFactory.user();
+        const newUser = PayloadFactory.user();
 
         kabelwerk.on('user_updated', (res) => {
             expect(res.hubId).toBe(newUser.hub_id);
@@ -239,6 +241,7 @@ describe('user info', () => {
 
 describe('create room', () => {
     const user = PayloadFactory.user();
+    const joinRes = PayloadFactory.privateJoin({ user });
 
     let kabelwerk = null;
 
@@ -248,7 +251,7 @@ describe('create room', () => {
         kabelwerk.connect();
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', joinRes, 'clear-initial');
     });
 
     test('push params, integer', () => {
@@ -304,6 +307,7 @@ describe('create room', () => {
 
 describe('load hub info', () => {
     const user = PayloadFactory.user();
+    const joinRes = PayloadFactory.privateJoin({ user });
 
     let kabelwerk = null;
 
@@ -313,7 +317,7 @@ describe('load hub info', () => {
         kabelwerk.connect();
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', joinRes, 'clear-initial');
     });
 
     test('push params', () => {
@@ -374,6 +378,7 @@ describe('load hub info', () => {
 
 describe('open methods', () => {
     const user = PayloadFactory.user();
+    const joinRes = PayloadFactory.privateJoin({ user });
 
     let kabelwerk = null;
 
@@ -393,7 +398,7 @@ describe('open methods', () => {
         });
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('open notifier', () => {
@@ -406,7 +411,7 @@ describe('open methods', () => {
         });
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user);
+        MockPush.__serverRespond('ok', joinRes);
     });
 
     test('open room', () => {
@@ -419,12 +424,13 @@ describe('open methods', () => {
         });
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user);
+        MockPush.__serverRespond('ok', joinRes);
     });
 });
 
 describe('disconnect', () => {
     const user = PayloadFactory.user();
+    const joinRes = PayloadFactory.privateJoin({ user });
 
     let kabelwerk = null;
 
@@ -434,7 +440,7 @@ describe('disconnect', () => {
         kabelwerk.connect();
 
         MockSocket.__open();
-        MockPush.__serverRespond('ok', user, 'clear-initial');
+        MockPush.__serverRespond('ok', joinRes, 'clear-initial');
     });
 
     test('leaves the private channel and disconnects the socket', () => {

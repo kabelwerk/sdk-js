@@ -11,7 +11,7 @@ import {
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { initNotifier } from './notifier.js';
-import { parseOwnHub, parseOwnUser } from './payloads.js';
+import { parseOwnHub, parseOwnUser, parsePrivateJoin } from './payloads.js';
 import { initRoom } from './room.js';
 import { validate, validateOneOf, validateParams } from './validators.js';
 import { VERSION } from './version.js';
@@ -43,6 +43,7 @@ const initKabelwerk = function () {
 
     // the user's private channel
     let privateChannel = null;
+    let privateChannelJoinRes = {};
 
     const setupPrivateChannel = function () {
         privateChannel = connector.getSocket().channel('private', function () {
@@ -65,10 +66,12 @@ const initKabelwerk = function () {
             .receive('ok', function (payload) {
                 logger.info("Joined the user's private channel.");
 
+                privateChannelJoinRes = parsePrivateJoin(payload);
+
                 if (user) {
-                    user = parseOwnUser(payload);
+                    user = privateChannelJoinRes.user;
                 } else {
-                    user = parseOwnUser(payload);
+                    user = privateChannelJoinRes.user;
                     dispatcher.send('user_updated', user);
                 }
 

@@ -2,8 +2,16 @@
 // private channel
 //
 
-// Parse the payload of a join response, or of an update_user response, or of a
-// user_updated event.
+// Parse the response of a join response.
+//
+export const parsePrivateJoin = function (payload) {
+    return {
+        roomIds: payload.room_ids,
+        user: parseOwnUser(payload.user),
+    };
+};
+
+// Parse the payload of an update_user response, or of a user_updated event.
 //
 export const parseOwnUser = function (payload) {
     return {
