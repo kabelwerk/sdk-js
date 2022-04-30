@@ -2,6 +2,7 @@
 
 ## 0.3.1 (TBA)
 
+-   Kabelwerk object: `openRoom()` now could be called without a parameter as well ([docs](./docs/kabelwerk.md#list-of-methods)).
 -   Rooms: fixed the response of `loadEarlier()` when called on an empty room.
 
 ## 0.3.0 (2022-04-21)

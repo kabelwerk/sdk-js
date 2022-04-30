@@ -116,7 +116,7 @@ Kabelwerk.loadHubInfo()
 -   **`Kabelwerk.once(event, listener)`** → The same as the `Kabelwerk.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
 -   **`Kabelwerk.openInbox(params)`** → Initialises and returns an [inbox object](./inboxes.md) with the given parameters.
 -   **`Kabelwerk.openNotifier()`** → Initialises and returns a [notifier object](./notifiers.md).
--   **`Kabelwerk.openRoom(roomId)`** → Initialises and returns a [room object](./rooms.md) for the chat room with the given ID.
+-   **`Kabelwerk.openRoom(roomId)`** → Initialises and returns a [room object](./rooms.md) for the chat room with the given ID. Alternatively, the method can be called without a parameter, in which case one of the rooms belonging to the connected user will be opened — useful when you have a single hub.
 -   **`Kabelwerk.updateUser(attributes)`** → Updates the connected user's name. Expects a `{name}` object and returns a Promise.
 
 ## List of events

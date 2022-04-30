@@ -426,6 +426,31 @@ describe('open methods', () => {
         MockSocket.__open();
         MockPush.__serverRespond('ok', joinRes);
     });
+
+    test('open any room, user has no rooms', () => {
+        expect.assertions(1);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.openRoom).toThrow(Error);
+        });
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('open any room, room ID available', () => {
+        expect.assertions(1);
+
+        kabelwerk.on('ready', () => {
+            expect(kabelwerk.openRoom()).toBeTruthy();
+        });
+
+        MockSocket.__open();
+        MockPush.__serverRespond(
+            'ok',
+            PayloadFactory.privateJoin({ user, room_ids: [42] })
+        );
+    });
 });
 
 describe('disconnect', () => {

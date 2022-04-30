@@ -256,13 +256,21 @@ const initKabelwerk = function () {
 
         // Init and return a room object.
         //
-        openRoom: function (roomId) {
+        openRoom: function (roomId = 0) {
             ensureReady();
 
             try {
                 validate(roomId, { type: 'integer' });
             } catch (error) {
                 throw UsageError('The room ID must be an integer.');
+            }
+
+            if (roomId == 0) {
+                if (privateChannelJoinRes.roomIds.length) {
+                    roomId = privateChannelJoinRes.roomIds[0];
+                } else {
+                    throw UsageError('The user does not have any rooms.');
+                }
             }
 
             return initRoom(connector.getSocket(), user, roomId);
