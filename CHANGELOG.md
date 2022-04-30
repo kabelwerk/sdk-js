@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 (TBA)
+
+-   Rooms: fixed the response of `loadEarlier()` when called on an empty room.
+
 ## 0.3.0 (2022-04-21)
 
 -   Kabelwerk object: new method `getState()` for checking the current [connection state](./docs/connection-states.md) ([docs](./docs/kabelwerk.md#list-of-methods)).

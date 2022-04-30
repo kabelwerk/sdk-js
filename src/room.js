@@ -285,7 +285,7 @@ const initRoom = function (socket, user, roomId) {
         //
         loadEarlier: function () {
             if (!firstMessageId) {
-                return Promise.resolve([]);
+                return Promise.resolve({ messages: [] });
             }
 
             return new Promise(function (resolve, reject) {

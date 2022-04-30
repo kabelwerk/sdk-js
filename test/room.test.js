@@ -263,6 +263,21 @@ describe('load earlier messages', () => {
 
         MockPush.__serverRespond('timeout');
     });
+
+    test('empty room', () => {
+        expect.assertions(2);
+
+        let room = initRoom(MockSocket, user, 0);
+        room.connect();
+        MockPush.__serverRespond('ok', PayloadFactory.roomJoin(0));
+
+        room.loadEarlier().then(({ messages }) => {
+            expect(messages.length).toBe(0);
+        });
+
+        // no trip to the backend
+        expect(MockChannel.push).toHaveBeenCalledTimes(0);
+    });
 });
 
 describe('post message in room', () => {
