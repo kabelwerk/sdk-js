@@ -1,6 +1,6 @@
 {
   "name": "kabelwerk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The Kabelwerk SDK for JavaScript.",
   "keywords": [
     "kabelwerk"
@@ -31,7 +31,7 @@
     "prettier": "^2.3.2"
   },
   "scripts": {
-    "prepack": "[[ $(grep -o -m 1 '[0-9].[0-9].[0-9]' package.json) == $(grep -o '[0-9].[0-9].[0-9]' src/version.js) ]]",
+    "prepack": "bash -c \"[[ $(grep -o -m 1 '[0-9].[0-9].[0-9]' package.json) == $(grep -o '[0-9].[0-9].[0-9]' src/version.js) ]]\"",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --config test/jest.config.js",
     "format": "prettier --write ."
   },
