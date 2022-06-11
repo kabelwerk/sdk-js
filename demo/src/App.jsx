@@ -1,50 +1,35 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import { Chat } from './Chat.jsx';
 import { KabelwerkProvider } from './KabelwerkContext.jsx';
 import { Login } from './Login.jsx';
-
-const loadStoredConfig = function () {
-    let config = Object.create(null);
-
-    for (let key of ['url', 'token', 'name']) {
-        let value = localStorage.getItem(`kabelwerk_${key}`);
-        config[key] = value != null ? value : '';
-    }
-
-    return config;
-};
+import { WEBSOCKET_URL } from './backend.js';
 
 const App = () => {
-    // the config is a {url, token, name} object
-    const [config, setConfig] = React.useState(loadStoredConfig);
+    // the auth token, stored in the local storage
+    const [token, setToken] = React.useState(() =>
+        localStorage.getItem('kabelwerk_token')
+    );
 
-    const updateConfig = React.useCallback((config) => {
-        for (let key of ['url', 'token', 'name']) {
-            if (config[key]) {
-                localStorage.setItem(`kabelwerk_${key}`, config[key]);
-            } else {
-                localStorage.removeItem(`kabelwerk_${key}`);
-            }
+    // update or delete the auth token, also in the local storage
+    const updateToken = React.useCallback((value) => {
+        if (value) {
+            localStorage.setItem('kabelwerk_token', value);
+        } else {
+            localStorage.removeItem('kabelwerk_token');
         }
 
-        setConfig(loadStoredConfig);
+        setToken(() => localStorage.getItem('kabelwerk_token'));
     }, []);
 
-    const resetToken = React.useCallback(() => {
-        localStorage.removeItem('kabelwerk_token');
-        setConfig(loadStoredConfig);
-    }, []);
-
-    if (config.url && config.token) {
-        return (
-            <KabelwerkProvider config={config}>
-                <Chat resetToken={resetToken} />
-            </KabelwerkProvider>
-        );
-    } else {
-        return <Login config={config} updateConfig={updateConfig} />;
-    }
+    return token ? (
+        <KabelwerkProvider config={{ url: WEBSOCKET_URL, token: token }}>
+            <Chat resetToken={() => updateToken()} />
+        </KabelwerkProvider>
+    ) : (
+        <Login updateToken={updateToken} />
+    );
 };
 
 ReactDOM.render(<App />, document.getElementById('app'));
