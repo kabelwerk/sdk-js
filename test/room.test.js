@@ -2,8 +2,7 @@ import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
-
-const { initRoom } = await import('../src/room.js');
+import { initRoom } from '../src/room.js';
 
 describe('connect', () => {
     const user = { id: 1, hubId: null };

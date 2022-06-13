@@ -2,8 +2,7 @@ import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
 import { PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
-
-const { initInbox } = await import('../src/inbox.js');
+import { initInbox } from '../src/inbox.js';
 
 describe('user inbox connect', () => {
     const user = { id: 1, hubId: null };

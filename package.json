@@ -27,8 +27,8 @@
     "phoenix": "1.6.7"
   },
   "devDependencies": {
-    "jest": "^27.0.5",
-    "prettier": "^2.3.2"
+    "jest": "^28.1.1",
+    "prettier": "^2.6.2"
   },
   "scripts": {
     "prepack": "bash -c \"[[ $(grep -o -m 1 '[0-9].[0-9].[0-9]' package.json) == $(grep -o '[0-9].[0-9].[0-9]' src/version.js) ]]\"",
