@@ -11,7 +11,7 @@ The demo has its own `package.json` and dependencies, separate from those of the
 npm install
 
 # run the development server at localhost:1234
-npm run start
+npm start
 ```
 
 In order to connect, you will need: (1) the WebSocket URL of a running Kabelwerk backend to connect to; and (2) a valid JWT token. If you have come across this README accidentally and you are curious to try it out, feel free to get in touch with us at devs@kabelwerk.io.
