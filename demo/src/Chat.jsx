@@ -1,4 +1,4 @@
-import { CircleArrowLeftIcon, Pane } from 'evergreen-ui';
+import { CircleArrowLeftIcon, Pane, Text } from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
 import React from 'react';
 import { KabelwerkContext } from './KabelwerkContext';
@@ -40,7 +40,7 @@ const Chat = ({ resetToken }) => {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <p>
+                    <Text marginBottom={20} size={500}>
                         Welcome to the user-side demo of{' '}
                         <a
                             href="https://docs.kabelwerk.io/js/"
@@ -49,12 +49,14 @@ const Chat = ({ resetToken }) => {
                             Kabelwerk's SDK for JavaScript
                         </a>
                         !
-                    </p>
-                    <p>
+                    </Text>
+                    <Text marginBottom={20} size={500}>
                         To the left is the user's inbox &mdash; one chat room
                         for each hub.
-                    </p>
-                    <p>Please select a room to open.</p>
+                    </Text>
+                    <Text marginBottom={10} size={500}>
+                        Please select a room to open.
+                    </Text>
                     <CircleArrowLeftIcon />
                 </Pane>
             )}

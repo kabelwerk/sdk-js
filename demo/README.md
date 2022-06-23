@@ -1,17 +1,27 @@
 # Kabelwerk Demo
 
-A simple React app showcasing the Kabelwerk SDK for JavaScript.
+A simple React webapp showcasing the Kabelwerk SDK for JavaScript.
 
-## Setup
+## 🖥️ Run locally
 
-The demo has its own `package.json` and dependencies, separate from those of the SDK itself. Apart from React, the demo also depends on the [Evergreen](https://evergreen.segment.com/) UI component library and on the [Parcel](https://parceljs.org/) build tool.
+The demo webapp has its own `package.json` and dependencies, separate from those of the SDK itself. It uses the [Evergreen](https://evergreen.segment.com/) UI component library for the design and [Parcel](https://parceljs.org/) as build tool.
 
 ```sh
-# install the dependencies
+# clone the project
+git clone https://github.com/kabelwerk/sdk-js
+
+# enter the project dir
+cd sdk-js
+
+# install the SDK dependencies
+npm install
+
+# enter the demo dir
+cd demo
+
+# install the demo dependencies
 npm install
 
 # run the development server at localhost:1234
 npm start
 ```
-
-In order to connect, you will need: (1) the WebSocket URL of a running Kabelwerk backend to connect to; and (2) a valid JWT token. If you have come across this README accidentally and you are curious to try it out, feel free to get in touch with us at devs@kabelwerk.io.
