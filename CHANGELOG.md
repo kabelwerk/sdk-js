@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 (TBA)
+
+-   Chat message objects have a new `html` field ([docs](./docs/rooms.md#messaging)).
+
 ## 0.3.1 (2022-04-30)
 
 -   Kabelwerk object: `openRoom()` now could be called without a parameter as well ([docs](./docs/kabelwerk.md#list-of-methods)).

@@ -162,14 +162,16 @@ PayloadFactory.message = (function () {
     let timestamp = new Date().getTime();
 
     return function (params = {}) {
-        let id = ++counter;
-        let dt = new Date(timestamp + id * 1000);
+        const id = ++counter;
+        const dt = new Date(timestamp + id * 1000);
+        const text = 'text' in params ? params.text : `message ${id}`;
 
         return {
+            html: 'html' in params ? params.html : `<p>${text}</p>`,
             id: id,
             inserted_at: dt.toJSON(),
             room_id: 'room_id' in params ? params.room_id : 0,
-            text: `message ${id}`,
+            text: text,
             type: 'text',
             updated_at: dt.toJSON(),
             user: null,

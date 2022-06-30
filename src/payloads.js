@@ -119,6 +119,7 @@ export const parseHubRoom = function (payload) {
 //
 export const parseMessage = function (payload) {
     return {
+        html: payload.html,
         id: payload.id,
         insertedAt: new Date(payload.inserted_at),
         roomId: payload.room_id,
