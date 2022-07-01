@@ -39,17 +39,20 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                     elevation={2}
                     width="fit-content"
                     marginTop={4}
-                    paddingTop={8}
                     paddingBottom={8}
-                    paddingLeft={16}
-                    paddingRight={16}
+                    paddingLeft={14}
+                    paddingRight={14}
                     borderRadius={5}
                     maxWidth="75vw"
                     display="flex"
                     flexDirection="column"
                 >
-                    <Text>{message.text}</Text>
-                    <Heading marginTop={2} size={100} textAlign="right">
+                    <Text>
+                        <div
+                            dangerouslySetInnerHTML={{ __html: message.html }}
+                        ></div>
+                    </Text>
+                    <Heading size={100} textAlign="right">
                         {dateToString(message.insertedAt)}
                     </Heading>
                 </Pane>
