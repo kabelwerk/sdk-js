@@ -10,7 +10,14 @@ const sidebars = {
             collapsed: false,
         },
         'inboxes',
-        'rooms',
+        {
+            type: 'category',
+            label: 'Rooms',
+            link: { type: 'doc', id: 'rooms' },
+            items: ['messages'],
+            collapsible: true,
+            collapsed: false,
+        },
         'notifiers',
     ],
 };

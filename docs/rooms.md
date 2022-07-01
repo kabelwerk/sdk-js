@@ -1,6 +1,6 @@
 # Rooms
 
-A room is where chat messages are exchanged between an end user on one side and your care team (hub users) on the other side.
+A room is where chat [messages](./messages.md) are exchanged between an end user on one side and your care team (hub users) on the other side.
 
 To initialise a room object, you need the room's ID (usually you would obtain it from an [inbox](./inboxes.md)):
 
@@ -30,7 +30,7 @@ Kabelwerk.createRoom(hubIdOrSlug)
 
 ## Messaging
 
-A chat room mainly consists of a chronologically ordered list of messages.
+A chat room mainly consists of a chronologically ordered list of [messages](./messages.md).
 
 ```js
 room.on('message_posted', (message) => {
@@ -54,17 +54,6 @@ room.loadEarlier()
         // if there are no more messages, you will get an empty list, not an error
     });
 ```
-
-A message object has the following fields:
-
--   `html`: the content of the message in HTML format;
--   `id`: an integer;
--   `insertedAt`: a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance of when the message was created in the database;
--   `roomId`: the ID of the room to which the message belongs;
--   `text`: the content of the message in plaintext format;
--   `type`: the type of the message — either `text` or `room_move`, with the latter only available on the hub side.
--   `updatedAt`: for the time being the same as `insertedAt`;
--   `user`: the user who posted the message, as an `{ id, key, name }` object.
 
 ## Markers
 
@@ -190,5 +179,6 @@ room.updateHubUser(Kabelwerk.getUser().id)
 
 ## See also
 
+-   [Messages](./messages.md)
 -   [Inboxes](./inboxes.md)
 -   [The Kabelwerk object](./kabelwerk.md)

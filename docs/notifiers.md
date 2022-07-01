@@ -16,7 +16,7 @@ notifier.on('updated', ({ message }) => {
 notifier.connect();
 ```
 
-Message objects are of the same type as the [message objects used with rooms](./rooms.md#messaging).
+Message objects are of the same type as the [message objects used with rooms](./messages.md).
 
 ## List of methods
 

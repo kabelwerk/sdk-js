@@ -32,7 +32,7 @@ An inbox item is an object with the following fields:
 -   `room`: an object containing some of the attributes of the respective chat room:
     -   `hub`: the hub to which the room belongs, as an `{id, name, slug}` object;
     -   `id`: an integer;
--   `message`: the latest message posted in this room; either a [message object](./rooms.md#messaging) or `null` if the room is empty;
+-   `message`: the latest message posted in this room; either a [message object](./messages.md) or `null` if the room is empty;
 -   `isNew`: a boolean; `true` if the room contains at least one message which is new to the connected user and `false` otherwise; determining whether a message is new relies on the connected user's room [marker](./rooms.md#markers) — so if you do not move markers the value will always be `true` unless the latest message posted in the room is authored by the user.
 
 Please note that inbox items just hold data; in order to send and receive messages in the chat rooms, you have to explicitly [init room objects](./rooms.md).
