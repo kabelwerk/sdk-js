@@ -77,7 +77,13 @@ const initConnector = function (config, dispatcher) {
     socket.onError(function (event) {
         logger.error('Websocket connection error.', event);
 
-        dispatcher.send('error', ConnectionError(event));
+        dispatcher.send(
+            'error',
+            ConnectionError(
+                'Closed the websocket connection due to an error',
+                event
+            )
+        );
     });
 
     return {
@@ -106,7 +112,13 @@ const initConnector = function (config, dispatcher) {
 
                         state = INACTIVE;
 
-                        dispatcher.send('error', ConnectionError(error));
+                        dispatcher.send(
+                            'error',
+                            ConnectionError(
+                                'Failed to obtain an auth token',
+                                error
+                            )
+                        );
                     });
             }
 

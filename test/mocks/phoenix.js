@@ -110,6 +110,7 @@ const MockSocket = (function () {
 
     // fake a websocket error event
     const __error = function () {
+        // an Event object, not an Error one
         const event = new Event('error');
 
         for (let call of onError.mock.calls) {
@@ -131,7 +132,7 @@ const MockSocket = (function () {
     };
 })();
 
-// this is what is imported by src/kabel.js when running the tests
+// this is what is imported by src/connector.js when running the tests
 const Socket = MockSocket.__constructor;
 
 export { MockPush, MockChannel, MockSocket, Socket };

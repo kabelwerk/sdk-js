@@ -40,13 +40,14 @@ export const UsageError = function (message) {
 // An error to be raised when the websocket fails to connect to the Kabelwerk
 // backend.
 //
-export const ConnectionError = function (message) {
+export const ConnectionError = function (message, cause) {
     if (!message) {
         message = 'Failed to connect to the server.';
     }
 
     const error = new Error(message);
     error.name = CONNECTION_ERROR;
+    error.cause = cause;
 
     return error;
 };

@@ -73,6 +73,25 @@ describe('connect', () => {
         expect(connector.getState()).toBe(INACTIVE);
     });
 
+    test('error obtaining initial token → INACTIVE state, error event', () => {
+        expect.assertions(5);
+
+        dispatcher.on('error', (error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(CONNECTION_ERROR);
+            expect(error.message).toMatch(/failed to obtain an auth token/i);
+            expect(error.cause).toBeTruthy();
+
+            expect(connector.getState()).toBe(INACTIVE);
+        });
+
+        connector = initConnector(
+            { url: url, refreshToken: () => Promise.reject({}) },
+            dispatcher
+        );
+        connector.connect();
+    });
+
     test('socket opening → CONNECTING state', () => {
         connector = initConnector({ url, token }, dispatcher);
         expect(connector.getState()).toBe(INACTIVE);
@@ -114,11 +133,13 @@ describe('connect', () => {
     });
 
     test('socket error → error event', () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         dispatcher.on('error', (error) => {
             expect(error).toBeInstanceOf(Error);
             expect(error.name).toBe(CONNECTION_ERROR);
+            expect(error.message).toMatch(/closed the websocket connection/i);
+            expect(error.cause).toBeTruthy();
         });
 
         connector = initConnector({ url, token }, dispatcher);
@@ -127,23 +148,6 @@ describe('connect', () => {
         for (let i = 0; i < 2; i++) {
             MockSocket.__error();
         }
-    });
-
-    test('error obtaining initial token → INACTIVE state, error event', () => {
-        expect.assertions(3);
-
-        dispatcher.on('error', (error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(CONNECTION_ERROR);
-
-            expect(connector.getState()).toBe(INACTIVE);
-        });
-
-        connector = initConnector(
-            { url: url, refreshToken: () => Promise.reject() },
-            dispatcher
-        );
-        connector.connect();
     });
 });
 

@@ -1,13 +1,6 @@
-import { Socket } from 'phoenix';
-
 import { INACTIVE, CONNECTING, ONLINE, initConnector } from './connector.js';
 import { initDispatcher } from './dispatcher.js';
-import {
-    ConnectionError,
-    PushRejected,
-    Timeout,
-    UsageError,
-} from './errors.js';
+import { PushRejected, Timeout, UsageError } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { initNotifier } from './notifier.js';
