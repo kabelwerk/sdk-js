@@ -123,6 +123,7 @@ const initKabelwerk = function () {
                     },
                 },
                 logging: { type: 'string', optional: true },
+                _agent: { type: 'string', optional: true },
             });
 
             for (let [key, value] of params.entries()) {

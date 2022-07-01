@@ -21,11 +21,16 @@ const initConnector = function (config, dispatcher) {
     let token = config.token;
     let tokenIsRefreshing = false;
 
+    // enable the Kabelwerk SDK for React Native (and potentially others) to
+    // overwrite the default agent via the undocumented _agent config
+    const agent = config._agent ? config._agent : `sdk-js/${VERSION}`;
+
+    // the phoenix socket
     const socket = new Socket(config.url, {
         params: function () {
             return {
                 token: token,
-                agent: `sdk-js/${VERSION}`,
+                agent: agent,
             };
         },
         logger: function (kind, msg, data) {
