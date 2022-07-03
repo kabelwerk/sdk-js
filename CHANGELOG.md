@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.2 (TBA)
+## 0.3.2 (2022-07-03)
 
 -   Chat message objects have a new `html` field ([docs](./docs/messages.md)).
 -   Kabelwerk object: `ConnectionError` instances now have a `cause` property.
