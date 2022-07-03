@@ -453,6 +453,27 @@ describe('open methods', () => {
     });
 });
 
+describe('ping', () => {
+    let kabelwerk = null;
+
+    beforeEach(() => {
+        kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
+        kabelwerk.connect();
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', PayloadFactory.privateJoin());
+    });
+
+    test('mock calls', () => {
+        const callback = () => {};
+
+        expect(kabelwerk.ping(callback)).toBe(true);
+        expect(MockSocket.ping).toHaveBeenCalledTimes(1);
+        expect(MockSocket.ping).toHaveBeenCalledWith(callback);
+    });
+});
+
 describe('disconnect', () => {
     const user = PayloadFactory.user();
     const joinRes = PayloadFactory.privateJoin({ user });

@@ -270,6 +270,25 @@ const initKabelwerk = function () {
             return initRoom(connector.getSocket(), user, roomId);
         },
 
+        // Ping the Kabelwerk server and invoke the given callback with the
+        // round-trip time in milliseconds when the response is received.
+        //
+        // Return a boolean indicating whether the ping has been sent.
+        //
+        ping: function (callback) {
+            try {
+                validate(callback, { type: 'function' });
+            } catch (error) {
+                throw UsageError('The callback must be a function.');
+            }
+
+            if (!connector) {
+                return false;
+            }
+
+            return connector.getSocket().ping(callback);
+        },
+
         // Update the connected user's info. Return a promise resolving into
         // the (updated) user info.
         //

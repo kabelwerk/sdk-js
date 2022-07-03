@@ -69,10 +69,7 @@ const MockSocket = (function () {
     const onClose = jest.fn();
     const onError = jest.fn();
     const connect = jest.fn();
-
-    const __constructor = jest.fn(() => {
-        return MockSocket;
-    });
+    const ping = jest.fn(() => true);
 
     const channel = jest.fn(() => {
         return MockChannel;
@@ -80,6 +77,10 @@ const MockSocket = (function () {
 
     const disconnect = jest.fn(() => {
         __close({ code: 1000, wasClean: true });
+    });
+
+    const __constructor = jest.fn(() => {
+        return MockSocket;
     });
 
     // fake a websocket open event
@@ -129,6 +130,7 @@ const MockSocket = (function () {
         onClose,
         onError,
         onOpen,
+        ping,
     };
 })();
 

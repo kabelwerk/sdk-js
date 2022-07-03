@@ -5,6 +5,7 @@
 -   Chat message objects have a new `html` field ([docs](./docs/messages.md)).
 -   Kabelwerk object: `ConnectionError` instances now have a `cause` property.
 -   Upgraded Phoenix to [1.6.10](https://hexdocs.pm/phoenix/1.6.10/js/).
+-   Kabelwerk object: new method `ping()` for pinging the server ([docs](./docs/kabelwerk.md#list-of-methods)).
 
 ## 0.3.1 (2022-04-30)
 
