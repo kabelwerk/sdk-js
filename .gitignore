@@ -3,6 +3,9 @@
 /demo/node_modules/
 /website/node_modules/
 
+# demo env vars
+/demo/.env
+
 # demo build files
 /demo/dist/
 /demo/.parcel-cache/

@@ -25,3 +25,5 @@ npm install
 # run the development server at localhost:1234
 npm start
 ```
+
+You can also run the demo webapp against your own Kabelwerk backend by setting the `HOST` environment variable (which can be also put in the git-ignored `.env` file in the demo directory).
