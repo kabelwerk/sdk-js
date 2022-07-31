@@ -7,8 +7,9 @@ A chat message object has the following fields:
 -   **`insertedAt`** → Server-side timestamp of when the message was first stored in the database. The value is a standard [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) object.
 -   **`roomId`** → The ID of the [room](./rooms.md) to which the message belongs.
 -   **`text`** → The content of the message in plaintext format — the original user input with HTML entities escaped. You may want to use this field when rendering inbox items or notifications.
--   **`type`** → The type of the message — either `text` or `room_move`, with the latter only available [on the hub side](./rooms.md#on-the-hub-side).
+-   **`type`** → The type of the message — either `text`, `image`, or `room_move`, with the latter only available [on the hub side](./rooms.md#on-the-hub-side).
 -   **`updatedAt`** → Server-side timestamp of when the message was last modified. If the message has not been edited, this will be the same as the `insertedAt` timestamp. The value is a standard [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) object.
+-   **`upload`** → Either `null` or an [upload object](./uploads.md) if the message is of type `image`.
 -   **`user`** → The user who posted the message, as an `{ id, key, name }` object.
 
 ## Markdown
@@ -26,5 +27,5 @@ The following markdown syntax can be used in messages:
 
 ## See also
 
+-   [Uploads](./uploads.md)
 -   [Rooms](./rooms.md)
--   [Inboxes](./inboxes.md)

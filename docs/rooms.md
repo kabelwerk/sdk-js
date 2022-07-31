@@ -165,7 +165,7 @@ room.updateHubUser(Kabelwerk.getUser().id)
 -   **`room.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
 -   **`room.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `room.off(event, ref)` method.
 -   **`room.once(event, listener)`** → The same as the `room.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
--   **`room.postMessage(message)`** → Posts a new message in the chat room. The parameter should be a `{ text }` object. Returns a Promise which resolves into the newly added message.
+-   **`room.postMessage(params)`** → Posts a new message in the chat room. The parameter should be either a `{ text }` object if you want to create a text message or an `{ uploadId }` object if you want to create an image message. Returns a Promise which resolves into the newly added message.
 -   **`room.unarchive()`** → Marks the room as not archived. Returns a Promise. This method is only available on the hub side.
 -   **`room.updateAttributes(attributes)`** → Sets the room's custom attributes. Returns a Promise.
 -   **`room.updateHubUser(hubUserId)`** → Sets the hub user assigned to this room. The parameter should be either the hub user's ID or `null` when un-assigning a room. Returns a Promise. This method is only available on the hub side.
@@ -180,5 +180,4 @@ room.updateHubUser(Kabelwerk.getUser().id)
 ## See also
 
 -   [Messages](./messages.md)
--   [Inboxes](./inboxes.md)
--   [The Kabelwerk object](./kabelwerk.md)
+-   [Uploads](./uploads.md)

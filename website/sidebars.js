@@ -14,7 +14,7 @@ const sidebars = {
             type: 'category',
             label: 'Rooms',
             link: { type: 'doc', id: 'rooms' },
-            items: ['messages'],
+            items: ['messages', 'uploads'],
             collapsible: true,
             collapsed: false,
         },
