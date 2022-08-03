@@ -142,14 +142,54 @@ describe('message posted event', () => {
         MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('new message', () => {
-        expect.assertions(2);
+    test('a text message', () => {
+        expect.assertions(9);
 
-        let message = PayloadFactory.message();
+        const message = PayloadFactory.message();
 
         room.on('message_posted', (res) => {
+            expect(res.html).toBe(message.html);
             expect(res.id).toBe(message.id);
+            expect(res.insertedAt.toJSON()).toBe(message.inserted_at);
+            expect(res.roomId).toBe(message.room_id);
             expect(res.text).toBe(message.text);
+            expect(res.type).toBe(message.type);
+            expect(res.updatedAt.toJSON()).toBe(message.updated_at);
+            expect(res.upload).toBe(message.upload);
+            expect(res.user).toBe(message.user);
+        });
+
+        MockChannel.__serverPush('message_posted', message);
+    });
+
+    test('an image message', () => {
+        expect.assertions(17);
+
+        const upload = PayloadFactory.upload();
+        const message = PayloadFactory.message({
+            type: 'image',
+            upload: upload,
+        });
+
+        room.on('message_posted', (res) => {
+            expect(res.html).toBe(message.html);
+            expect(res.id).toBe(message.id);
+            expect(res.insertedAt.toJSON()).toBe(message.inserted_at);
+            expect(res.roomId).toBe(message.room_id);
+            expect(res.text).toBe(message.text);
+            expect(res.type).toBe(message.type);
+            expect(res.updatedAt.toJSON()).toBe(message.updated_at);
+            expect(res.user).toBe(message.user);
+
+            expect(res.upload.id).toBe(upload.id);
+            expect(res.upload.mimeType).toBe(upload.mime_type);
+            expect(res.upload.name).toBe(upload.name);
+            expect(res.upload.original.height).toBe(upload.original.height);
+            expect(res.upload.original.url).toBe(upload.original.url);
+            expect(res.upload.original.width).toBe(upload.original.width);
+            expect(res.upload.preview.height).toBe(upload.preview.height);
+            expect(res.upload.preview.url).toBe(upload.preview.url);
+            expect(res.upload.preview.width).toBe(upload.preview.width);
         });
 
         MockChannel.__serverPush('message_posted', message);

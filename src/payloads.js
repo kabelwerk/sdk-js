@@ -126,6 +126,7 @@ export const parseMessage = function (payload) {
         text: payload.text,
         type: payload.type,
         updatedAt: new Date(payload.updated_at),
+        upload: payload.upload ? parseUpload(payload.upload) : null,
         user: payload.user ? parseUser(payload.user) : null,
     };
 };
@@ -194,16 +195,6 @@ export const parseNotifierMessage = function (payload) {
 // helpers
 //
 
-// Helper for parseMessage, parseHubInboxRoom, parseInboxInfo, and others.
-//
-const parseUser = function (payload) {
-    return {
-        id: payload.id,
-        key: payload.key,
-        name: payload.name,
-    };
-};
-
 // Helper for parseUserInboxItem.
 //
 const parseHub = function (payload) {
@@ -211,5 +202,35 @@ const parseHub = function (payload) {
         id: payload.id,
         name: payload.name,
         slug: payload.slug,
+    };
+};
+
+// Helper for parseMessage.
+//
+const parseUpload = function (payload) {
+    return {
+        id: payload.id,
+        mimeType: payload.mime_type,
+        name: payload.name,
+        original: {
+            height: payload.original.height,
+            url: payload.original.url,
+            width: payload.original.width,
+        },
+        preview: {
+            height: payload.preview.height,
+            url: payload.preview.url,
+            width: payload.preview.width,
+        },
+    };
+};
+
+// Helper for parseMessage, parseHubInboxRoom, parseInboxInfo, and others.
+//
+const parseUser = function (payload) {
+    return {
+        id: payload.id,
+        key: payload.key,
+        name: payload.name,
     };
 };

@@ -172,9 +172,10 @@ PayloadFactory.message = (function () {
             inserted_at: dt.toJSON(),
             room_id: 'room_id' in params ? params.room_id : 0,
             text: text,
-            type: 'text',
+            type: 'type' in params ? params.type : 'text',
             updated_at: dt.toJSON(),
-            user: null,
+            upload: 'upload' in params ? params.upload : null,
+            user: 'user' in params ? params.user : null,
         };
     };
 })();
@@ -203,6 +204,32 @@ PayloadFactory.marker = function (params = {}) {
             'user_id' in params ? params.user_id : PayloadFactory.user().id,
     };
 };
+
+// Generate an upload object — used in messages of type image.
+//
+PayloadFactory.upload = (function () {
+    let counter = 0;
+
+    return function (params = {}) {
+        const id = ++counter;
+
+        return {
+            id: id,
+            mime_type: 'mime_type' in params ? params.mime_type : 'image/jpeg',
+            name: 'name' in params ? params.name : 'axolotl.jpg',
+            original: {
+                height: 358,
+                url: `https://kabelwerk.io/media/uploads/${id}`,
+                width: 480,
+            },
+            preview: {
+                height: 358,
+                url: `https://kabelwerk.io/media/uploads/${id}/preview`,
+                width: 480,
+            },
+        };
+    };
+})();
 
 // Generate a response to joining a room channel as an end user.
 //
