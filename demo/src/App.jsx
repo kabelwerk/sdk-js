@@ -7,29 +7,29 @@ import { Login } from './Login.jsx';
 import { WEBSOCKET_URL } from './backend.js';
 
 const App = () => {
-    // the auth token, stored in the local storage
-    const [token, setToken] = React.useState(() =>
-        localStorage.getItem('kabelwerk_token')
-    );
+  // the auth token, stored in the local storage
+  const [token, setToken] = React.useState(() =>
+    localStorage.getItem('kabelwerk_token')
+  );
 
-    // update or delete the auth token, also in the local storage
-    const updateToken = React.useCallback((value) => {
-        if (value) {
-            localStorage.setItem('kabelwerk_token', value);
-        } else {
-            localStorage.removeItem('kabelwerk_token');
-        }
+  // update or delete the auth token, also in the local storage
+  const updateToken = React.useCallback((value) => {
+    if (value) {
+      localStorage.setItem('kabelwerk_token', value);
+    } else {
+      localStorage.removeItem('kabelwerk_token');
+    }
 
-        setToken(() => localStorage.getItem('kabelwerk_token'));
-    }, []);
+    setToken(() => localStorage.getItem('kabelwerk_token'));
+  }, []);
 
-    return token ? (
-        <KabelwerkProvider config={{ url: WEBSOCKET_URL, token: token }}>
-            <Chat resetToken={() => updateToken()} />
-        </KabelwerkProvider>
-    ) : (
-        <Login updateToken={updateToken} />
-    );
+  return token ? (
+    <KabelwerkProvider config={{ url: WEBSOCKET_URL, token: token }}>
+      <Chat resetToken={() => updateToken()} />
+    </KabelwerkProvider>
+  ) : (
+    <Login updateToken={updateToken} />
+  );
 };
 
 createRoot(document.getElementById('app')).render(<App />);
