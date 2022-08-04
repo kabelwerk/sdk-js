@@ -42,9 +42,26 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
           display="flex"
           flexDirection="column"
         >
-          <Text>
-            <div dangerouslySetInnerHTML={{ __html: message.html }}></div>
-          </Text>
+          {message.type == 'image' ? (
+            <p>
+              <a
+                href={message.upload.original.url}
+                target="_blank"
+                title={message.upload.name + ' — click to open in a new tab'}
+              >
+                <img
+                  src={message.upload.preview.url}
+                  width={message.upload.preview.width}
+                  height={message.upload.preview.height}
+                  alt={message.upload.name}
+                />
+              </a>
+            </p>
+          ) : (
+            <Text>
+              <div dangerouslySetInnerHTML={{ __html: message.html }}></div>
+            </Text>
+          )}
           <Heading size={100} textAlign="right">
             {dateToString(message.insertedAt)}
           </Heading>

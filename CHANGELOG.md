@@ -2,8 +2,8 @@
 
 ## 0.3.3 (TBA)
 
--   New chat message type: image ([docs](./docs/messages.md)).
--   Chat messages have a new field — `message.upload` ([docs](./docs/messages.md)).
+-   New chat message type: `image` ([docs](./docs/messages.md)).
+-   Chat messages have a new field: `upload` ([docs](./docs/messages.md)).
 
 ## 0.3.2 (2022-07-03)
 

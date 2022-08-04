@@ -55,7 +55,14 @@ const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
                       : item.message.user.name}
                   </span>
                   &nbsp;&mdash;&nbsp;
-                  {ellideText(20, item.message.text)}
+                  {item.message.type == 'image' ? (
+                    <img
+                      src={item.message.upload.preview.url}
+                      alt={item.message.upload.name}
+                    />
+                  ) : (
+                    ellideText(20, item.message.text)
+                  )}
                 </Paragraph>
               ) : (
                 <Paragraph color="white" fontStyle="italic">
