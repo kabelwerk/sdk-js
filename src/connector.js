@@ -64,7 +64,7 @@ const initConnector = function (config, dispatcher) {
             tokenIsRefreshing = true;
 
             config
-                .refreshToken()
+                .refreshToken(token)
                 .then(function (newToken) {
                     logger.info('Auth token refreshed.');
                     token = newToken;
@@ -105,7 +105,7 @@ const initConnector = function (config, dispatcher) {
                 state = CONNECTING;
 
                 return config
-                    .refreshToken()
+                    .refreshToken(token)
                     .then(function (newToken) {
                         logger.info('Auth token obtained.');
 

@@ -37,7 +37,7 @@ describe('connect', () => {
     });
 
     test('mock calls, refreshToken only', () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         connector = initConnector({ url, refreshToken }, dispatcher);
 
@@ -49,6 +49,7 @@ describe('connect', () => {
             expect(MockSocket.connect).toHaveBeenCalledTimes(1);
 
             expect(refreshToken).toHaveBeenCalledTimes(1);
+            expect(refreshToken).toHaveBeenCalledWith(undefined);
         });
     });
 
@@ -130,6 +131,21 @@ describe('connect', () => {
         for (let i = 0; i < 2; i++) {
             MockSocket.__close();
         }
+    });
+
+    test('socket closed → refresh token', () => {
+        expect.assertions(4);
+
+        connector = initConnector({ refreshToken, url }, dispatcher);
+        connector.connect();
+
+        MockSocket.__open();
+        expect(refreshToken).toHaveBeenCalledTimes(1);
+        expect(refreshToken).toHaveBeenLastCalledWith(undefined);
+
+        MockSocket.__close();
+        expect(refreshToken).toHaveBeenCalledTimes(2);
+        expect(refreshToken).toHaveBeenLastCalledWith(undefined);
     });
 
     test('socket error → error event', () => {
