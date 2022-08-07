@@ -376,12 +376,23 @@ describe('post message in room', () => {
         MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('push params', () => {
+    test('push params, text message', () => {
         room.postMessage({ text: 'hello server!' });
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
             text: 'hello server!',
+            type: 'text',
+        });
+    });
+
+    test('push params, image message', () => {
+        room.postMessage({ uploadId: 2 });
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
+            type: 'image',
+            upload: 2,
         });
     });
 

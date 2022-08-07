@@ -96,8 +96,7 @@ const Room = ({ id }) => {
     if (room.current && fileInput.current.files.length) {
       room.current
         .postUpload(fileInput.current.files[0])
-        .then(console.log)
-        .catch(console.error)
+        .then((upload) => room.current.postMessage({ uploadId: upload.id }))
         .finally(() => setShowUploadPreview(false));
     }
   };

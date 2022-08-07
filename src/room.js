@@ -366,12 +366,21 @@ const initRoom = function (socket, user, roomId, callApi) {
         //
         postMessage: function (params) {
             params = validateParams(params, {
-                text: { type: 'string' },
+                text: { type: 'string', optional: true },
+                uploadId: { type: 'integer', optional: true },
             });
+
+            if (params.size != 1) {
+                throw UsageError('Exactly one parameter is required.');
+            }
+
+            const pushParams = params.has('text')
+                ? { type: 'text', text: params.get('text') }
+                : { type: 'image', upload: params.get('uploadId') };
 
             return new Promise(function (resolve, reject) {
                 channel
-                    .push('post_message', Object.fromEntries(params))
+                    .push('post_message', pushParams)
                     .receive('ok', function (payload) {
                         let message = parseMessage(payload);
 
