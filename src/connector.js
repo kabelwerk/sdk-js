@@ -32,6 +32,15 @@ const initConnector = function (config, dispatcher) {
     // overwrite the default agent via the undocumented _agent config
     const agent = config._agent ? config._agent : `sdk-js/${VERSION}`;
 
+    // infer the API URL from the websocket URL in the config — raising an
+    // error if the config URL is invalid
+    const apiUrl = (function () {
+        const url = new URL(config.url);
+        const scheme = url.scheme == 'ws:' ? 'http:' : 'https:';
+
+        return `${scheme}//${url.host}/api`;
+    })();
+
     // the phoenix socket
     const socket = new Socket(config.url, {
         params: function () {
@@ -98,56 +107,109 @@ const initConnector = function (config, dispatcher) {
         );
     });
 
-    // helper for the callApi method
+    // set the token and call socket.connect()
+    const connect = function () {
+        // if the connector is configured with a token — use it, regardless of
+        // whether it is also configured with a refreshToken function
+        if (token) {
+            state = CONNECTING;
+
+            return socket.connect();
+        }
+
+        // if the connector is not configured with a token — call refreshToken
+        // to obtain the initial token
+        if (config.refreshToken) {
+            state = CONNECTING;
+
+            return config
+                .refreshToken(token)
+                .then(function (newToken) {
+                    logger.info('Auth token obtained.');
+
+                    token = newToken;
+                    socket.connect();
+                })
+                .catch(function (error) {
+                    logger.error('Failed to obtain an auth token.', error);
+
+                    state = INACTIVE;
+
+                    dispatcher.send(
+                        'error',
+                        ConnectionError(
+                            'Failed to obtain an auth token.',
+                            error
+                        )
+                    );
+                });
+        }
+
+        throw UsageError(
+            'Kabelwerk must be configured with either a token ' +
+                'or a refreshToken function in order to connect to the server.'
+        );
+    };
+
+    // helper for the function below
     const sendApiRequest = function (method, path, data, token) {
-        return fetch(path, {
+        return fetch(apiUrl + path, {
             method: method,
             headers: { 'Kabelwerk-Token': token },
             body: data,
         });
     };
 
-    return {
-        connect: function () {
-            // if the connector is configured with a token — use it, regardless
-            // of whether it is also configured with a refreshToken function
-            if (token) {
-                state = CONNECTING;
+    // make an API call
+    const callApi = function (method, path, data) {
+        return sendApiRequest(method, path, data, token)
+            .then(function (response) {
+                // if the request got rejected with 401, refresh the token and
+                // try again
+                if (
+                    response.status == 401 &&
+                    config.refreshToken &&
+                    !tokenIsRefreshing
+                ) {
+                    return config.refreshToken(token).then(function (newToken) {
+                        if (!tokenIsRefreshing) {
+                            logger.info('Auth token refreshed.');
+                            token = newToken;
+                        }
 
-                return socket.connect();
-            }
-
-            if (config.refreshToken) {
-                state = CONNECTING;
-
-                return config
-                    .refreshToken(token)
-                    .then(function (newToken) {
-                        logger.info('Auth token obtained.');
-
-                        token = newToken;
-                        socket.connect();
-                    })
-                    .catch(function (error) {
-                        logger.error('Failed to obtain an auth token.', error);
-
-                        state = INACTIVE;
-
-                        dispatcher.send(
-                            'error',
-                            ConnectionError(
-                                'Failed to obtain an auth token.',
-                                error
-                            )
-                        );
+                        return sendApiRequest(method, path, data, newToken);
                     });
-            }
+                }
 
-            throw UsageError(
-                'Kabelwerk must be configured with either a token ' +
-                    'or a refreshToken function in order to connect to the server.'
-            );
-        },
+                return response;
+            })
+            .then(function (response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw RequestRejected(
+                        'The server rejected the request with the following error: ' +
+                            `${response.status} — ${response.statusText}`,
+                        response
+                    );
+                }
+            })
+            .catch(function (error) {
+                if (error.name == REQUEST_REJECTED) {
+                    throw error;
+                } else {
+                    throw ConnectionError(
+                        'The request failed to reach the server.',
+                        error
+                    );
+                }
+            });
+    };
+
+    return {
+        callApi: callApi,
+
+        connect: connect,
 
         disconnect: function () {
             socket.disconnect();
@@ -159,58 +221,6 @@ const initConnector = function (config, dispatcher) {
 
         getState: function () {
             return state;
-        },
-
-        callApi: function (method, path, data) {
-            return sendApiRequest(method, path, data, token)
-                .then(function (response) {
-                    // if the request got rejected with 401, refresh the token
-                    // and try again
-                    if (
-                        response.status == 401 &&
-                        config.refreshToken &&
-                        !tokenIsRefreshing
-                    ) {
-                        return config
-                            .refreshToken(token)
-                            .then(function (newToken) {
-                                if (!tokenIsRefreshing) {
-                                    logger.info('Auth token refreshed.');
-                                    token = newToken;
-                                }
-
-                                return sendApiRequest(
-                                    method,
-                                    path,
-                                    data,
-                                    newToken
-                                );
-                            });
-                    }
-
-                    return response;
-                })
-                .then(function (response) {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw RequestRejected(
-                            'The server rejected the request with the following error: ' +
-                                `${response.status} — ${response.statusText}`,
-                            response
-                        );
-                    }
-                })
-                .catch(function (error) {
-                    if (error.name == REQUEST_REJECTED) {
-                        throw error;
-                    } else {
-                        throw ConnectionError(
-                            'The request failed to reach the server.',
-                            error
-                        );
-                    }
-                });
         },
     };
 };

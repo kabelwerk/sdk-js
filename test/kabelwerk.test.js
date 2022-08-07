@@ -4,7 +4,7 @@ import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 import { CONNECTION_ERROR, PUSH_REJECTED, TIMEOUT } from '../src/errors.js';
 import { initKabelwerk } from '../src/kabelwerk.js';
 
-const url = 'url';
+const url = 'wss://test.kabelwerk.io/socket/user';
 const token = 'token';
 
 describe('connect', () => {

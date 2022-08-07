@@ -13,7 +13,7 @@ import { initDispatcher } from '../src/dispatcher.js';
 import { CONNECTION_ERROR, REQUEST_REJECTED } from '../src/errors.js';
 
 describe('connect', () => {
-    const url = 'url';
+    const url = 'wss://test.kabelwerk.io/socket/user';
     const token = 'token';
     const refreshToken = jest.fn(() => Promise.resolve(token));
 
@@ -169,7 +169,9 @@ describe('connect', () => {
 });
 
 describe('api call', () => {
-    const url = 'wss://hub.kabelwerk.io/socket/user';
+    const url = 'wss://example.kabelwerk.io/socket/user';
+    const endpointUrl = 'https://example.kabelwerk.io/api/test';
+
     const token = 'token';
     const refreshToken = jest.fn(() => Promise.resolve('newtoken'));
 
@@ -197,7 +199,7 @@ describe('api call', () => {
             expect(res).toBe('res-data');
 
             expect(MockFetch).toHaveBeenCalledTimes(1);
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
@@ -218,7 +220,7 @@ describe('api call', () => {
             expect(error.cause).toBeTruthy();
 
             expect(MockFetch).toHaveBeenCalledTimes(1);
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
@@ -239,12 +241,12 @@ describe('api call', () => {
 
             expect(MockFetch).toHaveBeenCalledTimes(2);
 
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
             });
-            expect(MockFetch).toHaveBeenLastCalledWith('/test', {
+            expect(MockFetch).toHaveBeenLastCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'newtoken' },
                 body: 'req-data',
@@ -268,12 +270,12 @@ describe('api call', () => {
 
             expect(MockFetch).toHaveBeenCalledTimes(2);
 
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
             });
-            expect(MockFetch).toHaveBeenLastCalledWith('/test', {
+            expect(MockFetch).toHaveBeenLastCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'newtoken' },
                 body: 'req-data',
@@ -295,7 +297,7 @@ describe('api call', () => {
             expect(error.cause).toBeTruthy();
 
             expect(MockFetch).toHaveBeenCalledTimes(1);
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
@@ -316,7 +318,7 @@ describe('api call', () => {
             expect(error.cause).toBeTruthy();
 
             expect(MockFetch).toHaveBeenCalledTimes(1);
-            expect(MockFetch).toHaveBeenCalledWith('/test', {
+            expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
                 headers: { 'Kabelwerk-Token': 'token' },
                 body: 'req-data',
@@ -328,7 +330,7 @@ describe('api call', () => {
 });
 
 describe('disconnect', () => {
-    const url = 'url';
+    const url = 'wss://test.kabelwerk.io/socket/user';
     const token = 'token';
 
     let dispatcher = null;
