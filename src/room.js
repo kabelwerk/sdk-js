@@ -16,10 +16,10 @@ import { validate, validateParams } from './validators.js';
 //
 // A room object joins and maintains connection to a room channel.
 //
-const initRoom = function (socket, user, roomId) {
+const initRoom = function (socket, user, roomId, callApi) {
     const isHubSide = Boolean(user.hubId);
 
-    let dispatcher = initDispatcher([
+    const dispatcher = initDispatcher([
         'error',
         'ready',
         'marker_moved',
@@ -27,17 +27,16 @@ const initRoom = function (socket, user, roomId) {
     ]);
 
     // internal state
-    let room = {
+    const room = {
         archived: null,
         attributes: null,
         hubUser: null,
         user: null,
     };
+    const markers = { own: null, other: null };
 
     let firstMessageId = null;
     let lastMessageId = null;
-
-    const markers = { own: null, other: null };
 
     let ready = false;
 
@@ -390,6 +389,16 @@ const initRoom = function (socket, user, roomId) {
                         reject(Timeout());
                     });
             });
+        },
+
+        // Post a new file upload. Return a promise resolving into the newly
+        // created upload.
+        //
+        postUpload: function (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            return callApi('POST', `/rooms/${roomId}/uploads`, formData);
         },
 
         // Update the room's inbox status to not archived. Return a promise

@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { PayloadFactory } from './helpers/factories.js';
 import { MockChannel, MockPush, MockSocket } from './mocks/phoenix.js';
 
@@ -246,6 +248,49 @@ describe('marker moved event', () => {
 // methods
 //
 
+describe('get room user', () => {
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(0);
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, user, 0);
+    });
+
+    test('throws an error if called before ready', () => {
+        expect(room.getUser).toThrow(Error);
+    });
+
+    test('returns the user otherwise', () => {
+        expect.assertions(1);
+
+        room.on('ready', () => {
+            let user = room.getUser();
+
+            expect(user).toEqual(joinRes.user);
+        });
+
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('the user is updated on rejoin', () => {
+        room.connect();
+
+        // first join
+        MockPush.__serverRespond('ok', joinRes, false);
+
+        expect(room.getUser()).toEqual(joinRes.user);
+
+        // rejoin
+        let newJoinRes = PayloadFactory.roomJoin(0);
+        MockPush.__serverRespond('ok', newJoinRes, false);
+
+        expect(room.getUser()).toEqual(newJoinRes.user);
+    });
+});
+
 describe('load earlier messages', () => {
     const user = { id: 1, hubId: null };
     const joinRes = PayloadFactory.roomJoin(1);
@@ -376,112 +421,28 @@ describe('post message in room', () => {
     });
 });
 
-describe('move room marker', () => {
-    const user = { id: 1, hubId: null };
-    const joinRes = PayloadFactory.roomJoin(1);
-
-    let room = null;
-
-    beforeEach(() => {
-        room = initRoom(MockSocket, user, 0);
-        room.connect();
-        MockPush.__serverRespond('ok', joinRes);
-    });
-
-    test('push params, specify the message', () => {
-        room.moveMarker(42);
-
-        expect(MockChannel.push).toHaveBeenCalledTimes(1);
-        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
-            message: 42,
-        });
-    });
-
-    test('push params, no parameter', () => {
-        room.moveMarker();
-
-        expect(MockChannel.push).toHaveBeenCalledTimes(1);
-        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
-            message: joinRes.messages[0].id,
-        });
-    });
-
-    test('server responds with ok', () => {
-        expect.assertions(2);
-
-        let marker = PayloadFactory.marker({ user_id: 1 });
-
-        room.moveMarker(42).then((res) => {
-            expect(res.messageId).toEqual(marker.message_id);
-            expect(res.updatedAt.toJSON()).toEqual(marker.updated_at);
-        });
-
-        MockPush.__serverRespond('ok', marker);
-    });
-
-    test('server responds with error', () => {
-        expect.assertions(2);
-
-        room.moveMarker(42).catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(PUSH_REJECTED);
-        });
-
-        MockPush.__serverRespond('error');
-    });
-
-    test('server times out', () => {
-        expect.assertions(2);
-
-        room.moveMarker(42).catch((error) => {
-            expect(error).toBeInstanceOf(Error);
-            expect(error.name).toBe(TIMEOUT);
-        });
-
-        MockPush.__serverRespond('timeout');
-    });
-});
-
-describe('get room user', () => {
+describe('post upload in room', () => {
     const user = { id: 1, hubId: null };
     const joinRes = PayloadFactory.roomJoin(0);
+    const callApi = jest.fn();
 
     let room = null;
 
     beforeEach(() => {
-        room = initRoom(MockSocket, user, 0);
-    });
-
-    test('throws an error if called before ready', () => {
-        expect(room.getUser).toThrow(Error);
-    });
-
-    test('returns the user otherwise', () => {
-        expect.assertions(1);
-
-        room.on('ready', () => {
-            let user = room.getUser();
-
-            expect(user).toEqual(joinRes.user);
-        });
-
+        room = initRoom(MockSocket, user, 0, callApi);
         room.connect();
         MockPush.__serverRespond('ok', joinRes);
     });
 
-    test('the user is updated on rejoin', () => {
-        room.connect();
+    test('mock calls', () => {
+        room.postUpload('file');
 
-        // first join
-        MockPush.__serverRespond('ok', joinRes, false);
-
-        expect(room.getUser()).toEqual(joinRes.user);
-
-        // rejoin
-        let newJoinRes = PayloadFactory.roomJoin(0);
-        MockPush.__serverRespond('ok', newJoinRes, false);
-
-        expect(room.getUser()).toEqual(newJoinRes.user);
+        expect(callApi).toHaveBeenCalledTimes(1);
+        expect(callApi).toHaveBeenCalledWith(
+            'POST',
+            '/rooms/0/uploads',
+            expect.any(FormData)
+        );
     });
 });
 
@@ -547,6 +508,72 @@ describe('get room markers', () => {
         expect(room.getMarkers()[0].updatedAt.toJSON()).toBe(
             newMarker.updated_at
         );
+    });
+});
+
+describe('move room marker', () => {
+    const user = { id: 1, hubId: null };
+    const joinRes = PayloadFactory.roomJoin(1);
+
+    let room = null;
+
+    beforeEach(() => {
+        room = initRoom(MockSocket, user, 0);
+        room.connect();
+        MockPush.__serverRespond('ok', joinRes);
+    });
+
+    test('push params, specify the message', () => {
+        room.moveMarker(42);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
+            message: 42,
+        });
+    });
+
+    test('push params, no parameter', () => {
+        room.moveMarker();
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('move_marker', {
+            message: joinRes.messages[0].id,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(2);
+
+        let marker = PayloadFactory.marker({ user_id: 1 });
+
+        room.moveMarker(42).then((res) => {
+            expect(res.messageId).toEqual(marker.message_id);
+            expect(res.updatedAt.toJSON()).toEqual(marker.updated_at);
+        });
+
+        MockPush.__serverRespond('ok', marker);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        room.moveMarker(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        room.moveMarker(42).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
     });
 });
 

@@ -36,7 +36,7 @@ const initConnector = function (config, dispatcher) {
     // error if the config URL is invalid
     const apiUrl = (function () {
         const url = new URL(config.url);
-        const scheme = url.scheme == 'ws:' ? 'http:' : 'https:';
+        const scheme = url.protocol == 'ws:' ? 'http:' : 'https:';
 
         return `${scheme}//${url.host}/api`;
     })();

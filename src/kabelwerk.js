@@ -96,6 +96,11 @@ const initKabelwerk = function () {
         }
     };
 
+    const callApi = function (method, path, data) {
+        ensureReady();
+        return connector.callApi(method, path, data);
+    };
+
     const disconnect = function () {
         if (privateChannel) privateChannel.leave();
         privateChannel = null;
@@ -267,7 +272,7 @@ const initKabelwerk = function () {
                 }
             }
 
-            return initRoom(connector.getSocket(), user, roomId);
+            return initRoom(connector.getSocket(), user, roomId, callApi);
         },
 
         // Ping the Kabelwerk server and invoke the given callback with the

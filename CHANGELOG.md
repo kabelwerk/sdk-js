@@ -4,6 +4,7 @@
 
 -   New chat message type: `image` ([docs](./docs/messages.md)).
 -   Chat messages have a new field: `upload` ([docs](./docs/messages.md)).
+-   Rooms: new method `postUpload(file)` ([docs](./docs/rooms.md#list-of-methods)).
 
 ## 0.3.2 (2022-07-03)
 
