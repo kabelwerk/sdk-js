@@ -17,6 +17,7 @@
 export const USAGE_ERROR = 'UsageError';
 export const CONNECTION_ERROR = 'ConnectionError';
 export const PUSH_REJECTED = 'PushRejected';
+export const REQUEST_REJECTED = 'RequestRejected';
 export const TIMEOUT = 'Timeout';
 
 //
@@ -37,8 +38,8 @@ export const UsageError = function (message) {
     return error;
 };
 
-// An error to be raised when the websocket fails to connect to the Kabelwerk
-// backend.
+// An error to be raised when the websocket fails to connect to the server or
+// when an API request fails due to a network error.
 //
 export const ConnectionError = function (message, cause) {
     if (!message) {
@@ -53,7 +54,7 @@ export const ConnectionError = function (message, cause) {
 };
 
 // An error to be raised when a websocket message sent upstream is rejected by
-// the Kabelwerk backend.
+// the server.
 //
 export const PushRejected = function (message) {
     if (!message) {
@@ -62,6 +63,20 @@ export const PushRejected = function (message) {
 
     const error = new Error(message);
     error.name = PUSH_REJECTED;
+
+    return error;
+};
+
+// An error to be raised when an API request is rejected by the server.
+//
+export const RequestRejected = function (message, response) {
+    if (!message) {
+        message = 'The server rejected the request.';
+    }
+
+    const error = new Error(message);
+    error.name = REQUEST_REJECTED;
+    error.cause = response;
 
     return error;
 };

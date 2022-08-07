@@ -1,6 +1,11 @@
 import { Socket } from 'phoenix';
 
-import { ConnectionError, UsageError } from './errors.js';
+import {
+    ConnectionError,
+    REQUEST_REJECTED,
+    RequestRejected,
+    UsageError,
+} from './errors.js';
 import logger from './logger.js';
 import { VERSION } from './version.js';
 
@@ -14,6 +19,8 @@ const ONLINE = 2;
 // Kabelwerk state (see the constants above), and handles auth token obtaining
 // (before the first connect) and refreshing (after an unexpected disconnect).
 // It also makes easier testing and reseting of Kabelwerk objects.
+//
+// In addition, the connector object also handles the API requests.
 //
 const initConnector = function (config, dispatcher) {
     let state = INACTIVE;
@@ -85,11 +92,20 @@ const initConnector = function (config, dispatcher) {
         dispatcher.send(
             'error',
             ConnectionError(
-                'Closed the websocket connection due to an error',
+                'Closed the websocket connection due to an error.',
                 event
             )
         );
     });
+
+    // helper for the callApi method
+    const sendApiRequest = function (method, path, data, token) {
+        return fetch(path, {
+            method: method,
+            headers: { 'Kabelwerk-Token': token },
+            body: data,
+        });
+    };
 
     return {
         connect: function () {
@@ -120,7 +136,7 @@ const initConnector = function (config, dispatcher) {
                         dispatcher.send(
                             'error',
                             ConnectionError(
-                                'Failed to obtain an auth token',
+                                'Failed to obtain an auth token.',
                                 error
                             )
                         );
@@ -143,6 +159,58 @@ const initConnector = function (config, dispatcher) {
 
         getState: function () {
             return state;
+        },
+
+        callApi: function (method, path, data) {
+            return sendApiRequest(method, path, data, token)
+                .then(function (response) {
+                    // if the request got rejected with 401, refresh the token
+                    // and try again
+                    if (
+                        response.status == 401 &&
+                        config.refreshToken &&
+                        !tokenIsRefreshing
+                    ) {
+                        return config
+                            .refreshToken(token)
+                            .then(function (newToken) {
+                                if (!tokenIsRefreshing) {
+                                    logger.info('Auth token refreshed.');
+                                    token = newToken;
+                                }
+
+                                return sendApiRequest(
+                                    method,
+                                    path,
+                                    data,
+                                    newToken
+                                );
+                            });
+                    }
+
+                    return response;
+                })
+                .then(function (response) {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw RequestRejected(
+                            'The server rejected the request with the following error: ' +
+                                `${response.status} — ${response.statusText}`,
+                            response
+                        );
+                    }
+                })
+                .catch(function (error) {
+                    if (error.name == REQUEST_REJECTED) {
+                        throw error;
+                    } else {
+                        throw ConnectionError(
+                            'The request failed to reach the server.',
+                            error
+                        );
+                    }
+                });
         },
     };
 };

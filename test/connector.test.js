@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 
+import { MockFetch } from './mocks/fetch.js';
 import { MockSocket } from './mocks/phoenix.js';
 
 import {
@@ -9,7 +10,7 @@ import {
     initConnector,
 } from '../src/connector.js';
 import { initDispatcher } from '../src/dispatcher.js';
-import { CONNECTION_ERROR } from '../src/errors.js';
+import { CONNECTION_ERROR, REQUEST_REJECTED } from '../src/errors.js';
 
 describe('connect', () => {
     const url = 'url';
@@ -164,6 +165,165 @@ describe('connect', () => {
         for (let i = 0; i < 2; i++) {
             MockSocket.__error();
         }
+    });
+});
+
+describe('api call', () => {
+    const url = 'wss://hub.kabelwerk.io/socket/user';
+    const token = 'token';
+    const refreshToken = jest.fn(() => Promise.resolve('newtoken'));
+
+    let dispatcher = null;
+    let connector = null;
+
+    beforeEach(() => {
+        dispatcher = initDispatcher(['error', 'connected', 'disconnected']);
+
+        connector = initConnector({ url, token, refreshToken }, dispatcher);
+        MockSocket.__open();
+    });
+
+    afterEach(() => {
+        connector = null;
+        dispatcher = null;
+    });
+
+    test('request → 200', () => {
+        expect.assertions(4);
+
+        MockFetch.__response(200, 'res-data');
+
+        connector.callApi('POST', '/test', 'req-data').then((res) => {
+            expect(res).toBe('res-data');
+
+            expect(MockFetch).toHaveBeenCalledTimes(1);
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(0);
+        });
+    });
+
+    test('request → 400', () => {
+        expect.assertions(6);
+
+        MockFetch.__response(400, 'res-data');
+
+        connector.callApi('POST', '/test', 'req-data').catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(REQUEST_REJECTED);
+            expect(error.cause).toBeTruthy();
+
+            expect(MockFetch).toHaveBeenCalledTimes(1);
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(0);
+        });
+    });
+
+    test('request → 401 → token refresh → 200', () => {
+        expect.assertions(6);
+
+        MockFetch.__response(401);
+        MockFetch.__response(200, 'res-data');
+
+        connector.callApi('POST', '/test', 'req-data').then((res) => {
+            expect(res).toBe('res-data');
+
+            expect(MockFetch).toHaveBeenCalledTimes(2);
+
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+            expect(MockFetch).toHaveBeenLastCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'newtoken' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(1);
+            expect(refreshToken).toHaveBeenCalledWith('token');
+        });
+    });
+
+    test('request → 401 → token refresh → 401', () => {
+        expect.assertions(8);
+
+        MockFetch.__response(401);
+        MockFetch.__response(401);
+
+        connector.callApi('POST', '/test', 'req-data').catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(REQUEST_REJECTED);
+            expect(error.cause).toBeTruthy();
+
+            expect(MockFetch).toHaveBeenCalledTimes(2);
+
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+            expect(MockFetch).toHaveBeenLastCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'newtoken' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(1);
+            expect(refreshToken).toHaveBeenCalledWith('token');
+        });
+    });
+
+    test('request → 500', () => {
+        expect.assertions(6);
+
+        MockFetch.__response(500);
+
+        connector.callApi('POST', '/test', 'req-data').catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(REQUEST_REJECTED);
+            expect(error.cause).toBeTruthy();
+
+            expect(MockFetch).toHaveBeenCalledTimes(1);
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(0);
+        });
+    });
+
+    test('request → network error', () => {
+        expect.assertions(6);
+
+        MockFetch.__error(new TypeError('out of cables'));
+
+        connector.callApi('POST', '/test', 'req-data').catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(CONNECTION_ERROR);
+            expect(error.cause).toBeTruthy();
+
+            expect(MockFetch).toHaveBeenCalledTimes(1);
+            expect(MockFetch).toHaveBeenCalledWith('/test', {
+                method: 'POST',
+                headers: { 'Kabelwerk-Token': 'token' },
+                body: 'req-data',
+            });
+
+            expect(refreshToken).toHaveBeenCalledTimes(0);
+        });
     });
 });
 
