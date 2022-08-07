@@ -1,15 +1,8 @@
-import {
-  Dialog,
-  Heading,
-  IconButton,
-  Pane,
-  SendMessageIcon,
-  Textarea,
-  UploadIcon,
-} from 'evergreen-ui';
+import { Heading, Pane, Spinner, Textarea } from 'evergreen-ui';
 import Kabelwerk from 'kabelwerk';
 import React from 'react';
 import { Message } from './Message';
+import { MessageForm } from './MessageForm';
 
 const Room = ({ id }) => {
   // the Kabelwerk room object
@@ -23,18 +16,6 @@ const Room = ({ id }) => {
 
   // the hub-side marker — marking the last message read by the hub side
   const [marker, setMarker] = React.useState(null);
-
-  // the value of the <textarea> for posting new messages
-  const [draft, setDraft] = React.useState('');
-
-  // the <input> for uploading files
-  const fileInput = React.createRef();
-
-  // whether to show the upload preview dialog
-  const [showUploadPreview, setShowUploadPreview] = React.useState(false);
-
-  // the src of the upload preview <img>
-  const [uploadPreviewUrl, setUploadPreviewUrl] = React.useState('');
 
   // setup the room object
   React.useEffect(() => {
@@ -81,51 +62,13 @@ const Room = ({ id }) => {
     };
   }, [id]);
 
-  // post a text message
-  const postMessage = function () {
-    if (draft.length > 0) {
-      if (room.current) {
-        room.current.postMessage({ text: draft });
-        setDraft('');
-      }
-    }
-  };
+  const postMessage = React.useCallback((params) => {
+    return room.current.postMessage(params);
+  }, []);
 
-  // post an image message
-  const postUpload = function () {
-    if (room.current && fileInput.current.files.length) {
-      room.current
-        .postUpload(fileInput.current.files[0])
-        .then((upload) => room.current.postMessage({ uploadId: upload.id }))
-        .finally(() => setShowUploadPreview(false));
-    }
-  };
-
-  // handle pressing the enter key
-  const handleKeyUp = function (e) {
-    if (e.key == 'Enter') {
-      if (e.shiftKey) {
-        setDraft(draft + '\n');
-      } else {
-        postMessage();
-      }
-    }
-  };
-
-  // called after the user selects a file from the file picker
-  const handleFileInputChange = function () {
-    if (fileInput.current.files.length) {
-      setUploadPreviewUrl((prevUrl) => {
-        if (prevUrl) {
-          URL.revokeObjectURL(prevUrl);
-        }
-
-        return URL.createObjectURL(fileInput.current.files[0]);
-      });
-
-      setShowUploadPreview(true);
-    }
-  };
+  const postUpload = React.useCallback((params) => {
+    return room.current.postUpload(params);
+  }, []);
 
   // whether to show the user's name before a message
   const showUserName = function (message, prevMessage) {
@@ -137,7 +80,18 @@ const Room = ({ id }) => {
   };
 
   if (!isReady) {
-    return <p>Loading…</p>;
+    return (
+      <div
+        style={{
+          alignItems: 'center',
+          display: 'flex',
+          flex: 1,
+          justifyContent: 'center',
+        }}
+      >
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -188,56 +142,7 @@ const Room = ({ id }) => {
           })
         )}
       </Pane>
-      <Pane
-        position="fixed"
-        bottom={0}
-        width="calc(100vw - 300px)"
-        height={100}
-        display="flex"
-        alignItems="flex-start"
-        backgroundColor="#fff"
-        paddingLeft={32}
-      >
-        <input
-          type="file"
-          accept="image/*"
-          name="upload"
-          style={{ display: 'none' }}
-          ref={fileInput}
-          onChange={handleFileInputChange}
-        />
-        <Textarea
-          value={draft}
-          placeholder="Write a message or select a file to send using the button to the right"
-          fontSize={14}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyUp={handleKeyUp}
-        />
-        <IconButton
-          appearance="minimal"
-          icon={draft.length ? SendMessageIcon : UploadIcon}
-          marginTop={20}
-          size="large"
-          onClick={
-            draft.length ? postMessage : (e) => fileInput.current.click()
-          }
-        ></IconButton>
-      </Pane>
-
-      <Dialog
-        isShown={showUploadPreview}
-        hasHeader={false}
-        confirmLabel="Send"
-        onCloseComplete={() => setShowUploadPreview(false)}
-        onConfirm={postUpload}
-      >
-        <div style={{ marginTop: 32 }}>
-          <img
-            src={uploadPreviewUrl}
-            style={{ display: 'block', margin: 'auto' }}
-          />
-        </div>
-      </Dialog>
+      <MessageForm postMessage={postMessage} postUpload={postUpload} />
     </Pane>
   );
 };
