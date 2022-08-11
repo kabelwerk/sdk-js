@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.3 (TBA)
+## 0.3.3 (2022-08-11)
 
 -   New chat message type: `image` ([docs](./docs/messages.md)).
 -   Chat messages have a new field: `upload` ([docs](./docs/messages.md)).
