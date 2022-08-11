@@ -13,6 +13,28 @@ const INACTIVE = 0;
 const CONNECTING = 1;
 const ONLINE = 2;
 
+// Return the websocket and API URLs from the URL provided in the config.
+//
+// We cannot parse and normalise the input by using a URL object as it is not
+// supported by React Native.
+//
+const inferUrls = function (configUrl) {
+    const regex = /^(wss?:\/\/)?([0-9a-z.:-]+)\/?([a-z\/]+)?$/i;
+    const match = configUrl.match(regex);
+
+    if (!match) {
+        throw UsageError(`${configUrl} is not a valid Kabelwerk URL.`);
+    }
+
+    const scheme = match[1] ? match[1] : 'wss://';
+    const host = match[2];
+    const path = match[3] ? '/' + match[3] : '/socket/user';
+
+    const apiScheme = scheme == 'wss://' ? 'https://' : 'http://';
+
+    return [scheme + host + path, apiScheme + host + '/api'];
+};
+
 // Init a connector.
 //
 // A connector is a wrapper around a Phoenix socket, which maintains the
@@ -32,17 +54,12 @@ const initConnector = function (config, dispatcher) {
     // overwrite the default agent via the undocumented _agent config
     const agent = config._agent ? config._agent : `sdk-js/${VERSION}`;
 
-    // infer the API URL from the websocket URL in the config — raising an
-    // error if the config URL is invalid
-    const apiUrl = (function () {
-        const url = new URL(config.url);
-        const scheme = url.protocol == 'ws:' ? 'http:' : 'https:';
-
-        return `${scheme}//${url.host}/api`;
-    })();
+    // infer the websocket and API URLs — or raise an error if the config URL
+    // is invalid
+    const [url, apiUrl] = inferUrls(config.url);
 
     // the phoenix socket
-    const socket = new Socket(config.url, {
+    const socket = new Socket(url, {
         params: function () {
             return {
                 token: token,
@@ -225,4 +242,4 @@ const initConnector = function (config, dispatcher) {
     };
 };
 
-export { INACTIVE, CONNECTING, ONLINE, initConnector };
+export { INACTIVE, CONNECTING, ONLINE, inferUrls, initConnector };

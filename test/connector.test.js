@@ -7,10 +7,38 @@ import {
     INACTIVE,
     CONNECTING,
     ONLINE,
+    inferUrls,
     initConnector,
 } from '../src/connector.js';
 import { initDispatcher } from '../src/dispatcher.js';
 import { CONNECTION_ERROR, REQUEST_REJECTED } from '../src/errors.js';
+
+describe('infer urls', () => {
+    test('bad config urls', () => {
+        for (let badUrl of ['', 'not a url', 'https://kabelwerk.io']) {
+            expect(() => inferUrls(badUrl)).toThrow(
+                /not a valid Kabelwerk URL/
+            );
+        }
+    });
+
+    test('good config urls', () => {
+        expect(inferUrls('kabelwerk.io')).toEqual([
+            'wss://kabelwerk.io/socket/user',
+            'https://kabelwerk.io/api',
+        ]);
+
+        expect(inferUrls('ws://kabelwerk.io')).toEqual([
+            'ws://kabelwerk.io/socket/user',
+            'http://kabelwerk.io/api',
+        ]);
+
+        expect(inferUrls('kabelwerk.io/socket/hub')).toEqual([
+            'wss://kabelwerk.io/socket/hub',
+            'https://kabelwerk.io/api',
+        ]);
+    });
+});
 
 describe('connect', () => {
     const url = 'wss://test.kabelwerk.io/socket/user';
