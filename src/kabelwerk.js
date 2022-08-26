@@ -4,7 +4,12 @@ import { PushRejected, Timeout, UsageError } from './errors.js';
 import { initInbox } from './inbox.js';
 import logger from './logger.js';
 import { initNotifier } from './notifier.js';
-import { parseOwnHub, parseOwnUser, parsePrivateJoin } from './payloads.js';
+import {
+    parseDevice,
+    parseOwnHub,
+    parseOwnUser,
+    parsePrivateJoin,
+} from './payloads.js';
 import { initRoom } from './room.js';
 import { validate, validateOneOf, validateParams } from './validators.js';
 import { VERSION } from './version.js';
@@ -292,6 +297,44 @@ const initKabelwerk = function () {
             }
 
             return connector.getSocket().ping(callback);
+        },
+
+        // Update the push notifications settings for the currently connected
+        // device. Return a promise resolving into the updated device info.
+        //
+        updateDevice: function (params) {
+            ensureReady();
+
+            params = validateParams(params, {
+                pushNotificationsToken: { type: 'string' },
+                pushNotificationsEnabled: { type: 'boolean' },
+            });
+
+            const pushParams = {
+                push_notifications_token: params.get('pushNotificationsToken'),
+                push_notifications_enabled: params.get(
+                    'pushNotificationsEnabled'
+                ),
+            };
+
+            return new Promise(function (resolve, reject) {
+                privateChannel
+                    .push('update_device', pushParams)
+                    .receive('ok', function (payload) {
+                        const device = parseDevice(payload);
+                        resolve(device);
+                    })
+                    .receive('error', function (error) {
+                        logger.error(
+                            "Failed to update the device's push notifications settings.",
+                            error
+                        );
+                        reject(PushRejected());
+                    })
+                    .receive('timeout', function () {
+                        reject(Timeout());
+                    });
+            });
         },
 
         // Update the connected user's info. Return a promise resolving into

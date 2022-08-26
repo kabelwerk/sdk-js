@@ -11,8 +11,8 @@ PayloadFactory.user = (function () {
     let timestamp = new Date().getTime();
 
     return function (params) {
-        let id = ++counter;
-        let dt = new Date(timestamp + id * 1000);
+        const id = ++counter;
+        const dt = new Date(timestamp + id * 1000);
 
         return {
             hub_id: null,
@@ -20,6 +20,31 @@ PayloadFactory.user = (function () {
             inserted_at: dt.toJSON(),
             key: `key_${id}`,
             name: `user ${id}`,
+            updated_at: dt.toJSON(),
+        };
+    };
+})();
+
+// Generate a response to an update_device push.
+//
+PayloadFactory.device = (function () {
+    let counter = 0;
+
+    return function (params = {}) {
+        const id = ++counter;
+        const dt = new Date();
+
+        return {
+            id: id,
+            inserted_at: dt.toJSON(),
+            push_notifications_enabled:
+                'push_notifications_enabled' in params
+                    ? params.push_notifications_enabled
+                    : false,
+            push_notifications_token:
+                'push_notifications_token' in params
+                    ? params.push_notifications_token
+                    : 'TOKEN',
             updated_at: dt.toJSON(),
         };
     };

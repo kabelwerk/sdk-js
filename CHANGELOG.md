@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 (TBA)
+
+-   Kabelwerk object: new method `updateDevice()` for storing and updating push notifications settings for the currently connected device ([docs](./docs/kabelwerk.md#list-of-methods)).
+
 ## 0.3.3 (2022-08-11)
 
 -   New chat message type: `image` ([docs](./docs/messages.md)).

@@ -118,6 +118,7 @@ Kabelwerk.loadHubInfo()
 -   **`Kabelwerk.openNotifier()`** → Initialises and returns a [notifier object](./notifiers.md).
 -   **`Kabelwerk.openRoom(roomId)`** → Initialises and returns a [room object](./rooms.md) for the chat room with the given ID. Alternatively, the method can be called without a parameter, in which case one of the rooms belonging to the connected user will be opened — useful when you have a single hub.
 -   **`Kabelwerk.ping(callback)`** → Pings the Kabelwerk server and invokes the given callback with the round-trip time in milliseconds when the response is received. Returns a boolean indicating whether the ping has been sent.
+-   **`Kabelwerk.updateDevice(attributes)`** → Sets and/or updates push notifications settings for the currently connected device. Expects a `{ pushNotificationsToken, pushNotificationsEnabled }` object where the token is a [Firebase registration token](https://firebase.google.com/docs/cloud-messaging) and the other value is a boolean allowing you to toggle the sending of push notifications to the currently connected device. Returns a Promise. If you do not want to have push notifications, you can safely ignore this method — in which case also no information about the currently connected device will be stored in the Kabelwerk database.
 -   **`Kabelwerk.updateUser(attributes)`** → Updates the connected user's name. Expects a `{ name }` object and returns a Promise.
 
 ## List of events

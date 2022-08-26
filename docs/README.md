@@ -10,6 +10,8 @@ The SDK is available as an [npm package](https://www.npmjs.com/package/kabelwerk
 npm install kabelwerk
 ```
 
+Releases follow semantic versioning. Make sure to check the [CHANGELOG](https://github.com/kabelwerk/sdk-js/blob/master/CHANGELOG.md) whenever upgrading to a newer version.
+
 ## Connection
 
 The entry point is [the Kabelwerk object](./kabelwerk.md), which opens and maintains the websocket connection to the Kabelwerk backend.

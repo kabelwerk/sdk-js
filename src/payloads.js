@@ -34,6 +34,18 @@ export const parseOwnHub = function (payload) {
     };
 };
 
+// Parse the payload of a update_device response.
+//
+export const parseDevice = function (payload) {
+    return {
+        id: payload.id,
+        insertedAt: new Date(payload.inserted_at),
+        pushNotificationsEnabled: payload.push_notifications_enabled,
+        pushNotificationsToken: payload.push_notifications_token,
+        updatedAt: new Date(payload.updated_at),
+    };
+};
+
 //
 // user inbox channel
 //

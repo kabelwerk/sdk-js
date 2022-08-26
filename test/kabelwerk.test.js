@@ -239,6 +239,72 @@ describe('user info', () => {
     });
 });
 
+describe('update device', () => {
+    const params = {
+        pushNotificationsToken: 'TOKEN',
+        pushNotificationsEnabled: false,
+    };
+
+    let kabelwerk = null;
+
+    beforeEach(() => {
+        kabelwerk = initKabelwerk();
+        kabelwerk.config({ url, token });
+        kabelwerk.connect();
+
+        MockSocket.__open();
+        MockPush.__serverRespond('ok', PayloadFactory.privateJoin());
+    });
+
+    test('push params', () => {
+        kabelwerk.updateDevice(params);
+
+        expect(MockChannel.push).toHaveBeenCalledTimes(1);
+        expect(MockChannel.push).toHaveBeenCalledWith('update_device', {
+            push_notifications_token: 'TOKEN',
+            push_notifications_enabled: false,
+        });
+    });
+
+    test('server responds with ok', () => {
+        expect.assertions(5);
+
+        const device = PayloadFactory.device();
+
+        kabelwerk.updateDevice(params).then((res) => {
+            expect(res.id).toBe(device.id);
+            expect(res.insertedAt.toJSON()).toBe(device.inserted_at);
+            expect(res.pushNotificationsEnabled).toBe(false);
+            expect(res.pushNotificationsToken).toBe('TOKEN');
+            expect(res.updatedAt.toJSON()).toBe(device.updated_at);
+        });
+
+        MockPush.__serverRespond('ok', device);
+    });
+
+    test('server responds with error', () => {
+        expect.assertions(2);
+
+        kabelwerk.updateDevice(params).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(PUSH_REJECTED);
+        });
+
+        MockPush.__serverRespond('error');
+    });
+
+    test('server times out', () => {
+        expect.assertions(2);
+
+        kabelwerk.updateDevice(params).catch((error) => {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.name).toBe(TIMEOUT);
+        });
+
+        MockPush.__serverRespond('timeout');
+    });
+});
+
 describe('create room', () => {
     const user = PayloadFactory.user();
     const joinRes = PayloadFactory.privateJoin({ user });
