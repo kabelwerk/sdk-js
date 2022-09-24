@@ -3,7 +3,7 @@
 ## 0.3.4 (TBA)
 
 -   Kabelwerk object: new method `updateDevice()` for storing and updating push notifications settings for the currently connected device ([docs](./docs/kabelwerk.md#list-of-methods)).
--   Upgraded Phoenix to [1.6.11](https://hexdocs.pm/phoenix/1.6.11/js/).
+-   Upgraded Phoenix to [1.6.12](https://hexdocs.pm/phoenix/1.6.12/js/).
 
 ## 0.3.3 (2022-08-11)
 
