@@ -152,8 +152,9 @@ room.updateHubUser(Kabelwerk.getUser().id)
 
 ## List of methods
 
--   **`room.archive(until)`** → Marks the room as archived. If the optional parameter `until` is specified (it should be a Date object), the room will be automatically un-archived at that point in time; the default value is `null`, meaning that the room will not automatically move out of the archive. Returns a Promise. This method is only available on the hub side.
+-   **`room.archive(until)`** → Marks the room as archived. If the optional parameter `until` is specified (as a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) instance), the room will be automatically un-archived at that point in time; the default value is `null`, meaning that the room will not automatically move out of the archive. Returns a Promise. This method is only available on the hub side.
 -   **`room.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
+-   **`room.deleteMessage(messageId)`** → Deletes a message from the room. The message must have been posted by the connected user — users can only delete their own messages. Returns a Promise which resolves into the deleted [message](./messages.md).
 -   **`room.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.
 -   **`room.getAttributes()`** → Returns the room's custom attributes.
 -   **`room.getHubUser()`** → Returns the hub user who is assigned to this room, as an `{ id, key, name }` object. Returns `null` if there is no hub user assigned to this room. This method is only available on the hub side.
@@ -165,7 +166,7 @@ room.updateHubUser(Kabelwerk.getUser().id)
 -   **`room.off(event, ref)`** → Removes one or more previously attached event listeners. Both parameters are optional: if no `ref` is given, all listeners for the given `event` are removed; if no `event` is given, then all event listeners attached to the room object are removed.
 -   **`room.on(event, listener)`** → Attaches an event listener. See [next section](#list-of-events) for a list of available events. Returns a short string identifying the attached listener — which string can be then used to remove that event listener via the `room.off(event, ref)` method.
 -   **`room.once(event, listener)`** → The same as the `room.on(event, listener)` method, except that the listener will be automatically removed after being invoked — i.e. the listener is invoked at most once.
--   **`room.postMessage(params)`** → Posts a new message in the chat room. The parameter should be either a `{ text }` object if you want to create a text message or an `{ uploadId }` object if you want to create an image message. Returns a Promise which resolves into the newly added message.
+-   **`room.postMessage(params)`** → Posts a new message in the chat room. The parameter should be either a `{ text }` object if you want to create a text message or an `{ uploadId }` object if you want to create an image message. Returns a Promise which resolves into the newly added [message](./messages.md).
 -   **`room.postUpload(file)`** → Uploads a file in the chat room. The parameter is expected to be a [File](https://developer.mozilla.org/en-US/docs/Web/API/File) object or a platform-specific equivalent (e.g. an object with an `uri` attribute in the case of React Native). Returns a Promise which resolves into an [upload object](./uploads.md) (the ID of which can be then used to post an image message).
 -   **`room.unarchive()`** → Marks the room as not archived. Returns a Promise. This method is only available on the hub side.
 -   **`room.updateAttributes(attributes)`** → Sets the room's custom attributes. Returns a Promise.
@@ -175,8 +176,9 @@ room.updateHubUser(Kabelwerk.getUser().id)
 
 -   **`error`** → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
 -   **`ready`** → Fired at most once, when the connection to the server is first established. The attached listeners are called with an object containing (1) a list of the room's most recent messages, and (2) the list of the room's markers.
--   **`message_posted`** → Fired when there is a new message posted in the room. If the websocket connection drops, fired upon reconnecting for each message posted while the websocket was disconnected. The attached listeners are called with the newly added message.
--   **`marker_moved`** → Fired when a marker in the room is updated (or created). If the websocket connection drops, fired upon reconnecting for each marker moved while the websocket was disconnected. The attached listeners are called with the updated marker object.
+-   **`message_posted`** → Fired when there is a new message posted in the room (by any user). If the websocket connection drops, fired upon reconnecting for each message posted while the websocket was disconnected. The attached listeners are called with the newly added [message](./messages.md).
+-   **`message_deleted`** → Fired when a message is deleted from the room (by any user). The attached listeners are called with the deleted [message](./messages.md).
+-   **`marker_moved`** → Fired when a marker in the room is updated or created (by any user). If the websocket connection drops, fired upon reconnecting for each marker moved while the websocket was disconnected. The attached listeners are called with the updated marker object.
 
 ## See also
 

@@ -127,7 +127,8 @@ export const parseHubRoom = function (payload) {
     });
 };
 
-// Parse the payload of a message_posted event or a post_message response.
+// Parse the payload of a message_posted or a message_deleted event — or a
+// post_message or a delete_message response.
 //
 export const parseMessage = function (payload) {
     return {

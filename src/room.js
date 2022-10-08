@@ -22,8 +22,9 @@ const initRoom = function (socket, user, roomId, callApi) {
     const dispatcher = initDispatcher([
         'error',
         'ready',
-        'marker_moved',
         'message_posted',
+        'message_deleted',
+        'marker_moved',
     ]);
 
     // internal state
@@ -96,13 +97,18 @@ const initRoom = function (socket, user, roomId, callApi) {
         });
 
         channel.on('message_posted', function (payload) {
-            let message = parseMessage(payload);
+            const message = parseMessage(payload);
 
             if (message.id > lastMessageId) {
                 lastMessageId = message.id;
             }
 
             dispatcher.send('message_posted', message);
+        });
+
+        channel.on('message_deleted', function (payload) {
+            const message = parseMessage(payload);
+            dispatcher.send('message_deleted', message);
         });
 
         channel.on('marker_moved', function (payload) {
@@ -229,6 +235,33 @@ const initRoom = function (socket, user, roomId, callApi) {
             }
 
             setupChannel();
+        },
+
+        // Delete a chat message (as long as it belongs to the connected user).
+        // Return a promise resolving into the deleted message.
+        //
+        deleteMessage: function (messageId) {
+            try {
+                validate(messageId, { type: 'integer' });
+            } catch (error) {
+                throw UsageError('The message ID must be an integer.');
+            }
+
+            return new Promise(function (resolve, reject) {
+                channel
+                    .push('delete_message', { message: messageId })
+                    .receive('ok', function (payload) {
+                        const message = parseMessage(payload);
+                        resolve(message);
+                    })
+                    .receive('error', function (error) {
+                        logger.error('Failed to delete the message.', error);
+                        reject(PushRejected());
+                    })
+                    .receive('timeout', function () {
+                        reject(Timeout());
+                    });
+            });
         },
 
         disconnect: function () {
@@ -382,7 +415,7 @@ const initRoom = function (socket, user, roomId, callApi) {
                 channel
                     .push('post_message', pushParams)
                     .receive('ok', function (payload) {
-                        let message = parseMessage(payload);
+                        const message = parseMessage(payload);
 
                         if (message.id > lastMessageId) {
                             lastMessageId = message.id;

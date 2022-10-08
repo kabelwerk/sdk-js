@@ -3,6 +3,8 @@
 ## 0.3.4 (TBA)
 
 -   Kabelwerk object: new method `updateDevice()` for storing and updating push notifications settings for the currently connected device ([docs](./docs/kabelwerk.md#list-of-methods)).
+-   Rooms: new method `deleteMessage()` ([docs](./docs/rooms.md#list-of-methods)).
+-   Rooms: new event `message_deleted` ([docs](./docs/rooms.md#list-of-events)).
 -   Upgraded Phoenix to [1.6.13](https://hexdocs.pm/phoenix/1.6.13/js/).
 
 ## 0.3.3 (2022-08-11)
