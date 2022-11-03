@@ -24,7 +24,7 @@
   "type": "module",
   "repository": "github:kabelwerk/sdk-js",
   "dependencies": {
-    "phoenix": "1.6.14"
+    "phoenix": "1.6.15"
   },
   "devDependencies": {
     "jest": "^29.0.3",
