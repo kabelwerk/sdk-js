@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.4 (TBA)
+## 0.3.4 (2022-11-04)
 
 -   Kabelwerk object: new method `updateDevice()` for storing and updating push notifications settings for the currently connected device ([docs](./docs/kabelwerk.md#list-of-methods)).
 -   Rooms: new method `deleteMessage()` ([docs](./docs/rooms.md#list-of-methods)).
