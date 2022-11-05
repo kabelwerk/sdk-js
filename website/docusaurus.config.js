@@ -68,16 +68,7 @@ const config = {
             style: 'dark',
             links: [
                 {
-                    title: 'Docs',
-                    items: [
-                        {
-                            label: 'Getting started',
-                            to: '/',
-                        },
-                    ],
-                },
-                {
-                    title: 'The SDK',
+                    title: 'This SDK',
                     items: [
                         {
                             label: 'GitHub',
@@ -86,6 +77,19 @@ const config = {
                         {
                             label: 'npm',
                             href: 'https://www.npmjs.com/package/kabelwerk',
+                        },
+                    ],
+                },
+                {
+                    title: 'Other SDKs',
+                    items: [
+                        {
+                            label: 'React Native',
+                            href: 'https://docs.kabelwerk.io/react-native/',
+                        },
+                        {
+                            label: 'Dart',
+                            href: 'https://github.com/kabelwerk/sdk-dart',
                         },
                     ],
                 },
