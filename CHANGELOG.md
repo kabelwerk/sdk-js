@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.5 (TBA)
+
+-   New chat message type: `attachment` ([docs](./docs/messages.md)).
+-   Rooms: `postMessage` can now post attachment messages ([docs](./docs/rooms.md#list-of-methods)).
+
 ## 0.3.4 (2022-11-04)
 
 -   Kabelwerk object: new method `updateDevice()` for storing and updating push notifications settings for the currently connected device ([docs](./docs/kabelwerk.md#list-of-methods)).

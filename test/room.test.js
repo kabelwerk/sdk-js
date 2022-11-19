@@ -196,6 +196,39 @@ describe('message posted event', () => {
 
         MockChannel.__serverPush('message_posted', message);
     });
+
+    test('an attachment message', () => {
+        expect.assertions(17);
+
+        const upload = PayloadFactory.upload({ mime_type: 'application/pdf' });
+        const message = PayloadFactory.message({
+            type: 'attachment',
+            upload: upload,
+        });
+
+        room.on('message_posted', (res) => {
+            expect(res.html).toBe(message.html);
+            expect(res.id).toBe(message.id);
+            expect(res.insertedAt.toJSON()).toBe(message.inserted_at);
+            expect(res.roomId).toBe(message.room_id);
+            expect(res.text).toBe(message.text);
+            expect(res.type).toBe(message.type);
+            expect(res.updatedAt.toJSON()).toBe(message.updated_at);
+            expect(res.user).toBe(message.user);
+
+            expect(res.upload.id).toBe(upload.id);
+            expect(res.upload.mimeType).toBe(upload.mime_type);
+            expect(res.upload.name).toBe(upload.name);
+            expect(res.upload.original.height).toBe(upload.original.height);
+            expect(res.upload.original.url).toBe(upload.original.url);
+            expect(res.upload.original.width).toBe(upload.original.width);
+            expect(res.upload.preview.height).toBe(upload.preview.height);
+            expect(res.upload.preview.url).toBe(upload.preview.url);
+            expect(res.upload.preview.width).toBe(upload.preview.width);
+        });
+
+        MockChannel.__serverPush('message_posted', message);
+    });
 });
 
 describe('message deleted event', () => {
@@ -448,16 +481,14 @@ describe('post message in room', () => {
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
             text: 'hello server!',
-            type: 'text',
         });
     });
 
-    test('push params, image message', () => {
+    test('push params, upload message', () => {
         room.postMessage({ uploadId: 2 });
 
         expect(MockChannel.push).toHaveBeenCalledTimes(1);
         expect(MockChannel.push).toHaveBeenCalledWith('post_message', {
-            type: 'image',
             upload: 2,
         });
     });

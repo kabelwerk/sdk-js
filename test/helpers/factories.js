@@ -230,29 +230,60 @@ PayloadFactory.marker = function (params = {}) {
     };
 };
 
-// Generate an upload object — used in messages of type image.
+// Generate an upload object — used in messages of types image and attachment.
 //
 PayloadFactory.upload = (function () {
     let counter = 0;
 
-    return function (params = {}) {
-        const id = ++counter;
-
+    const imageUpload = function (id) {
         return {
             id: id,
-            mime_type: 'mime_type' in params ? params.mime_type : 'image/jpeg',
-            name: 'name' in params ? params.name : 'axolotl.jpg',
+            mime_type: 'image/jpeg',
+            name: 'axolotl.jpg',
             original: {
                 height: 358,
-                url: `https://kabelwerk.io/media/uploads/${id}`,
+                url: `https://hub.kabelwerk.io/media/uploads/TOKEN-${id}`,
                 width: 480,
             },
             preview: {
                 height: 358,
-                url: `https://kabelwerk.io/media/uploads/${id}/preview`,
+                url: `https://hub.kabelwerk.io/media/uploads/TOKEN-${id}/preview`,
                 width: 480,
             },
         };
+    };
+
+    const pdfUpload = function (id) {
+        return {
+            id: id,
+            mime_type: 'application/pdf',
+            name: 'document.pdf',
+            original: {
+                height: null,
+                url: `https://hub.kabelwerk.io/media/uploads/TOKEN-${id}`,
+                width: null,
+            },
+            preview: {
+                height: 96,
+                url: 'https://hub.kabelwerk.io/assets/attachment.png',
+                width: 96,
+            },
+        };
+    };
+
+    return function (params = {}) {
+        const id = ++counter;
+        const mimeType =
+            'mime_type' in params ? params.mime_type : 'image/jpeg';
+
+        switch (mimeType) {
+            case 'application/pdf':
+                return pdfUpload(id);
+            case 'image/jpeg':
+                return imageUpload(id);
+            default:
+                throw new Error('not implemented');
+        }
     };
 })();
 

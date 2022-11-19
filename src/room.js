@@ -408,8 +408,8 @@ const initRoom = function (socket, user, roomId, callApi) {
             }
 
             const pushParams = params.has('text')
-                ? { type: 'text', text: params.get('text') }
-                : { type: 'image', upload: params.get('uploadId') };
+                ? { text: params.get('text') }
+                : { upload: params.get('uploadId') };
 
             return new Promise(function (resolve, reject) {
                 channel
