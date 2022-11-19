@@ -13,6 +13,14 @@ import { ellideText } from './utils/text';
 const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
   const { inboxItems } = React.useContext(KabelwerkContext);
 
+  const renderExcerpt = function (message) {
+    if (message.type == 'attachment' || message.type == 'image') {
+      return `(${message.type})`;
+    } else {
+      return ellideText(20, message.text);
+    }
+  };
+
   return (
     <Pane flex="0 0 300px" backgroundColor="#696f8c">
       <Heading color="white" size={700} marginX={16} marginY={32}>
@@ -55,14 +63,7 @@ const Sidebar = ({ resetToken, setActiveRoom, activeRoomId }) => {
                       : item.message.user.name}
                   </span>
                   &nbsp;&mdash;&nbsp;
-                  {item.message.type == 'image' ? (
-                    <img
-                      src={item.message.upload.preview.url}
-                      alt={item.message.upload.name}
-                    />
-                  ) : (
-                    ellideText(20, item.message.text)
-                  )}
+                  {renderExcerpt(item.message)}
                 </Paragraph>
               ) : (
                 <Paragraph color="white" fontStyle="italic">

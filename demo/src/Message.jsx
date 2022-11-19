@@ -42,7 +42,7 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
           display="flex"
           flexDirection="column"
         >
-          {message.type == 'image' ? (
+          {message.type == 'attachment' || message.type == 'image' ? (
             <p>
               <a
                 href={message.upload.original.url}
@@ -54,7 +54,11 @@ const Message = ({ message, showUserName, isLastMessage, marker }) => {
                   width={message.upload.preview.width}
                   height={message.upload.preview.height}
                   alt={message.upload.name}
+                  style={{ display: 'block' }}
                 />
+                {message.type == 'attachment' && (
+                  <Text>{message.upload.name}</Text>
+                )}
               </a>
             </p>
           ) : (

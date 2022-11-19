@@ -22,6 +22,9 @@ const MessageForm = function ({ postMessage, postUpload }) {
   // the src of the upload preview <img>
   const [uploadPreviewUrl, setUploadPreviewUrl] = React.useState('');
 
+  // the alt of the upload preview <img>
+  const [uploadPreviewAlt, setUploadPreviewAlt] = React.useState('');
+
   // called when the user submits a text message
   const submitText = function () {
     if (draft.length > 0) {
@@ -33,8 +36,8 @@ const MessageForm = function ({ postMessage, postUpload }) {
     }
   };
 
-  // called when the user submits an image message
-  const submitImage = function () {
+  // called when the user submits an image or attachment message
+  const submitUpload = function () {
     if (fileInput.current.files.length) {
       postUpload(fileInput.current.files[0])
         .then((upload) => postMessage({ uploadId: upload.id }))
@@ -65,6 +68,8 @@ const MessageForm = function ({ postMessage, postUpload }) {
         return URL.createObjectURL(fileInput.current.files[0]);
       });
 
+      setUploadPreviewAlt(fileInput.current.files[0].name);
+
       setShowUploadPreview(true);
     }
   };
@@ -82,7 +87,7 @@ const MessageForm = function ({ postMessage, postUpload }) {
     >
       <input
         type="file"
-        accept="image/*"
+        accept="application/pdf,image/*"
         name="upload"
         style={{ display: 'none' }}
         ref={fileInput}
@@ -108,11 +113,12 @@ const MessageForm = function ({ postMessage, postUpload }) {
         hasHeader={false}
         confirmLabel="Send"
         onCloseComplete={() => setShowUploadPreview(false)}
-        onConfirm={submitImage}
+        onConfirm={submitUpload}
       >
         <div style={{ marginTop: 32 }}>
           <img
             src={uploadPreviewUrl}
+            alt={uploadPreviewAlt}
             style={{ display: 'block', margin: 'auto' }}
           />
         </div>
