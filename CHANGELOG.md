@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.5 (TBA)
+## 0.3.5 (2022-11-26)
 
 -   New chat message type: `attachment` ([docs](./docs/messages.md)).
 -   Rooms: `postMessage` can now post attachment messages ([docs](./docs/rooms.md#list-of-methods)).
