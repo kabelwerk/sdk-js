@@ -5,7 +5,7 @@ const sidebars = {
             type: 'category',
             label: 'Kabelwerk',
             link: { type: 'doc', id: 'kabelwerk' },
-            items: ['connection-states'],
+            items: ['config', 'connection-states'],
             collapsible: true,
             collapsed: false,
         },
