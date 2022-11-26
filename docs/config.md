@@ -1,6 +1,6 @@
 # Configuration
 
-## Example
+The connection parameters and logging level are set via the [`Kabelwerk.config(options)`](./kabelwerk.md#list-of-methods) method.
 
 ```js
 Kabelwerk.config({
@@ -16,7 +16,7 @@ Kabelwerk.config({
 Kabelwerk.config({ logging: 'silent' });
 ```
 
-## Reference
+## Options
 
 ### `url`
 
@@ -40,7 +40,7 @@ If you provide only a `token`, it will be used both for the initial connection a
 
 ### `ensureRooms`
 
-If this setting is provided, Kabelwerk will make sure that the connected user has a room on each of the specified hubs. The value could be either a list of hub slugs or the string `'all'` — in which case a room is created for the user on every hub. If Kabelwerk fails to ensure that the rooms are created (e.g. if there does not exists a hub with one of the given slugs), an `error` event is emitted and the connection is terminated. This setting is only applicable for end users.
+If this setting is provided, Kabelwerk will make sure that the connected user has a room on each of the specified hubs. The value could be either a list of hub slugs or the string `'all'` — in which case a room is created for the user on every hub. If Kabelwerk fails to ensure that the rooms are created (e.g. if there does not exists a hub with one of the given slugs), an [`error`](./kabelwerk.md#list-of-events) event is emitted and the connection is terminated. This setting is only applicable for end users.
 
 ### `logging`
 

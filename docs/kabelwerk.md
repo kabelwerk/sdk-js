@@ -94,7 +94,7 @@ Kabelwerk.loadHubInfo()
 
 ## List of methods
 
--   **`Kabelwerk.config(opts)`** → Sets the [configuration](#config). This method should be called at least once before invoking `Kabelwerk.connect()` in order to set an authentication token.
+-   **`Kabelwerk.config(options)`** → Sets the [configuration](#config). This method should be called at least once before invoking `Kabelwerk.connect()` in order to set an authentication token.
 -   **`Kabelwerk.connect()`** → Establishes connection to the server. Usually all event listeners should be already attached when this method is invoked.
 -   **`Kabelwerk.createRoom(hubIdOrSlug)`** → Creates a chat room between the connected user and a hub. Returns a Promise resolving into an `{ id }` object holding the ID of the newly created room. This method is intended to be used on the end side.
 -   **`Kabelwerk.disconnect()`** → Removes all previously attached event listeners and closes the connection to the server.

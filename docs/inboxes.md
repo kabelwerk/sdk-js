@@ -121,9 +121,9 @@ For the time being, the search functionality is not very sophisticated: the sear
 
 ## List of events
 
--   `error` → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
--   `ready` → Fired at most once, when the connection to the server is first established. The attached listeners are called with an `{items}` object containing the list of initially loaded inbox items.
--   `updated` → Fired when any of the inbox items changes. An inbox update is triggered by a new message posted in any of the rooms (including rooms not yet loaded); on the hub side it is also triggered by moving rooms between inboxes. Also, if the websocket connection drops, the event is fired upon reconnect if any update occurred while the websocket was disconnected. The attached listeners are called with an `{items}` object containing the updated (and re-ordered) list of inbox items.
+-   **`error`** → Fired when there is a problem establishing connection to the server (e.g. because of a timeout). The attached listeners are called with an extended Error instance.
+-   **`ready`** → Fired at most once, when the connection to the server is first established. The attached listeners are called with an `{items}` object containing the list of initially loaded inbox items.
+-   **`updated`** → Fired when any of the inbox items changes. An inbox update is triggered by a new message posted in any of the rooms (including rooms not yet loaded); on the hub side it is also triggered by moving rooms between inboxes. Also, if the websocket connection drops, the event is fired upon reconnect if any update occurred while the websocket was disconnected. The attached listeners are called with an `{items}` object containing the updated (and re-ordered) list of inbox items.
 
 ## See also
 
