@@ -1,0 +1,20 @@
+name: deploy
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: appleboy/ssh-action@master
+        with:
+          host: kabelwerk.io
+          username: kabelwerk
+          key: ${{ secrets.WEBSITE_SSH_KEY }}
+          script: ~/bin/deploy_sdk_js
