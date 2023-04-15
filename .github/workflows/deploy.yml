@@ -1,0 +1,24 @@
+name: deploy
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [closed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # do not deploy when triggered by a PR that is closed without being merged
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+
+    steps:
+      - uses: appleboy/ssh-action@master
+        with:
+          host: kabelwerk.io
+          username: kabelwerk
+          key: ${{ secrets.WEBSITE_SSH_KEY }}
+          script: ~/bin/deploy_sdk_js

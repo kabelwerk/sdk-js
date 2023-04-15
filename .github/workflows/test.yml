@@ -1,13 +1,11 @@
-name: npm test
+name: run unit tests
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
 
   pull_request:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
   run_tests:
