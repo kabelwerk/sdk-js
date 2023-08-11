@@ -81,7 +81,7 @@ const initKabelwerk = function () {
             .receive('error', function (error) {
                 logger.error(
                     "Failed to join the user's private channel.",
-                    error
+                    error,
                 );
 
                 dispatcher.send('error', PushRejected());
@@ -313,7 +313,7 @@ const initKabelwerk = function () {
             const pushParams = {
                 push_notifications_token: params.get('pushNotificationsToken'),
                 push_notifications_enabled: params.get(
-                    'pushNotificationsEnabled'
+                    'pushNotificationsEnabled',
                 ),
             };
 
@@ -327,7 +327,7 @@ const initKabelwerk = function () {
                     .receive('error', function (error) {
                         logger.error(
                             "Failed to update the device's push notifications settings.",
-                            error
+                            error,
                         );
                         reject(PushRejected());
                     })
@@ -357,7 +357,7 @@ const initKabelwerk = function () {
                     .receive('error', function (error) {
                         logger.error(
                             "Failed to update the user's info.",
-                            error
+                            error,
                         );
                         reject(PushRejected());
                     })

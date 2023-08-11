@@ -68,7 +68,7 @@ const initInbox = function (socket, user, params = {}) {
         if (params.has('attributes')) {
             pushParams.set(
                 'attributes',
-                Object.fromEntries(params.get('attributes'))
+                Object.fromEntries(params.get('attributes')),
             );
         }
 
@@ -208,7 +208,7 @@ const initInbox = function (socket, user, params = {}) {
         connect: function () {
             if (channel) {
                 throw UsageError(
-                    'The connect() method was already called once.'
+                    'The connect() method was already called once.',
                 );
             }
 
@@ -285,12 +285,12 @@ const initInbox = function (socket, user, params = {}) {
 
             pushParams.set(
                 'limit',
-                params.has('limit') ? params.get('limit') : 10
+                params.has('limit') ? params.get('limit') : 10,
             );
 
             pushParams.set(
                 'offset',
-                params.has('offset') ? params.get('offset') : 0
+                params.has('offset') ? params.get('offset') : 0,
             );
 
             return new Promise(function (resolve, reject) {

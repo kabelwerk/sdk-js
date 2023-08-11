@@ -119,8 +119,8 @@ const initConnector = function (config, dispatcher) {
             'error',
             ConnectionError(
                 'Closed the websocket connection due to an error.',
-                event
-            )
+                event,
+            ),
         );
     });
 
@@ -156,15 +156,15 @@ const initConnector = function (config, dispatcher) {
                         'error',
                         ConnectionError(
                             'Failed to obtain an auth token.',
-                            error
-                        )
+                            error,
+                        ),
                     );
                 });
         }
 
         throw UsageError(
             'Kabelwerk must be configured with either a token ' +
-                'or a refreshToken function in order to connect to the server.'
+                'or a refreshToken function in order to connect to the server.',
         );
     };
 
@@ -207,7 +207,7 @@ const initConnector = function (config, dispatcher) {
                     throw RequestRejected(
                         'The server rejected the request with the following error: ' +
                             `${response.status} — ${response.statusText}`,
-                        response
+                        response,
                     );
                 }
             })
@@ -217,7 +217,7 @@ const initConnector = function (config, dispatcher) {
                 } else {
                     throw ConnectionError(
                         'The request failed to reach the server.',
-                        error
+                        error,
                     );
                 }
             });

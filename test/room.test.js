@@ -20,7 +20,7 @@ describe('connect', () => {
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
         expect(MockSocket.channel).toHaveBeenCalledWith(
             'room:0',
-            expect.any(Function)
+            expect.any(Function),
         );
     });
 
@@ -333,7 +333,7 @@ describe('marker moved event', () => {
 
             expect(room.getMarkers()[1].messageId).toBe(marker.message_id);
             expect(room.getMarkers()[1].updatedAt.toJSON()).toBe(
-                marker.updated_at
+                marker.updated_at,
             );
         });
 
@@ -606,7 +606,7 @@ describe('post upload in room', () => {
         expect(callApi).toHaveBeenCalledWith(
             'POST',
             '/rooms/0/uploads',
-            expect.any(FormData)
+            expect.any(FormData),
         );
     });
 });
@@ -671,7 +671,7 @@ describe('get room markers', () => {
 
         expect(room.getMarkers()[0].messageId).toBe(newMarker.message_id);
         expect(room.getMarkers()[0].updatedAt.toJSON()).toBe(
-            newMarker.updated_at
+            newMarker.updated_at,
         );
     });
 });

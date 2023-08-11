@@ -75,7 +75,7 @@ const initNotifier = function (socket, user) {
             .receive('error', function (error) {
                 logger.error(
                     `Failed to join the ${channel.topic} channel.`,
-                    error
+                    error,
                 );
 
                 dispatcher.send('error', PushRejected());
@@ -89,7 +89,7 @@ const initNotifier = function (socket, user) {
         connect: function () {
             if (channel) {
                 throw UsageError(
-                    'The connect() method was already called once.'
+                    'The connect() method was already called once.',
                 );
             }
 

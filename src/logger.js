@@ -37,7 +37,7 @@ const logger = (function () {
         if (!LEVELS.hasOwnProperty(levelName)) {
             throw UsageError(
                 'The logging level has to be one of the following strings ' +
-                    '(case-insensitive): DEBUG, INFO, ERROR, SILENT.'
+                    '(case-insensitive): DEBUG, INFO, ERROR, SILENT.',
             );
         }
 

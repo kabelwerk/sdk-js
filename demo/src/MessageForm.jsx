@@ -29,7 +29,7 @@ const MessageForm = function ({ postMessage, postUpload }) {
   const submitText = function () {
     if (draft.length > 0) {
       postMessage({ text: draft }).catch((error) =>
-        toaster.danger(error.message)
+        toaster.danger(error.message),
       );
 
       setDraft('');

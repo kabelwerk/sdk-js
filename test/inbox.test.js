@@ -151,7 +151,7 @@ describe('user inbox connect', () => {
         inbox.connect();
 
         let joinCallback = MockPush.receive.mock.calls.find(
-            (call) => call[0] == 'ok'
+            (call) => call[0] == 'ok',
         )[1];
 
         MockPush.__serverRespond('ok', {}, false); // join response
@@ -169,7 +169,7 @@ describe('user inbox connect', () => {
         inbox.connect();
 
         let joinCallback = MockPush.receive.mock.calls.find(
-            (call) => call[0] == 'ok'
+            (call) => call[0] == 'ok',
         )[1];
 
         MockPush.__serverRespond('ok', {}, false); // join response
@@ -197,7 +197,7 @@ describe('user inbox connect', () => {
         MockPush.__serverRespond('ok', {}, false); // join response
 
         const okCalls = MockPush.receive.mock.calls.filter(
-            (call) => call[0] == 'ok'
+            (call) => call[0] == 'ok',
         );
         const joinCallback = okCalls[0][1];
         const pushCallback = okCalls[1][1];
@@ -255,7 +255,7 @@ describe('hub inbox connect', () => {
         inbox.connect();
 
         let joinCallback = MockPush.receive.mock.calls.find(
-            (call) => call[0] == 'ok'
+            (call) => call[0] == 'ok',
         )[1];
 
         MockPush.__serverRespond('ok', {}, false); // join response
@@ -347,14 +347,14 @@ describe('user inbox updated event', () => {
 
             expect(items[0].message.id).toBe(payload.message.id);
             expect(items[0].message.insertedAt.toJSON()).toBe(
-                payload.message.inserted_at
+                payload.message.inserted_at,
             );
             expect(items[0].message.text).toBe(payload.message.text);
             expect(items[0].message.type).toBe(payload.message.type);
             expect(items[0].message.roomId).toBe(payload.message.room_id);
             expect(items[0].message.user).toBe(payload.message.user);
             expect(items[0].message.updatedAt.toJSON()).toBe(
-                payload.message.updated_at
+                payload.message.updated_at,
             );
 
             expect(items[0].isNew).toBe(true);
@@ -376,14 +376,14 @@ describe('user inbox updated event', () => {
 
             expect(items[0].message.id).toBe(payload.message.id);
             expect(items[0].message.insertedAt.toJSON()).toBe(
-                payload.message.inserted_at
+                payload.message.inserted_at,
             );
             expect(items[0].message.text).toBe(payload.message.text);
             expect(items[0].message.type).toBe(payload.message.type);
             expect(items[0].message.roomId).toBe(payload.message.room_id);
             expect(items[0].message.user).toBe(payload.message.user);
             expect(items[0].message.updatedAt.toJSON()).toBe(
-                payload.message.updated_at
+                payload.message.updated_at,
             );
 
             expect(items[0].isNew).toBe(false);
@@ -431,11 +431,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ archived: false })
+            PayloadFactory.hubInboxItem({ archived: false }),
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ archived: true })
+            PayloadFactory.hubInboxItem({ archived: true }),
         );
     });
 
@@ -453,11 +453,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ archived: false })
+            PayloadFactory.hubInboxItem({ archived: false }),
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ archived: true })
+            PayloadFactory.hubInboxItem({ archived: true }),
         );
     });
 
@@ -477,13 +477,13 @@ describe('hub inbox updated event', () => {
             'inbox_updated',
             PayloadFactory.hubInboxItem({
                 attributes: { country: 'JP', foo: 'bar' },
-            })
+            }),
         );
         MockChannel.__serverPush(
             'inbox_updated',
             PayloadFactory.hubInboxItem({
                 attributes: { country: 'DE', foo: 'bar' },
-            })
+            }),
         );
     });
 
@@ -501,11 +501,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ hub_user_id: null })
+            PayloadFactory.hubInboxItem({ hub_user_id: null }),
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ hub_user_id: 2 })
+            PayloadFactory.hubInboxItem({ hub_user_id: 2 }),
         );
     });
 
@@ -523,11 +523,11 @@ describe('hub inbox updated event', () => {
 
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ hub_user_id: null })
+            PayloadFactory.hubInboxItem({ hub_user_id: null }),
         );
         MockChannel.__serverPush(
             'inbox_updated',
-            PayloadFactory.hubInboxItem({ hub_user_id: 2 })
+            PayloadFactory.hubInboxItem({ hub_user_id: 2 }),
         );
     });
 
@@ -554,7 +554,7 @@ describe('hub inbox updated event', () => {
             PayloadFactory.hubInboxItem({
                 id: roomId,
                 archived: true,
-            })
+            }),
         );
     });
 
@@ -580,7 +580,7 @@ describe('hub inbox updated event', () => {
             'inbox_updated',
             PayloadFactory.hubInboxItem({
                 id: roomId,
-            })
+            }),
         );
     });
 });

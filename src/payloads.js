@@ -168,7 +168,7 @@ export const parseRoomJoin = function (payload) {
     return Object.assign(parseRoom(payload), {
         messages: payload.messages.map(parseMessage),
         markers: payload.markers.map((item) =>
-            item == null ? null : parseMarker(item)
+            item == null ? null : parseMarker(item),
         ),
     });
 };
@@ -179,7 +179,7 @@ export const parseHubRoomJoin = function (payload) {
     return Object.assign(parseHubRoom(payload), {
         messages: payload.messages.map(parseMessage),
         markers: payload.markers.map((item) =>
-            item == null ? null : parseMarker(item)
+            item == null ? null : parseMarker(item),
         ),
     });
 };

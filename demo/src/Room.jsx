@@ -134,7 +134,7 @@ const Room = ({ id }) => {
                     message,
                     messages.length === index - 1
                       ? undefined
-                      : messages[index - 1]
+                      : messages[index - 1],
                   )}
                 />
               </Pane>

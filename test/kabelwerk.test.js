@@ -57,7 +57,7 @@ describe('connect', () => {
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
         expect(MockSocket.channel).toHaveBeenCalledWith(
             'private',
-            expect.any(Function)
+            expect.any(Function),
         );
     });
 
@@ -514,7 +514,7 @@ describe('open methods', () => {
         MockSocket.__open();
         MockPush.__serverRespond(
             'ok',
-            PayloadFactory.privateJoin({ user, room_ids: [42] })
+            PayloadFactory.privateJoin({ user, room_ids: [42] }),
         );
     });
 });

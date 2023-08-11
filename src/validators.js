@@ -153,7 +153,7 @@ const validateParams = function (params, spec) {
             value = validate(value, spec[key]);
         } catch (error) {
             throw UsageError(
-                `Invalid value passed for the parameter '${key}': ${error.message}`
+                `Invalid value passed for the parameter '${key}': ${error.message}`,
             );
         }
 

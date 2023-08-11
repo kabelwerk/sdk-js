@@ -62,7 +62,7 @@ describe('validate', () => {
     test('maps', () => {
         expect(validate({}, { type: 'map' })).toEqual(new Map());
         expect(validate({ b: 2 }, { type: 'map' })).toEqual(
-            new Map([['b', 2]])
+            new Map([['b', 2]]),
         );
 
         for (let value of [null, false, 42, '', () => {}]) {
@@ -130,8 +130,8 @@ describe('validate params', () => {
                     m: { type: 'map' },
                     n: { type: 'integer', nullable: true },
                     s: { type: 'string' },
-                }
-            )
+                },
+            ),
         ).toEqual(
             new Map([
                 ['b', true],
@@ -139,14 +139,14 @@ describe('validate params', () => {
                 ['m', new Map([['s', '']])],
                 ['n', null],
                 ['s', ''],
-            ])
+            ]),
         );
     });
 
     test('optionals', () => {
         for (let type of ['boolean', 'integer', 'map']) {
             expect(
-                validateParams({}, { x: { type: type, optional: true } })
+                validateParams({}, { x: { type: type, optional: true } }),
             ).toEqual(new Map());
         }
     });

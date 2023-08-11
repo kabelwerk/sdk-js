@@ -19,7 +19,7 @@ describe('connect', () => {
         expect(MockSocket.channel).toHaveBeenCalledTimes(1);
         expect(MockSocket.channel).toHaveBeenCalledWith(
             'notifier:1',
-            expect.any(Function)
+            expect.any(Function),
         );
 
         expect(MockChannel.join).toHaveBeenCalledTimes(1);

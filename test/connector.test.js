@@ -17,7 +17,7 @@ describe('infer urls', () => {
     test('bad config urls', () => {
         for (let badUrl of ['', 'not a url', 'https://kabelwerk.io']) {
             expect(() => inferUrls(badUrl)).toThrow(
-                /not a valid Kabelwerk URL/
+                /not a valid Kabelwerk URL/,
             );
         }
     });
@@ -117,7 +117,7 @@ describe('connect', () => {
 
         connector = initConnector(
             { url: url, refreshToken: () => Promise.reject({}) },
-            dispatcher
+            dispatcher,
         );
         connector.connect();
     });

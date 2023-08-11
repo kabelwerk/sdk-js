@@ -179,7 +179,7 @@ const initRoom = function (socket, user, roomId, callApi) {
             .receive('error', function (error) {
                 logger.error(
                     `Failed to join the ${channel.topic} channel.`,
-                    error
+                    error,
                 );
                 dispatcher.send('error', PushRejected());
             })
@@ -205,7 +205,7 @@ const initRoom = function (socket, user, roomId, callApi) {
                 validate(until, { type: 'datetime', nullable: true });
             } catch (error) {
                 throw UsageError(
-                    "The parameter 'until' must be either a valid datetime or null."
+                    "The parameter 'until' must be either a valid datetime or null.",
                 );
             }
 
@@ -230,7 +230,7 @@ const initRoom = function (socket, user, roomId, callApi) {
         connect: function () {
             if (channel) {
                 throw UsageError(
-                    'The connect() method was already called once.'
+                    'The connect() method was already called once.',
                 );
             }
 
@@ -353,7 +353,7 @@ const initRoom = function (socket, user, roomId, callApi) {
             if (messageId === undefined) {
                 if (lastMessageId == null) {
                     throw UsageError(
-                        'There must be at least one message in the room before moving the marker.'
+                        'There must be at least one message in the room before moving the marker.',
                     );
                 }
                 messageId = lastMessageId;
@@ -494,7 +494,7 @@ const initRoom = function (socket, user, roomId, callApi) {
                     .receive('error', function (error) {
                         logger.error(
                             "Failed to update the room's attributes.",
-                            error
+                            error,
                         );
                         reject(PushRejected());
                     })
@@ -529,7 +529,7 @@ const initRoom = function (socket, user, roomId, callApi) {
                     .receive('error', function (error) {
                         logger.error(
                             "Failed to update the room's assigned hub user.",
-                            error
+                            error,
                         );
                         reject(PushRejected());
                     })

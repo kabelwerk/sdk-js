@@ -9,7 +9,7 @@ import { WEBSOCKET_URL } from './backend.js';
 const App = () => {
   // the auth token, stored in the local storage
   const [token, setToken] = React.useState(() =>
-    localStorage.getItem('kabelwerk_token')
+    localStorage.getItem('kabelwerk_token'),
   );
 
   // update or delete the auth token, also in the local storage
