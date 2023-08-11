@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.6 (TBA)
+
+-   Upgraded Phoenix to [1.7.7](https://hexdocs.pm/phoenix/1.7.7/js/).
+
 ## 0.3.5 (2022-11-26)
 
 -   New chat message type: `attachment` ([docs](./docs/messages.md)).
