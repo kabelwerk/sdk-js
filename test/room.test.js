@@ -605,7 +605,7 @@ describe('post upload in room', () => {
         expect(callApi).toHaveBeenCalledTimes(1);
         expect(callApi).toHaveBeenCalledWith(
             'POST',
-            '/rooms/0/uploads',
+            '/uploads',
             expect.any(FormData),
         );
     });

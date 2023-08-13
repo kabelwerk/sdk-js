@@ -25,17 +25,17 @@ describe('infer urls', () => {
     test('good config urls', () => {
         expect(inferUrls('kabelwerk.io')).toEqual([
             'wss://kabelwerk.io/socket/user',
-            'https://kabelwerk.io/api',
+            'https://kabelwerk.io/socket-api',
         ]);
 
         expect(inferUrls('ws://kabelwerk.io')).toEqual([
             'ws://kabelwerk.io/socket/user',
-            'http://kabelwerk.io/api',
+            'http://kabelwerk.io/socket-api',
         ]);
 
         expect(inferUrls('kabelwerk.io/socket/hub')).toEqual([
             'wss://kabelwerk.io/socket/hub',
-            'https://kabelwerk.io/api',
+            'https://kabelwerk.io/socket-api',
         ]);
     });
 });
@@ -198,7 +198,7 @@ describe('connect', () => {
 
 describe('api call', () => {
     const url = 'wss://example.kabelwerk.io/socket/user';
-    const endpointUrl = 'https://example.kabelwerk.io/api/test';
+    const endpointUrl = 'https://example.kabelwerk.io/socket-api/test';
 
     const token = 'token';
     const refreshToken = jest.fn(() => Promise.resolve('newtoken'));

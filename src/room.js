@@ -440,7 +440,7 @@ const initRoom = function (socket, user, roomId, callApi) {
             const formData = new FormData();
             formData.append('file', file);
 
-            return callApi('POST', `/rooms/${roomId}/uploads`, formData);
+            return callApi('POST', `/uploads`, formData);
         },
 
         // Update the room's inbox status to not archived. Return a promise

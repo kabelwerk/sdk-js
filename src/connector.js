@@ -32,7 +32,7 @@ const inferUrls = function (configUrl) {
 
     const apiScheme = scheme == 'wss://' ? 'https://' : 'http://';
 
-    return [scheme + host + path, apiScheme + host + '/api'];
+    return [scheme + host + path, apiScheme + host + '/socket-api'];
 };
 
 // Init a connector.
