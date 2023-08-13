@@ -12,6 +12,7 @@ import {
 } from '../src/connector.js';
 import { initDispatcher } from '../src/dispatcher.js';
 import { CONNECTION_ERROR, REQUEST_REJECTED } from '../src/errors.js';
+import { VERSION } from '../src/version.js';
 
 describe('infer urls', () => {
     test('bad config urls', () => {
@@ -229,7 +230,10 @@ describe('api call', () => {
             expect(MockFetch).toHaveBeenCalledTimes(1);
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 
@@ -250,7 +254,10 @@ describe('api call', () => {
             expect(MockFetch).toHaveBeenCalledTimes(1);
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 
@@ -271,12 +278,18 @@ describe('api call', () => {
 
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
             expect(MockFetch).toHaveBeenLastCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'newtoken' },
+                headers: {
+                    'Kabelwerk-Token': 'newtoken',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 
@@ -300,12 +313,18 @@ describe('api call', () => {
 
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
             expect(MockFetch).toHaveBeenLastCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'newtoken' },
+                headers: {
+                    'Kabelwerk-Token': 'newtoken',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 
@@ -327,7 +346,10 @@ describe('api call', () => {
             expect(MockFetch).toHaveBeenCalledTimes(1);
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 
@@ -348,7 +370,10 @@ describe('api call', () => {
             expect(MockFetch).toHaveBeenCalledTimes(1);
             expect(MockFetch).toHaveBeenCalledWith(endpointUrl, {
                 method: 'POST',
-                headers: { 'Kabelwerk-Token': 'token' },
+                headers: {
+                    'Kabelwerk-Token': 'token',
+                    'User-Agent': `sdk-js/${VERSION}`,
+                },
                 body: 'req-data',
             });
 

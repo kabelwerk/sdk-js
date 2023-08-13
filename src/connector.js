@@ -172,7 +172,10 @@ const initConnector = function (config, dispatcher) {
     const sendApiRequest = function (method, path, data, token) {
         return fetch(apiUrl + path, {
             method: method,
-            headers: { 'Kabelwerk-Token': token },
+            headers: {
+                'Kabelwerk-Token': token,
+                'User-Agent': agent,
+            },
             body: data,
         });
     };
