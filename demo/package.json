@@ -12,11 +12,11 @@
     "kabelwerk": ".."
   },
   "devDependencies": {
-    "parcel": "^2.6.2",
+    "parcel": "^2.9.3",
     "process": "^0.11.10"
   },
   "dependencies": {
-    "evergreen-ui": "^6.10.1",
+    "evergreen-ui": "^7.1.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
