@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.7 (TBA)
+
+-   Upgraded Phoenix to [1.7.10](https://hexdocs.pm/phoenix/1.7.10/js/).
+
 ## 0.3.6 (2023-08-13)
 
 -   HTTP requests are now sent with User-Agent specifying the SDK version.
